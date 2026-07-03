@@ -1,0 +1,36 @@
+# AGENT_TEAM.md — [اسم المشروع]
+
+> يوثّق هذا الملف أي Sub-Agents من `03-sub-agents/` مفعّلة داخل هذا المستودع، وكيف تتفاعل مع بعضها. لا يُنشئ وكلاء جدد هنا — التعريفات المرجعية تعيش في `claude-operating-system/03-sub-agents/`.
+
+---
+
+## 1. جدول الوكلاء المفعّلين (Active Agents)
+
+| الوكيل | الملف المرجعي | يُستدعى عند | نطاق الصلاحية |
+|---|---|---|---|
+| CRAG | `03-sub-agents/crag.md` | [مثال: قبل كل PR] | قراءة فقط |
+| Product Governor | `03-sub-agents/product-governor.md` | | |
+| CFO Logic Reviewer | `03-sub-agents/cfo-logic-reviewer.md` | | |
+| Security / RLS Auditor | `03-sub-agents/security-rls-auditor.md` | | |
+| UX / RTL Reviewer | `03-sub-agents/ux-rtl-reviewer.md` | | |
+| QA / Test Reviewer | `03-sub-agents/qa-test-reviewer.md` | | |
+
+> امسح أي صف لا ينطبق على هذا المستودع.
+
+## 2. ترتيب التنفيذ (Execution Order)
+
+> إن كانت الوكلاء تعمل بالتسلسل (مثلاً في `pr-pre-merge-review.md`)، وثّق الترتيب هنا:
+
+```
+1. [وكيل أول] → 2. [وكيل ثانٍ] → 3. [وكيل ثالث] → قرار مجمّع
+```
+
+## 3. قاعدة تجميع النتائج (Aggregation Rule)
+
+- إن أصدر **أي** وكيل نتيجة **FAIL**، النتيجة الإجمالية تكون **FAIL** بصرف النظر عن نتائج البقية.
+- إن لم يوجد FAIL لكن يوجد **FIX** واحد أو أكثر، النتيجة الإجمالية **FIX**.
+- **PASS** الإجمالي يتطلب PASS من كل الوكلاء المفعّلين لهذا السياق.
+
+## 4. حدود إضافية خاصة بهذا المشروع
+
+> أي قيود على صلاحيات الوكلاء تتجاوز الحد الأدنى المعرّف في تعريف كل وكيل (يُسمح بالتشديد فقط، لا التخفيف).
