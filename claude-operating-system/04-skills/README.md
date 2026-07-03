@@ -1,5 +1,5 @@
 # NEXGEGL Skills — دليل التشغيل
-## claude-operating-system/04-skills/ — v1.0
+## claude-operating-system/04-skills/ — Skill Pack v1.0 / README wording v1.1
 
 > يُقرأ مع `../00-master-standards/NEXGEGL_CLAUDE_MASTER.md`. لا يناقضه، ولا يعيد تعريف أي مصطلح حاكم وارد فيه.
 
