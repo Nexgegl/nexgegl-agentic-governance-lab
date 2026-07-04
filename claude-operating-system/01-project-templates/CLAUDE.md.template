@@ -65,18 +65,41 @@
 
 > اذكر أي Routines من `05-routines/` مجدولة أو مفعّلة لهذا المستودع.
 
-## 9. Active Runtime Routines
+## Active Runtime Routines
 
 > هذا القسم يربط هذا المستودع فعلياً بطبقة التشغيل (Runtime) الموثَّقة في `claude-operating-system/05-routines/`. لا تُعِد تعريف أي حوكمة هنا — فقط أشِر إلى المراجع.
 
-- **PR Pre-Merge Review Routine** — `claude-operating-system/05-routines/pr-pre-merge-review.md`
-- **مراجع Skills المطلوبة:**
-  - `claude-operating-system/04-skills/claude-code-pr-review-skill.md`
-  - `claude-operating-system/04-skills/product-governance-review-skill.md`
-  - `claude-operating-system/04-skills/evidence-pack-builder-skill.md` (عند غياب الأدلة)
-- **مراجع الوكلاء المطلوبة:**
-  - `claude-operating-system/03-sub-agents/crag.md`
-  - `claude-operating-system/03-sub-agents/product-governor.md`
-  - `claude-operating-system/03-sub-agents/security-rls-auditor.md` (عند تغيّر ملفات قاعدة بيانات/مصادقة/RLS/Supabase)
+### 1. PR Pre-Merge Review Routine
 
-> **قاعدة:** لا يجوز دمج أي PR يمس الحوكمة، المصادقة، قاعدة البيانات، عزل المستأجرين (Tenant Isolation)، سلسلة قرار الذكاء الاصطناعي (AI Decision Flow)، أو مصطلحات المنتج، دون مخرجات PR Review Runtime.
+- المرجع: `claude-operating-system/05-routines/pr-pre-merge-review.md`
+
+### 2. Required Skills
+
+- `claude-operating-system/04-skills/claude-code-pr-review-skill.md`
+- `claude-operating-system/04-skills/product-governance-review-skill.md`
+- `claude-operating-system/04-skills/evidence-pack-builder-skill.md` — عند غياب الأدلة (Evidence).
+
+### 3. Required Agents
+
+- `claude-operating-system/03-sub-agents/crag.md`
+- `claude-operating-system/03-sub-agents/product-governor.md`
+- `claude-operating-system/03-sub-agents/security-rls-auditor.md` — عند مساس التغيير بقاعدة البيانات/المصادقة/RLS/Supabase/بيانات المستأجرين (Tenant Data).
+
+### 4. قاعدة حاسمة (Hard Rule)
+
+لا يجوز دمج أي PR يمس الحوكمة، المصادقة (Auth)، قاعدة البيانات، عزل المستأجرين (Tenant Isolation)، سلسلة قرار الذكاء الاصطناعي (AI Decision Flow)، مصطلحات المنتج، حدود SDGM/KFSA، تسلسل Evidence/Authority/Audit، أو تسمية ESTARED/إسترد، دون مخرجات PR Review Runtime.
+
+### 5. قاعدة صلاحية الدمج (Merge Authority Rule)
+
+`MERGE READY` توصية (Recommendation)، وليست تفويضاً آلياً للدمج (Automatic Merge Authorization). الدمج الفعلي يتطلب صاحب صلاحية بشري (Human Authority)، أو Automation مصرَّح له صراحة في سياسة هذا المستودع المحلية (انظر "Merge Authority" أدناه).
+
+### 6. عناصر تخصيص محلية (Local Customization Placeholders)
+
+> يملأ كل مستودع القيم التالية بما يخصه. لا تُعِد تعريف أي حوكمة هنا — فقط حدِّد القيمة المحلية.
+
+- **Repo Classification:** [Core IP / Product / Client / Experiment]
+- **Product Profile:** [NCGR / ESTARED / SDGM-KFSA / Sales Decision Intelligence / Client System / Other]
+- **Active Agents:** [...]
+- **Active Skills:** [...]
+- **Active Routines:** [...]
+- **Merge Authority:** [...]
