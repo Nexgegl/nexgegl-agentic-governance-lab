@@ -4,9 +4,9 @@
 
 ## Executive Verdict
 
-**PASS**
+**PASS WITH FOLLOW-UP**
 
-جميع الملفات المطلوبة موجودة، لا توجد مراجع مسارات معطوبة، لا يوجد أي نص يمنح الذكاء الاصطناعي صلاحية دمج تلقائية، عامل `legal-compliance-reviewer.md` موجود ويحقق كامل النطاق المطلوب، وبروفايلا NCGR وESTARED موجودان. يوجد بند واحد يستحق المتابعة (غير معطِّل لـ PASS): `legal-compliance-reviewer` غير مُدرَج بعد ضمن "Required Agents" الافتراضية في `CLAUDE.md.template` أو ضمن "Agents Involved" في `pr-pre-merge-review.md` — انظر قسم "Missing / Weak Items".
+جميع الملفات المطلوبة موجودة، لا توجد مراجع مسارات معطوبة، لا يوجد أي نص يمنح الذكاء الاصطناعي صلاحية دمج تلقائية، عامل `legal-compliance-reviewer.md` موجود ويحقق كامل النطاق المطلوب، وبروفايلا NCGR وESTARED موجودان. يتبقى بند متابعة واحد غير معطِّل: تضمين `legal-compliance-reviewer` بشكل شرطي ضمن `CLAUDE.md.template` و/أو `pr-pre-merge-review.md` عند مساس التغيير بادعاءات قانونية/تنظيمية/موجَّهة للعملاء — انظر قسم "Missing / Weak Items".
 
 ## Scope
 
@@ -119,4 +119,4 @@
 
 ## Final Recommendation
 
-**PASS** — الطبقة التشغيلية (Claude Operating System) جاهزة للاستخدام والتثبيت في مستودعات NCGR/ESTARED الفعلية. لا يوجد أي عنصر ناقص أو مرجع معطوب يمنع التشغيل. البند الوحيد المطلوب متابعته (غير معطِّل): التأكد عند كل تثبيت محلي فعلي من إضافة `legal-compliance-reviewer` إلى قائمة "Active Agents" صراحة متى كان المستودع يتضمن محتوى عاماً/تنظيمياً/قانونياً حساساً.
+**PASS WITH FOLLOW-UP** — الطبقة التشغيلية (Claude Operating System) جاهزة للاستخدام والتثبيت في مستودعات NCGR/ESTARED الفعلية. لا يوجد أي عنصر ناقص أو مرجع معطوب يمنع التشغيل. البند الوحيد المطلوب متابعته (غير معطِّل): التأكد عند كل تثبيت محلي فعلي من إضافة `legal-compliance-reviewer` إلى قائمة "Active Agents" صراحة متى كان المستودع يتضمن محتوى عاماً/تنظيمياً/قانونياً حساساً. This does not block merging this report, but it should open a v1.1 follow-up to conditionally wire legal-compliance-reviewer into the default template and/or PR Review Runtime.
