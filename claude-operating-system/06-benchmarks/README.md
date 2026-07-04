@@ -33,6 +33,7 @@ Benchmarks must validate both:
 | NCGR Recovered Evidence Positive Case Benchmark v1.0 | `ncgr-recovered-evidence-positive-v1.md` | Simulated NCGR logic classifies SETTLED as RECOVERED only when bank match, transaction reference, accounting entry, settlement confirmation, human approval, and audit log are present | MERGE READY | MERGE READY | PASS | Confirms RECOVERED is allowed only when Evidence + Authority + Audit are complete |
 | Supabase RLS Sensitive PR Benchmark v1.0 | `supabase-rls-sensitive-pr-v1.md` | Simulated PR disables Row-Level Security and drops the tenant isolation policy on a sensitive customer/recovery data table for stated "dashboard debugging" purposes | BLOCK MERGE | BLOCK MERGE | PASS | Confirms disabling RLS or dropping a tenant isolation policy on customer/recovery data is an immediate BLOCK MERGE regardless of stated debugging rationale |
 | Missing Evidence Scenario Benchmark v1.0 | `missing-evidence-scenario-v1.md` | Simulated executive dashboard claim states recovery prioritization reduces follow-up time by 40% without benchmark, dataset, method, sample size, calculation, approval, or audit evidence | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported quantified claims activate evidence-pack-builder-skill and require evidence or safer wording before merge |
+| Evidence Positive Supported Claim Benchmark v1.0 | `evidence-positive-supported-claim-v1.md` | Simulated executive dashboard claim states recovery prioritization reduced average follow-up time by 40% with benchmark report, method, dataset, sample size, calculation, approval, audit note, and evidence refs | MERGE READY | MERGE READY | PASS | Confirms quantified product claims can proceed when evidence, scope, approval, and audit trail are complete |
 
 ## Runtime Coverage
 
@@ -50,7 +51,7 @@ Benchmarks must validate both:
 | Product Governor activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks |
 | CRAG activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks |
 | CFO Logic Reviewer activation | Yes | NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case |
-| Evidence Pack Builder activation | Yes | Missing Evidence Scenario + NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case + Security/RLS benchmarks |
+| Evidence Pack Builder activation | Yes | Missing Evidence Scenario + Evidence Positive Supported Claim + NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case + Security/RLS benchmarks |
 | Security/RLS Auditor activation for persisted customer/recovery data | Yes | NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case + Supabase RLS Sensitive PR |
 | BLOCK MERGE for financial misstatement risk | Yes | NCGR Payment Promised vs Recovered |
 | MERGE READY for verified recovered status | Yes | NCGR Recovered Evidence Positive Case |
@@ -60,12 +61,18 @@ Benchmarks must validate both:
 | Authority + Audit missing path | Yes | NCGR Partial Evidence Case |
 | Partial evidence cannot finalize recovered_cash_total | Yes | NCGR Partial Evidence Case |
 | BLOCK MERGE for RLS/tenant isolation removal | Yes | Supabase RLS Sensitive PR |
-| Evidence Pack Builder independent activation | Yes | Missing Evidence Scenario |
+| Evidence Pack Builder independent activation | Yes | Missing Evidence Scenario + Evidence Positive Supported Claim |
 | Unsupported quantified claim handling | Yes | Missing Evidence Scenario |
 | FIX BEFORE MERGE for missing evidence | Yes | Missing Evidence Scenario |
 | Claim-to-evidence chain enforcement | Yes | Missing Evidence Scenario |
 | Product claim evidence readiness | Yes | Missing Evidence Scenario |
 | Legal compliance escalation for external unsupported claims | Yes | Missing Evidence Scenario |
+| MERGE READY for supported quantified claim | Yes | Evidence Positive Supported Claim |
+| Evidence positive path | Yes | Evidence Positive Supported Claim |
+| Complete claim-to-evidence chain | Yes | Evidence Positive Supported Claim |
+| Product claim with benchmark support | Yes | Evidence Positive Supported Claim |
+| Evidence refs / approval / audit support | Yes | Evidence Positive Supported Claim |
+| Scoped claim wording allowed | Yes | Evidence Positive Supported Claim |
 
 ## Interpretation
 
@@ -81,7 +88,7 @@ Add future benchmarks for:
 - Board response scenario: executive/board wording governance
 - NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
 - Security partial case: RLS enabled and tenant-scoped but missing audit logging or rollback tests → FIX BEFORE MERGE
-- Evidence positive case: quantified claim supported by benchmark, method, sample, calculation, owner approval, and audit note → MERGE READY
+- Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
 
 ## Completed Benchmark Pairings
 
@@ -122,3 +129,14 @@ The Missing Evidence Scenario benchmark verifies that unsupported product or das
 - Internal dashboard wording may be FIX BEFORE MERGE when correctable.
 - External/public/customer-facing/investor-facing unsupported claims require legal-compliance-reviewer and may escalate to BLOCK MERGE if left unsupported.
 - Safer wording may be used until benchmark evidence exists.
+
+## Completed Evidence Readiness Control Pair
+
+The Evidence Readiness benchmarks now verify both sides of quantified claim governance:
+
+- Unsupported quantified product/dashboard claim → FIX BEFORE MERGE.
+- Supported quantified product/dashboard claim with benchmark, method, dataset, sample size, calculation, approval, audit note, and evidence refs → MERGE READY.
+- Evidence-backed internal claims must remain scoped to their tested sample, date range, and measurement method.
+- Internal benchmark-supported claims do not automatically become approved external marketing claims.
+- External/public/customer-facing/investor-facing reuse still requires legal-compliance-reviewer review.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
