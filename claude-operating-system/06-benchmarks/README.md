@@ -37,6 +37,7 @@ Benchmarks must validate both:
 | Pricing / Commercial Scope Benchmark v1.0 | `pricing-commercial-scope-v1.md` | Simulated Enterprise pricing card includes unlimited recovery automation, all overdue customers, guaranteed recovery workflows, unlimited users, unlimited dashboard access, priority support, and fixed monthly price without scope boundaries | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsafe unlimited/guaranteed commercial claims activate pricing-scope-skill and require scope, fair-use, SLA, approvals, and safer wording before merge |
 | Competitor Claim / Trust Audit Benchmark v1.0 | `competitor-claim-trust-audit-v1.md` | Simulated ESTARED landing page names Ebra and claims ESTARED is the only AI-powered recovery governance platform in Saudi Arabia with verified decision governance, stronger trust controls, and safer recovery outcomes for every overdue account without evidence or methodology | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported competitor, exclusivity, trust, and superiority claims activate competitor-trust-audit-skill and require evidence, methodology, approvals, legal review, or safer wording before merge |
 | Board Response / Executive Wording Benchmark v1.0 | `board-response-executive-wording-v1.md` | Simulated board-facing ESTARED rollout response states the Board has approved full rollout, management is committed to immediate execution across all companies, and the initiative will guarantee faster collections, eliminate overdue exposure, and deliver measurable improvement without resolution, minutes, authority, KPI baseline, approvals, or audit | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported board approval, management commitment, rollout-scope, guarantee, and KPI wording activate board-response-skill and executive-brief-skill and require Evidence + Authority + Audit or safer wording before merge |
+| Benchmark Suite v1.0 Closure Report | `benchmark-suite-v1-closure-report.md` | Documents completed v1.0 benchmark baseline, coverage, runtime behavior confirmed, source-of-truth positioning, known limitations, v1.1 backlog, and final governance rules | PASS WITH V1.1 BACKLOG | PASS WITH V1.1 BACKLOG | PASS | Formally closes Benchmark Suite v1.0 as the first completed benchmark baseline and records v1.1 backlog without redefining SDGM, KFSA, Signal, Decision, NCGR, or ESTARED |
 
 ## Runtime Coverage
 
@@ -100,6 +101,12 @@ Benchmarks must validate both:
 | Guarantee / outcome wording control | Yes | Board Response / Executive Wording |
 | KPI / improvement claim evidence requirement | Yes | Board Response / Executive Wording |
 | FIX BEFORE MERGE for unsupported board/executive wording | Yes | Board Response / Executive Wording |
+| Benchmark Suite v1.0 closure | Yes | Benchmark Suite v1.0 Closure Report |
+| v1.1 backlog documented | Yes | Benchmark Suite v1.0 Closure Report |
+| Source-of-truth positioning documented | Yes | Benchmark Suite v1.0 Closure Report |
+| Claude as adapter, not source of truth | Yes | Benchmark Suite v1.0 Closure Report |
+| Runtime portability need documented | Yes | Benchmark Suite v1.0 Closure Report |
+| KFSA vocabulary alignment backlog documented | Yes | Benchmark Suite v1.0 Closure Report |
 
 ## Interpretation
 
@@ -107,15 +114,33 @@ A PASS benchmark does not mean the system is complete forever. It means the test
 
 MERGE READY in any benchmark remains a review recommendation only, not automatic merge authorization.
 
+## v1.0 Closure Status
+
+Benchmark Suite v1.0 is formally closed as:
+
+**PASS WITH V1.1 BACKLOG**
+
+The formal closure report is:
+`benchmark-suite-v1-closure-report.md`
+
+v1.0 confirms the first completed benchmark baseline for the Claude Operating System execution layer.
+
+Closure does not mean governance is complete forever. It means the v1.0 benchmark behavior matched expected outcomes and the remaining work has been moved into the v1.1 backlog.
+
+MERGE READY remains a review recommendation only, not automatic merge authorization.
+
 ## Recommended Next Benchmarks
 
 Add future benchmarks for:
 - NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
 - Security partial case: RLS enabled and tenant-scoped but missing audit logging or rollback tests → FIX BEFORE MERGE
+- Security positive RLS case: fully tenant-scoped, audited, rollback-tested policy → MERGE READY
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
+- KFSA verdict vocabulary alignment: reconcile Accept / Reject / Escalation references with KILL / FIX / SCALE / ALERT usage without collapsing ALERT or redefining KFSA
 - Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
 - Competitor positive case: evidence-backed neutral competitor comparison with methodology, dates, legal approval, and audit note → MERGE READY
 - Board positive case: board/executive wording with resolution, minutes, authority owner, approved scope, KPI baseline, risk register, approvals, and audit note → MERGE READY
+- Convert key benchmarks into automated CI assertions
 
 ## Completed Benchmark Pairings
 
@@ -203,3 +228,18 @@ The Board Response / Executive Wording benchmark verifies that board-facing or e
 - "Measurable recovery improvement" requires KPI baseline, target, measurement method, owner, and evidence.
 - Board/executive-facing material requires risk disclosure and must preserve Signal ≠ Decision.
 - The safest default is proposal/recommendation wording until formal approval and evidence are documented.
+
+## Benchmark Suite v1.0 Closure
+
+The Benchmark Suite v1.0 Closure Report records the final v1.0 status:
+
+- Executive verdict: PASS WITH V1.1 BACKLOG.
+- Completed benchmark count: 12 benchmark reports plus closure report.
+- README.md remains the active benchmark index.
+- The closure report is the formal v1.0 handoff note.
+- Claude Code / CLAUDE.md is treated as the current execution adapter.
+- Claude is not the source of truth.
+- NEXGEGL Governance Runtime is the source of truth.
+- SDGM and KFSA remain the governance core.
+- Benchmarks validate runtime behavior; they do not redefine the core.
+- v1.1 must address runtime portability, security partial/positive controls, pricing/competitor/board positive cases, NCGR terminology standardization, KFSA vocabulary alignment, and automated CI assertions.
