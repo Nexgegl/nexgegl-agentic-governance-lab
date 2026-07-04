@@ -139,6 +139,7 @@ NEXGEGL Governance Runtime
 | P0 | Security partial case | FIX BEFORE MERGE |
 | P0 | Security positive RLS case | MERGE READY |
 | P0 | NCGR status terminology standardization | FIX BEFORE MERGE or PASS depending on implementation |
+| P0 | KFSA verdict vocabulary alignment — reconcile Accept / Reject / Escalation references with KILL / FIX / SCALE / ALERT usage without collapsing ALERT or redefining KFSA | PASS WITH FOLLOW-UP |
 | P1 | Pricing positive case | MERGE READY |
 | P1 | Competitor positive case | MERGE READY |
 | P1 | Board positive case | MERGE READY |
@@ -157,9 +158,9 @@ NEXGEGL Governance Runtime
 - Fixed pricing cannot imply unbounded delivery obligations.
 - RLS/tenant isolation cannot be disabled for customer/recovery data.
 - Claude is adapter, not source of truth.
-- KFSA remains the core governance kernel and verdict layer, issuing Accept / Reject / Escalation verdicts based on Policy, Evidence, and Authority — this closure report does not redefine that term.
-
-> **Note on scope:** the requesting task text for this closure report also asked to state "KFSA must always remain KILL / FIX / SCALE / ALERT." That phrase does not match KFSA's actual definition in `00-master-standards/NEXGEGL_CLAUDE_MASTER.md` (KFSA = "Core Governance Kernel and Verdict Layer," issuing Accept/Reject/Escalation verdicts) or in `02-product-profiles/sdgm-kfsa/CLAUDE.sdgm-kfsa.md`. Writing it as a confirmed rule would redefine a governing term, which both the master standard's "No Silent Redefinition" rule and this report's own safety constraints forbid. It has been replaced above with the verified definition instead.
+- KFSA must not be reduced or collapsed in benchmark governance.
+- Current repository terminology around KFSA verdict vocabulary requires v1.1 alignment because some standards refer to Accept / Reject / Escalation while NEXGEGL governance usage also requires preserving the full KILL / FIX / SCALE / ALERT decision vocabulary where applicable.
+- This closure report does not redefine KFSA; it records the vocabulary alignment as a v1.1 backlog item.
 
 ## Final Recommendation
 
