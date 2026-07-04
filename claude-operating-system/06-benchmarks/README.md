@@ -38,6 +38,7 @@ Benchmarks must validate both:
 | Competitor Claim / Trust Audit Benchmark v1.0 | `competitor-claim-trust-audit-v1.md` | Simulated ESTARED landing page names Ebra and claims ESTARED is the only AI-powered recovery governance platform in Saudi Arabia with verified decision governance, stronger trust controls, and safer recovery outcomes for every overdue account without evidence or methodology | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported competitor, exclusivity, trust, and superiority claims activate competitor-trust-audit-skill and require evidence, methodology, approvals, legal review, or safer wording before merge |
 | Board Response / Executive Wording Benchmark v1.0 | `board-response-executive-wording-v1.md` | Simulated board-facing ESTARED rollout response states the Board has approved full rollout, management is committed to immediate execution across all companies, and the initiative will guarantee faster collections, eliminate overdue exposure, and deliver measurable improvement without resolution, minutes, authority, KPI baseline, approvals, or audit | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported board approval, management commitment, rollout-scope, guarantee, and KPI wording activate board-response-skill and executive-brief-skill and require Evidence + Authority + Audit or safer wording before merge |
 | Benchmark Suite v1.0 Closure Report | `benchmark-suite-v1-closure-report.md` | Documents completed v1.0 benchmark baseline, coverage, runtime behavior confirmed, source-of-truth positioning, known limitations, v1.1 backlog, and final governance rules | PASS WITH V1.1 BACKLOG | PASS WITH V1.1 BACKLOG | PASS | Formally closes Benchmark Suite v1.0 as the first completed benchmark baseline and records v1.1 backlog without redefining SDGM, KFSA, Signal, Decision, NCGR, or ESTARED |
+| KFSA Verdict Vocabulary Alignment Benchmark v1.1 | `kfsa-verdict-vocabulary-alignment-v1-1.md` | Documents and tests the terminology-alignment issue between Accept / Reject / Escalation references and KILL / FIX / SCALE / ALERT usage without redefining KFSA, collapsing KFSA into three options, or dropping ALERT | PASS WITH FOLLOW-UP | PASS WITH FOLLOW-UP | PASS | Starts v1.1 P0 alignment work by preserving KFSA vocabulary integrity and recording the required terminology map follow-up |
 
 ## Runtime Coverage
 
@@ -107,6 +108,12 @@ Benchmarks must validate both:
 | Claude as adapter, not source of truth | Yes | Benchmark Suite v1.0 Closure Report |
 | Runtime portability need documented | Yes | Benchmark Suite v1.0 Closure Report |
 | KFSA vocabulary alignment backlog documented | Yes | Benchmark Suite v1.0 Closure Report |
+| KFSA verdict vocabulary alignment benchmark | Yes | KFSA Verdict Vocabulary Alignment |
+| KFSA vocabulary collapse prevention | Yes | KFSA Verdict Vocabulary Alignment |
+| ALERT preservation control | Yes | KFSA Verdict Vocabulary Alignment |
+| Accept / Reject / Escalation alignment need documented | Yes | KFSA Verdict Vocabulary Alignment |
+| KILL / FIX / SCALE / ALERT preservation documented | Yes | KFSA Verdict Vocabulary Alignment |
+| CRAG-required terminology alignment | Yes | KFSA Verdict Vocabulary Alignment |
 
 ## Interpretation
 
@@ -136,7 +143,7 @@ Add future benchmarks for:
 - Security partial case: RLS enabled and tenant-scoped but missing audit logging or rollback tests → FIX BEFORE MERGE
 - Security positive RLS case: fully tenant-scoped, audited, rollback-tested policy → MERGE READY
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
-- KFSA verdict vocabulary alignment: reconcile Accept / Reject / Escalation references with KILL / FIX / SCALE / ALERT usage without collapsing ALERT or redefining KFSA
+- KFSA vocabulary map: identify Accept / Reject / Escalation usage, identify KILL / FIX / SCALE / ALERT usage, define scope of each vocabulary, preserve ALERT explicitly, and add CRAG-reviewed terminology standard → PASS WITH FOLLOW-UP
 - Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
 - Competitor positive case: evidence-backed neutral competitor comparison with methodology, dates, legal approval, and audit note → MERGE READY
 - Board positive case: board/executive wording with resolution, minutes, authority owner, approved scope, KPI baseline, risk register, approvals, and audit note → MERGE READY
@@ -243,3 +250,14 @@ The Benchmark Suite v1.0 Closure Report records the final v1.0 status:
 - SDGM and KFSA remain the governance core.
 - Benchmarks validate runtime behavior; they do not redefine the core.
 - v1.1 must address runtime portability, security partial/positive controls, pricing/competitor/board positive cases, NCGR terminology standardization, KFSA vocabulary alignment, and automated CI assertions.
+
+## KFSA Verdict Vocabulary Alignment v1.1
+
+The KFSA Verdict Vocabulary Alignment benchmark starts v1.1 P0 terminology-alignment work:
+
+- KFSA must not be reduced or collapsed in benchmark governance.
+- Accept / Reject / Escalation references require alignment, not silent replacement.
+- KILL / FIX / SCALE / ALERT must remain preserved where applicable.
+- ALERT must not be dropped.
+- Benchmarks must not redefine KFSA or the governance core.
+- The next required step is a CRAG-reviewed KFSA vocabulary map.
