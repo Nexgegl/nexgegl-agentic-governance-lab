@@ -64,3 +64,19 @@
 ## 8. Routines المفعّلة
 
 > اذكر أي Routines من `05-routines/` مجدولة أو مفعّلة لهذا المستودع.
+
+## 9. Active Runtime Routines
+
+> هذا القسم يربط هذا المستودع فعلياً بطبقة التشغيل (Runtime) الموثَّقة في `claude-operating-system/05-routines/`. لا تُعِد تعريف أي حوكمة هنا — فقط أشِر إلى المراجع.
+
+- **PR Pre-Merge Review Routine** — `claude-operating-system/05-routines/pr-pre-merge-review.md`
+- **مراجع Skills المطلوبة:**
+  - `claude-operating-system/04-skills/claude-code-pr-review-skill.md`
+  - `claude-operating-system/04-skills/product-governance-review-skill.md`
+  - `claude-operating-system/04-skills/evidence-pack-builder-skill.md` (عند غياب الأدلة)
+- **مراجع الوكلاء المطلوبة:**
+  - `claude-operating-system/03-sub-agents/crag.md`
+  - `claude-operating-system/03-sub-agents/product-governor.md`
+  - `claude-operating-system/03-sub-agents/security-rls-auditor.md` (عند تغيّر ملفات قاعدة بيانات/مصادقة/RLS/Supabase)
+
+> **قاعدة:** لا يجوز دمج أي PR يمس الحوكمة، المصادقة، قاعدة البيانات، عزل المستأجرين (Tenant Isolation)، سلسلة قرار الذكاء الاصطناعي (AI Decision Flow)، أو مصطلحات المنتج، دون مخرجات PR Review Runtime.
