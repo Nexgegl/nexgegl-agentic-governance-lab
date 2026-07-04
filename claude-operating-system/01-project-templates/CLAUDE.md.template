@@ -82,10 +82,11 @@
 - `claude-operating-system/03-sub-agents/crag.md`
 - `claude-operating-system/03-sub-agents/product-governor.md`
 - `claude-operating-system/03-sub-agents/security-rls-auditor.md` — عند مساس التغيير بقاعدة البيانات/المصادقة/RLS/Supabase/بيانات المستأجرين (Tenant Data).
+- `claude-operating-system/03-sub-agents/legal-compliance-reviewer.md` — إلزامي عند مساس التغيير أو الـ PR بادعاءات عامة، لغة SAMA/تنظيمية، لغة مصرفية/مدفوعات، صياغة تحصيل قانوني، ادعاءات خصوصية/PDPL/بيانات عملاء، لغة العلامة التجارية ESTARED/إسترد، ادعاءات تسعير/تجارية، شهادات عملاء، مقاييس، أو وعود استرداد.
 
 ### 4. قاعدة حاسمة (Hard Rule)
 
-لا يجوز دمج أي PR يمس الحوكمة، المصادقة (Auth)، قاعدة البيانات، عزل المستأجرين (Tenant Isolation)، سلسلة قرار الذكاء الاصطناعي (AI Decision Flow)، مصطلحات المنتج، حدود SDGM/KFSA، تسلسل Evidence/Authority/Audit، أو تسمية ESTARED/إسترد، دون مخرجات PR Review Runtime.
+لا يجوز دمج أي PR يمس الحوكمة، المصادقة (Auth)، قاعدة البيانات، عزل المستأجرين (Tenant Isolation)، سلسلة قرار الذكاء الاصطناعي (AI Decision Flow)، مصطلحات المنتج، حدود SDGM/KFSA، تسلسل Evidence/Authority/Audit، تسمية ESTARED/إسترد، محتوى الموقع العام (Public Website Copy)، محتوى التهيئة/الانضمام (Onboarding Copy)، أي ادعاء موجَّه للعملاء (Customer-Facing Claims)، لغة SAMA/تنظيمية/مدفوعات/مصرفية، صياغة تحصيل قانوني (Legal Collection Wording)، ادعاءات PDPL/الخصوصية، ادعاءات تسعير/تجارية (Pricing/Commercial Claims)، شهادات عملاء (Testimonials)، مقاييس (Metrics)، أو وعود استرداد (Recovery Promises)، دون مخرجات PR Review Runtime.
 
 ### 5. قاعدة صلاحية الدمج (Merge Authority Rule)
 

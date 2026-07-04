@@ -120,3 +120,5 @@
 ## Final Recommendation
 
 **PASS WITH FOLLOW-UP** — الطبقة التشغيلية (Claude Operating System) جاهزة للاستخدام والتثبيت في مستودعات NCGR/ESTARED الفعلية. لا يوجد أي عنصر ناقص أو مرجع معطوب يمنع التشغيل. البند الوحيد المطلوب متابعته (غير معطِّل): التأكد عند كل تثبيت محلي فعلي من إضافة `legal-compliance-reviewer` إلى قائمة "Active Agents" صراحة متى كان المستودع يتضمن محتوى عاماً/تنظيمياً/قانونياً حساساً. This does not block merging this report, but it should open a v1.1 follow-up to conditionally wire legal-compliance-reviewer into the default template and/or PR Review Runtime.
+
+**تحديث (v1.1 follow-up مُنجَز):** تم تنفيذ هذا الربط الشرطي في `feature/legal-compliance-runtime-wiring-v1-1` — `legal-compliance-reviewer.md` أصبح الآن مُدرَجاً كـ Required Agent شرطي في `CLAUDE.md.template` §8→###3، ومُدرَجاً في "Agents Involved" و"Diff Scope Detection" ضمن `pr-pre-merge-review.md`، مع قاعدة تجميع قرار جديدة تمنع إصدار `MERGE READY` عند غياب مخرجه على لغة حساسة قانونياً، وتفرض `BLOCK MERGE` على الادعاءات غير الموثَّقة أو تحريف اسم ESTARED. لم يتغيّر معنى `MERGE READY` كتوصية غير آلية.
