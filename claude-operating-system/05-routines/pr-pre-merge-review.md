@@ -46,6 +46,7 @@
 - **`crag`** — إلزامي دائماً. فحص الاتساق العام ومكافحة الانحراف، بما في ذلك فصل SDGM/KFSA وفصل Signal/Decision وسلسلة Evidence+Authority+Audit.
 - **`product-governor`** — إلزامي دائماً. فحص اتساق الهوية والنطاق التجاري ورصد أي انحراف في المصطلحات أو المنطق أو أي وعد منتج غير مصرَّح به.
 - **`security-rls-auditor`** — إلزامي عند تغيّر ملفات قاعدة بيانات/مصادقة/RLS/Supabase (انظر القسم 7).
+- **`legal-compliance-reviewer`** — إلزامي عند مساس التغيير بمحتوى قانوني، تنظيمي، SAMA/مدفوعات/مصرفي، خصوصية/PDPL، ادعاءات موجَّهة للعملاء، لغة العلامة التجارية ESTARED/إسترد، تسعير، شهادات عملاء، مقاييس، أو وعود استرداد (انظر القسم 7).
 
 ## 7. تحديد نطاق الفرق (Diff Scope Detection)
 
@@ -71,7 +72,30 @@
 
 - أي ملف يمس `00-master-standards/`، `03-sub-agents/`، أو تعريف SDGM/KFSA/Signal/Decision → يُفعَّل أعلى مستوى صرامة لدى `crag`.
 - أي ملف يمس `02-product-profiles/` أو محتوى تسويقي/واجهة عميل → يُفعَّل أعلى مستوى صرامة لدى `product-governor`.
-- تحديد النطاق لا يُقلّل أبداً من إلزامية `crag` أو `product-governor` (كلاهما إلزامي دائماً بصرف النظر عن النطاق) — يُستخدم فقط لتحديد استدعاء `security-rls-auditor` وأي تشديد إضافي.
+
+يجب تفعيل `legal-compliance-reviewer` إذا شمل الـ PR (في الملفات المتغيرة أو النص/الوصف) أياً مما يلي:
+
+- `SAMA` أو `البنك المركزي السعودي`
+- `regulatory approval`
+- `licensing`
+- `payment`
+- `banking`
+- `debt collection`
+- `legal action`
+- `PDPL`
+- `privacy`
+- `customer data`
+- `ESTARED`
+- `إسترد`
+- `guaranteed recovery`
+- `automatic collection`
+- `pricing`
+- `testimonial`
+- `metrics`
+- محتوى الموقع العام (public website copy)
+- محتوى التهيئة/الانضمام (onboarding copy)
+
+- تحديد النطاق لا يُقلّل أبداً من إلزامية `crag` أو `product-governor` (كلاهما إلزامي دائماً بصرف النظر عن النطاق) — يُستخدم فقط لتحديد استدعاء `security-rls-auditor`/`legal-compliance-reviewer` وأي تشديد إضافي.
 - عند غموض التصنيف (ملف يقع في أكثر من نطاق، أو نمط مسار غير معروف)، يُستدعى الوكيل الأكثر تحفظاً (Fail-safe) بدل افتراض عدم الانطباق.
 
 ## 8. قاعدة تجميع القرار (Decision Aggregation)
@@ -79,6 +103,8 @@
 - أي وكيل يُصدر **FAIL** أو **BLOCK MERGE** → النتيجة الإجمالية **BLOCK MERGE**.
 - لا يوجد ما سبق، لكن أي وكيل يُصدر **FIX** أو **FIX BEFORE MERGE** → النتيجة الإجمالية **FIX BEFORE MERGE**.
 - فقط عندما تُصدر كل المراجعات المطلوبة نتيجة PASS/MERGE READY → النتيجة الإجمالية **MERGE READY**.
+- إذا كانت لغة حساسة قانونياً/تنظيمياً حاضرة في الـ PR (وفق محفزات القسم 7) ومخرج `legal-compliance-reviewer` غائب أو لم يُرفَق بعد → الحد الأدنى للنتيجة الإجمالية هو **FIX BEFORE MERGE**، ولا يجوز إصدار **MERGE READY**.
+- إذا احتوى الـ PR على ادعاء اعتماد SAMA/مدفوعات/مصرفي/قانوني/تنظيمي غير موثَّق، ادعاء ضمان استرداد (Guaranteed Recovery)، مقياس مزيَّف، شهادة عميل مزيَّفة، أو تغيير/تحريف لاسم ESTARED/إسترد → النتيجة الإجمالية **BLOCK MERGE** حتى يُصحَّح، بصرف النظر عن نتائج بقية الوكلاء.
 
 ## 9. صلاحية الدمج النهائية (Final Merge Authority)
 
@@ -100,6 +126,7 @@ Agent Findings:
 - CRAG: [PASS/FIX/FAIL] — [ملاحظة موجزة]
 - Product Governor: [PASS/FIX/FAIL] — [ملاحظة موجزة]
 - Security/RLS Auditor: [PASS/FIX/FAIL/N/A] — [ملاحظة موجزة]
+- Legal Compliance Reviewer: [PASS/FIX/FAIL/N/A] — [ملاحظة موجزة]
 
 Skill Findings:
 - claude-code-pr-review-skill: [MERGE READY/FIX BEFORE MERGE/BLOCK MERGE]
