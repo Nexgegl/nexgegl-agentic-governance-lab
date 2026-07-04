@@ -29,6 +29,7 @@ Benchmarks must validate both:
 | ESTARED Risky Claims Dry Run v1.0 | `pr-review-runtime-dry-run-estared-v1.md` | Simulated landing page copy with unverified SAMA approval, automatic recovery, and automatic legal collection claims | BLOCK MERGE | BLOCK MERGE | PASS | Confirms risky ESTARED claims are blocked |
 | ESTARED Safe Claims Dry Run v1.0 | `pr-review-runtime-dry-run-estared-safe-v1.md` | Simulated landing page copy using safe, authority-preserving ESTARED language | MERGE READY | MERGE READY | PASS | Confirms safe ESTARED copy can proceed as a recommendation, not automatic merge authorization |
 | NCGR Payment Promised vs Recovered Benchmark v1.0 | `ncgr-payment-promised-vs-recovered-v1.md` | Simulated NCGR logic attempts to classify PROMISED_TO_PAY as RECOVERED and include SAR 60,000 in recovered_cash_total without payment evidence | BLOCK MERGE | BLOCK MERGE | PASS | Confirms Payment Promised ≠ Recovered and prevents promised amounts from entering recovered cash totals |
+| NCGR Partial Evidence Case Benchmark v1.0 | `ncgr-partial-evidence-case-v1.md` | Simulated NCGR logic attempts to classify bank-matched/accounting-supported payment as RECOVERED while settlement confirmation, human approval, and audit log are missing | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms partial evidence requires fixes before RECOVERED and recovered_cash_total finalization |
 | NCGR Recovered Evidence Positive Case Benchmark v1.0 | `ncgr-recovered-evidence-positive-v1.md` | Simulated NCGR logic classifies SETTLED as RECOVERED only when bank match, transaction reference, accounting entry, settlement confirmation, human approval, and audit log are present | MERGE READY | MERGE READY | PASS | Confirms RECOVERED is allowed only when Evidence + Authority + Audit are complete |
 
 ## Runtime Coverage
@@ -44,15 +45,18 @@ Benchmarks must validate both:
 | Payment Promised ≠ Recovered | Yes | NCGR Payment Promised vs Recovered + ESTARED Risky Claims |
 | Human authority preservation | Yes | ESTARED Safe Claims |
 | SAMA/regulatory claim handling | Yes | ESTARED Risky Claims |
-| Product Governor activation | Yes | Both ESTARED dry runs |
-| CRAG activation | Yes | Both ESTARED dry runs |
-| CFO Logic Reviewer activation | Yes | NCGR Payment Promised vs Recovered + NCGR Recovered Evidence Positive Case |
-| Evidence Pack Builder activation | Yes | NCGR Payment Promised vs Recovered + NCGR Recovered Evidence Positive Case |
-| Security/RLS Auditor activation for persisted customer/recovery data | Yes | NCGR Payment Promised vs Recovered + NCGR Recovered Evidence Positive Case |
+| Product Governor activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks |
+| CRAG activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks |
+| CFO Logic Reviewer activation | Yes | NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case |
+| Evidence Pack Builder activation | Yes | NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case |
+| Security/RLS Auditor activation for persisted customer/recovery data | Yes | NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case |
 | BLOCK MERGE for financial misstatement risk | Yes | NCGR Payment Promised vs Recovered |
 | MERGE READY for verified recovered status | Yes | NCGR Recovered Evidence Positive Case |
 | Evidence + Authority + Audit positive path | Yes | NCGR Recovered Evidence Positive Case |
 | Recovered cash total supported by settlement evidence | Yes | NCGR Recovered Evidence Positive Case |
+| FIX BEFORE MERGE for partial recovery evidence | Yes | NCGR Partial Evidence Case |
+| Authority + Audit missing path | Yes | NCGR Partial Evidence Case |
+| Partial evidence cannot finalize recovered_cash_total | Yes | NCGR Partial Evidence Case |
 
 ## Interpretation
 
@@ -68,22 +72,24 @@ Add future benchmarks for:
 - Pricing/commercial scope scenario: pricing-scope-skill activation
 - Competitor claim scenario: competitor-trust-audit-skill activation
 - Board response scenario: executive/board wording governance
-- NCGR partial evidence case: payment evidence present but authority or audit missing → FIX BEFORE MERGE
+- NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
 
 ## Completed Benchmark Pairings
 
 - ESTARED Claims Pair:
   - Risky claims → BLOCK MERGE
   - Safe claims → MERGE READY
-- NCGR Recovery Status Pair:
-  - Payment promised without evidence → BLOCK MERGE
+- NCGR Recovery Status Triad:
+  - No evidence / promised payment only → BLOCK MERGE
+  - Partial evidence / missing authority or audit → FIX BEFORE MERGE
   - Verified settlement with evidence + authority + audit → MERGE READY
 
-## Completed NCGR Recovery Status Control
+## Completed NCGR Recovery Status Control Triad
 
-The NCGR recovery-status benchmarks now verify both sides of the rule:
+The NCGR recovery-status benchmarks now verify all three sides of the control:
 
 - A promised payment without settlement evidence must be blocked from RECOVERED.
+- A bank/accounting-supported payment with missing settlement confirmation, authority, or audit must remain FIX BEFORE MERGE.
 - A verified settlement with evidence, authority, and audit may proceed to RECOVERED.
-- recovered_cash_total must only include amounts tied to actual settlement evidence.
+- recovered_cash_total must only include finalized amounts tied to actual settlement evidence, approval, and audit trail.
 - MERGE READY remains a review recommendation only, not automatic merge authorization.
