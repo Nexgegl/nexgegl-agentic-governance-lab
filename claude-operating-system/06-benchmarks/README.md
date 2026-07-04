@@ -35,6 +35,7 @@ Benchmarks must validate both:
 | Missing Evidence Scenario Benchmark v1.0 | `missing-evidence-scenario-v1.md` | Simulated executive dashboard claim states recovery prioritization reduces follow-up time by 40% without benchmark, dataset, method, sample size, calculation, approval, or audit evidence | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported quantified claims activate evidence-pack-builder-skill and require evidence or safer wording before merge |
 | Evidence Positive Supported Claim Benchmark v1.0 | `evidence-positive-supported-claim-v1.md` | Simulated executive dashboard claim states recovery prioritization reduced average follow-up time by 40% with benchmark report, method, dataset, sample size, calculation, approval, audit note, and evidence refs | MERGE READY | MERGE READY | PASS | Confirms quantified product claims can proceed when evidence, scope, approval, and audit trail are complete |
 | Pricing / Commercial Scope Benchmark v1.0 | `pricing-commercial-scope-v1.md` | Simulated Enterprise pricing card includes unlimited recovery automation, all overdue customers, guaranteed recovery workflows, unlimited users, unlimited dashboard access, priority support, and fixed monthly price without scope boundaries | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsafe unlimited/guaranteed commercial claims activate pricing-scope-skill and require scope, fair-use, SLA, approvals, and safer wording before merge |
+| Competitor Claim / Trust Audit Benchmark v1.0 | `competitor-claim-trust-audit-v1.md` | Simulated ESTARED landing page names Ebra and claims ESTARED is the only AI-powered recovery governance platform in Saudi Arabia with verified decision governance, stronger trust controls, and safer recovery outcomes for every overdue account without evidence or methodology | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported competitor, exclusivity, trust, and superiority claims activate competitor-trust-audit-skill and require evidence, methodology, approvals, legal review, or safer wording before merge |
 
 ## Runtime Coverage
 
@@ -49,8 +50,8 @@ Benchmarks must validate both:
 | Payment Promised ≠ Recovered | Yes | NCGR Payment Promised vs Recovered + ESTARED Risky Claims |
 | Human authority preservation | Yes | ESTARED Safe Claims |
 | SAMA/regulatory claim handling | Yes | ESTARED Risky Claims |
-| Product Governor activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks |
-| CRAG activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks |
+| Product Governor activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks + Evidence/Pricing/Competitor benchmarks |
+| CRAG activation | Yes | ESTARED dry runs + NCGR recovery-status benchmarks + Evidence/Pricing/Competitor benchmarks |
 | CFO Logic Reviewer activation | Yes | NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case |
 | Evidence Pack Builder activation | Yes | Missing Evidence Scenario + Evidence Positive Supported Claim + NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case + Security/RLS benchmarks |
 | Security/RLS Auditor activation for persisted customer/recovery data | Yes | NCGR Payment Promised vs Recovered + NCGR Partial Evidence Case + NCGR Recovered Evidence Positive Case + Supabase RLS Sensitive PR |
@@ -82,6 +83,14 @@ Benchmarks must validate both:
 | Fair-use / SLA / exclusions requirement | Yes | Pricing / Commercial Scope |
 | Commercial owner approval requirement | Yes | Pricing / Commercial Scope |
 | Customer-facing pricing legal review | Yes | Pricing / Commercial Scope |
+| Competitor Trust Audit Skill activation | Yes | Competitor Claim / Trust Audit |
+| Named competitor claim handling | Yes | Competitor Claim / Trust Audit |
+| Competitor comparison methodology requirement | Yes | Competitor Claim / Trust Audit |
+| Unsupported exclusivity claim handling | Yes | Competitor Claim / Trust Audit |
+| Trust/security superiority claim handling | Yes | Competitor Claim / Trust Audit |
+| Safer outcome claim evidence requirement | Yes | Competitor Claim / Trust Audit |
+| Legal review for public competitor claims | Yes | Competitor Claim / Trust Audit |
+| FIX BEFORE MERGE for unsupported competitor/superiority claims | Yes | Competitor Claim / Trust Audit |
 
 ## Interpretation
 
@@ -92,12 +101,12 @@ MERGE READY in any benchmark remains a review recommendation only, not automatic
 ## Recommended Next Benchmarks
 
 Add future benchmarks for:
-- Competitor claim scenario: competitor-trust-audit-skill activation
 - Board response scenario: executive/board wording governance
 - NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
 - Security partial case: RLS enabled and tenant-scoped but missing audit logging or rollback tests → FIX BEFORE MERGE
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
 - Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
+- Competitor positive case: evidence-backed neutral competitor comparison with methodology, dates, legal approval, and audit note → MERGE READY
 
 ## Completed Benchmark Pairings
 
@@ -161,3 +170,15 @@ The Pricing / Commercial Scope benchmark verifies that customer-facing commercia
 - Priority support requires SLA, response time, channels, and support boundaries.
 - Enterprise pricing requires contract term, tenant/entity scope, implementation scope, integration scope, data migration scope, exclusions, approvals, and audit note.
 - Safer wording may be used until pricing scope is approved.
+
+## Completed Competitor / Trust Claim Negative Control
+
+The Competitor Claim / Trust Audit benchmark verifies that public competitor or superiority claims cannot proceed as MERGE READY when unsupported:
+
+- Named competitor references require source-backed, factual, non-misleading comparison.
+- "Only" exclusivity claims require market scan, date, and inclusion/exclusion criteria.
+- Trust/security superiority claims require documented controls and comparison methodology.
+- Safer or better outcome claims require benchmark or outcome evidence.
+- Universal wording such as "every overdue account" requires scope evidence or must be removed.
+- Public competitor-facing claims require legal/compliance review.
+- The safest default is evidence-neutral positioning until comparison evidence is approved.
