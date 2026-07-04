@@ -61,11 +61,9 @@
 
 > اذكر أي Sub-Agents من `03-sub-agents/` مفعّلة هنا، ومتى تُستدعى (عند PR، عند طلب صريح، دورياً).
 
-## 8. Routines المفعّلة
+## 8. Routines المفعّلة / Active Runtime Routines
 
 > اذكر أي Routines من `05-routines/` مجدولة أو مفعّلة لهذا المستودع.
-
-## Active Runtime Routines
 
 > هذا القسم يربط هذا المستودع فعلياً بطبقة التشغيل (Runtime) الموثَّقة في `claude-operating-system/05-routines/`. لا تُعِد تعريف أي حوكمة هنا — فقط أشِر إلى المراجع.
 
@@ -98,6 +96,7 @@
 > يملأ كل مستودع القيم التالية بما يخصه. لا تُعِد تعريف أي حوكمة هنا — فقط حدِّد القيمة المحلية.
 
 - **Repo Classification:** [Core IP / Product / Client / Experiment]
+- **Missing Classification Rule:** إذا لم يُحدَّد التصنيف، يُعامل المستودع مؤقتاً كـ Core IP Repo حتى يثبت خلاف ذلك.
 - **Product Profile:** [NCGR / ESTARED / SDGM-KFSA / Sales Decision Intelligence / Client System / Other]
 - **Active Agents:** [...]
 - **Active Skills:** [...]
