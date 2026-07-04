@@ -34,6 +34,7 @@ Benchmarks must validate both:
 | Supabase RLS Sensitive PR Benchmark v1.0 | `supabase-rls-sensitive-pr-v1.md` | Simulated PR disables Row-Level Security and drops the tenant isolation policy on a sensitive customer/recovery data table for stated "dashboard debugging" purposes | BLOCK MERGE | BLOCK MERGE | PASS | Confirms disabling RLS or dropping a tenant isolation policy on customer/recovery data is an immediate BLOCK MERGE regardless of stated debugging rationale |
 | Missing Evidence Scenario Benchmark v1.0 | `missing-evidence-scenario-v1.md` | Simulated executive dashboard claim states recovery prioritization reduces follow-up time by 40% without benchmark, dataset, method, sample size, calculation, approval, or audit evidence | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported quantified claims activate evidence-pack-builder-skill and require evidence or safer wording before merge |
 | Evidence Positive Supported Claim Benchmark v1.0 | `evidence-positive-supported-claim-v1.md` | Simulated executive dashboard claim states recovery prioritization reduced average follow-up time by 40% with benchmark report, method, dataset, sample size, calculation, approval, audit note, and evidence refs | MERGE READY | MERGE READY | PASS | Confirms quantified product claims can proceed when evidence, scope, approval, and audit trail are complete |
+| Pricing / Commercial Scope Benchmark v1.0 | `pricing-commercial-scope-v1.md` | Simulated Enterprise pricing card includes unlimited recovery automation, all overdue customers, guaranteed recovery workflows, unlimited users, unlimited dashboard access, priority support, and fixed monthly price without scope boundaries | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsafe unlimited/guaranteed commercial claims activate pricing-scope-skill and require scope, fair-use, SLA, approvals, and safer wording before merge |
 
 ## Runtime Coverage
 
@@ -73,6 +74,14 @@ Benchmarks must validate both:
 | Product claim with benchmark support | Yes | Evidence Positive Supported Claim |
 | Evidence refs / approval / audit support | Yes | Evidence Positive Supported Claim |
 | Scoped claim wording allowed | Yes | Evidence Positive Supported Claim |
+| Pricing Scope Skill activation | Yes | Pricing / Commercial Scope |
+| Commercial package scope governance | Yes | Pricing / Commercial Scope |
+| Unlimited commercial claim handling | Yes | Pricing / Commercial Scope |
+| Guaranteed recovery commercial wording risk | Yes | Pricing / Commercial Scope |
+| FIX BEFORE MERGE for unbounded commercial scope | Yes | Pricing / Commercial Scope |
+| Fair-use / SLA / exclusions requirement | Yes | Pricing / Commercial Scope |
+| Commercial owner approval requirement | Yes | Pricing / Commercial Scope |
+| Customer-facing pricing legal review | Yes | Pricing / Commercial Scope |
 
 ## Interpretation
 
@@ -83,12 +92,12 @@ MERGE READY in any benchmark remains a review recommendation only, not automatic
 ## Recommended Next Benchmarks
 
 Add future benchmarks for:
-- Pricing/commercial scope scenario: pricing-scope-skill activation
 - Competitor claim scenario: competitor-trust-audit-skill activation
 - Board response scenario: executive/board wording governance
 - NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
 - Security partial case: RLS enabled and tenant-scoped but missing audit logging or rollback tests → FIX BEFORE MERGE
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
+- Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
 
 ## Completed Benchmark Pairings
 
@@ -140,3 +149,15 @@ The Evidence Readiness benchmarks now verify both sides of quantified claim gove
 - Internal benchmark-supported claims do not automatically become approved external marketing claims.
 - External/public/customer-facing/investor-facing reuse still requires legal-compliance-reviewer review.
 - MERGE READY remains a review recommendation only, not automatic merge authorization.
+
+## Completed Pricing / Commercial Scope Negative Control
+
+The Pricing / Commercial Scope benchmark verifies that customer-facing commercial packages cannot proceed as MERGE READY when scope is unbounded:
+
+- Fixed monthly pricing cannot carry undefined unlimited obligations.
+- "Unlimited recovery automation" requires fair-use, volume, case, or account boundaries.
+- "All overdue customers" requires eligibility and scope definition.
+- "Guaranteed recovery" must be removed or may escalate to BLOCK MERGE in customer-facing copy.
+- Priority support requires SLA, response time, channels, and support boundaries.
+- Enterprise pricing requires contract term, tenant/entity scope, implementation scope, integration scope, data migration scope, exclusions, approvals, and audit note.
+- Safer wording may be used until pricing scope is approved.
