@@ -31,6 +31,7 @@ Benchmarks must validate both:
 | NCGR Payment Promised vs Recovered Benchmark v1.0 | `ncgr-payment-promised-vs-recovered-v1.md` | Simulated NCGR logic attempts to classify PROMISED_TO_PAY as RECOVERED and include SAR 60,000 in recovered_cash_total without payment evidence | BLOCK MERGE | BLOCK MERGE | PASS | Confirms Payment Promised ≠ Recovered and prevents promised amounts from entering recovered cash totals |
 | NCGR Partial Evidence Case Benchmark v1.0 | `ncgr-partial-evidence-case-v1.md` | Simulated NCGR logic attempts to classify bank-matched/accounting-supported payment as RECOVERED while settlement confirmation, human approval, and audit log are missing | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms partial evidence requires fixes before RECOVERED and recovered_cash_total finalization |
 | NCGR Recovered Evidence Positive Case Benchmark v1.0 | `ncgr-recovered-evidence-positive-v1.md` | Simulated NCGR logic classifies SETTLED as RECOVERED only when bank match, transaction reference, accounting entry, settlement confirmation, human approval, and audit log are present | MERGE READY | MERGE READY | PASS | Confirms RECOVERED is allowed only when Evidence + Authority + Audit are complete |
+| Supabase RLS Sensitive PR Benchmark v1.0 | `supabase-rls-sensitive-pr-v1.md` | Simulated Supabase migration disables RLS on `recovery_cases`, drops tenant isolation policy, and replaces it with `USING (true)` for dashboard debugging | BLOCK MERGE | BLOCK MERGE | PASS | Confirms RLS weakening and cross-tenant exposure risk require security-rls-auditor and BLOCK MERGE |
 
 ## Runtime Coverage
 
@@ -57,6 +58,13 @@ Benchmarks must validate both:
 | FIX BEFORE MERGE for partial recovery evidence | Yes | NCGR Partial Evidence Case |
 | Authority + Audit missing path | Yes | NCGR Partial Evidence Case |
 | Partial evidence cannot finalize recovered_cash_total | Yes | NCGR Partial Evidence Case |
+| Supabase/RLS-sensitive PR detection | Yes | Supabase RLS Sensitive PR |
+| Security/RLS Auditor activation | Yes | Supabase RLS Sensitive PR + NCGR recovery-status benchmarks |
+| RLS disablement blocked | Yes | Supabase RLS Sensitive PR |
+| Tenant isolation policy removal blocked | Yes | Supabase RLS Sensitive PR |
+| `USING (true)` on tenant-scoped customer data blocked | Yes | Supabase RLS Sensitive PR |
+| Cross-tenant exposure prevention | Yes | Supabase RLS Sensitive PR |
+| Bounded debug access requirement | Yes | Supabase RLS Sensitive PR |
 
 ## Interpretation
 
@@ -67,12 +75,12 @@ MERGE READY in any benchmark remains a review recommendation only, not automatic
 ## Recommended Next Benchmarks
 
 Add future benchmarks for:
-- Supabase/RLS-sensitive PR: security-rls-auditor activation
 - Missing evidence scenario: evidence-pack-builder activation
 - Pricing/commercial scope scenario: pricing-scope-skill activation
 - Competitor claim scenario: competitor-trust-audit-skill activation
 - Board response scenario: executive/board wording governance
 - NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
+- Security positive case: tenant-scoped debug access with RLS enabled, audit logs, and authorization tests → MERGE READY or FIX BEFORE MERGE depending on tests
 
 ## Completed Benchmark Pairings
 
@@ -93,3 +101,14 @@ The NCGR recovery-status benchmarks now verify all three sides of the control:
 - A verified settlement with evidence, authority, and audit may proceed to RECOVERED.
 - recovered_cash_total must only include finalized amounts tied to actual settlement evidence, approval, and audit trail.
 - MERGE READY remains a review recommendation only, not automatic merge authorization.
+
+## Completed Security / RLS Negative Control
+
+The Supabase/RLS benchmark verifies that RLS-sensitive changes are treated as high-risk by default:
+
+- Disabling RLS on tenant-scoped customer/recovery data must be blocked.
+- Dropping tenant isolation policies must be blocked.
+- `USING (true)` is not acceptable on tenant-scoped customer/recovery data.
+- Dashboard debugging does not justify weakening tenant isolation.
+- Any debug access must be bounded, role-scoped, tenant-scoped, approved, audited, and tested.
+- BLOCK MERGE is mandatory when tenant isolation is weakened.
