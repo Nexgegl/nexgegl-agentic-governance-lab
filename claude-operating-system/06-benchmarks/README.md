@@ -32,6 +32,8 @@ Benchmarks must validate both:
 | NCGR Partial Evidence Case Benchmark v1.0 | `ncgr-partial-evidence-case-v1.md` | Simulated NCGR logic attempts to classify bank-matched/accounting-supported payment as RECOVERED while settlement confirmation, human approval, and audit log are missing | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms partial evidence requires fixes before RECOVERED and recovered_cash_total finalization |
 | NCGR Recovered Evidence Positive Case Benchmark v1.0 | `ncgr-recovered-evidence-positive-v1.md` | Simulated NCGR logic classifies SETTLED as RECOVERED only when bank match, transaction reference, accounting entry, settlement confirmation, human approval, and audit log are present | MERGE READY | MERGE READY | PASS | Confirms RECOVERED is allowed only when Evidence + Authority + Audit are complete |
 | Supabase RLS Sensitive PR Benchmark v1.0 | `supabase-rls-sensitive-pr-v1.md` | Simulated PR disables Row-Level Security and drops the tenant isolation policy on a sensitive customer/recovery data table for stated "dashboard debugging" purposes | BLOCK MERGE | BLOCK MERGE | PASS | Confirms disabling RLS or dropping a tenant isolation policy on customer/recovery data is an immediate BLOCK MERGE regardless of stated debugging rationale |
+| Supabase RLS Partial Case Benchmark v1.1 | `supabase-rls-partial-case-v1-1.md` | Simulated PR keeps RLS enabled and tenant-scoped policy present, but lacks audit logging, rollback test, negative cross-tenant test, security owner approval, and evidence pack | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms partial RLS compliance avoids BLOCK MERGE but cannot proceed as MERGE READY until audit, rollback, tenant-crossing test, approval, and evidence controls are complete |
+| Supabase RLS Positive Case Benchmark v1.1 | `supabase-rls-positive-case-v1-1.md` | Simulated PR keeps RLS enabled, tenant-scoped policy present, no broad access, audit logging evidence present, rollback test present, negative cross-tenant test present, security owner approval present, and evidence pack complete | MERGE READY | MERGE READY | PASS | Confirms fully compliant RLS with Evidence + Authority + Audit may proceed as MERGE READY recommendation only |
 | Missing Evidence Scenario Benchmark v1.0 | `missing-evidence-scenario-v1.md` | Simulated executive dashboard claim states recovery prioritization reduces follow-up time by 40% without benchmark, dataset, method, sample size, calculation, approval, or audit evidence | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported quantified claims activate evidence-pack-builder-skill and require evidence or safer wording before merge |
 | Evidence Positive Supported Claim Benchmark v1.0 | `evidence-positive-supported-claim-v1.md` | Simulated executive dashboard claim states recovery prioritization reduced average follow-up time by 40% with benchmark report, method, dataset, sample size, calculation, approval, audit note, and evidence refs | MERGE READY | MERGE READY | PASS | Confirms quantified product claims can proceed when evidence, scope, approval, and audit trail are complete |
 | Pricing / Commercial Scope Benchmark v1.0 | `pricing-commercial-scope-v1.md` | Simulated Enterprise pricing card includes unlimited recovery automation, all overdue customers, guaranteed recovery workflows, unlimited users, unlimited dashboard access, priority support, and fixed monthly price without scope boundaries | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsafe unlimited/guaranteed commercial claims activate pricing-scope-skill and require scope, fair-use, SLA, approvals, and safer wording before merge |
@@ -120,6 +122,14 @@ Benchmarks must validate both:
 | KFSA vocabulary mapping guidance documented | Yes | KFSA Vocabulary Map v1.1 |
 | ALERT preservation standard documented | Yes | KFSA Vocabulary Map v1.1 |
 | CRAG review required for KFSA terminology changes | Yes | KFSA Vocabulary Map v1.1 |
+| FIX BEFORE MERGE for partial RLS compliance | Yes | Supabase RLS Partial Case |
+| Audit logging required for RLS MERGE READY | Yes | Supabase RLS Partial Case + Supabase RLS Positive Case |
+| Rollback test required for RLS MERGE READY | Yes | Supabase RLS Partial Case + Supabase RLS Positive Case |
+| Negative cross-tenant test required for RLS MERGE READY | Yes | Supabase RLS Partial Case + Supabase RLS Positive Case |
+| Security owner approval required for RLS MERGE READY | Yes | Supabase RLS Partial Case + Supabase RLS Positive Case |
+| Evidence pack required for RLS MERGE READY | Yes | Supabase RLS Partial Case + Supabase RLS Positive Case |
+| MERGE READY for fully compliant RLS | Yes | Supabase RLS Positive Case |
+| RLS control triad completed | Yes | Supabase RLS Sensitive PR + Supabase RLS Partial Case + Supabase RLS Positive Case |
 
 ## Interpretation
 
@@ -146,8 +156,6 @@ MERGE READY remains a review recommendation only, not automatic merge authorizat
 
 Add future benchmarks for:
 - NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
-- Security partial case: RLS enabled and tenant-scoped but missing audit logging or rollback tests → FIX BEFORE MERGE
-- Security positive RLS case: fully tenant-scoped, audited, rollback-tested policy → MERGE READY
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
 - KFSA vocabulary map benchmark/index entry: verify `KFSA_VOCABULARY_MAP_v1_1.md` is indexed and referenced correctly → PASS WITH FOLLOW-UP
 - Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
@@ -175,15 +183,19 @@ The NCGR recovery-status benchmarks now verify all three sides of the control:
 - recovered_cash_total must only include finalized amounts tied to actual settlement evidence, approval, and audit trail.
 - MERGE READY remains a review recommendation only, not automatic merge authorization.
 
-## Completed Security / RLS Control Pair
+## Completed Security / RLS Control Triad
 
-The Supabase RLS Sensitive PR benchmark verifies that disabling Row-Level Security or removing tenant isolation on customer/recovery data cannot proceed as MERGE READY:
+The Supabase RLS benchmarks now verify all three sides of the control:
 
-- Disabling RLS, dropping a tenant isolation policy, or introducing a `USING (true)`-style policy on customer/recovery data activates `security-rls-auditor`, `product-governor`, and `crag` together.
+- RLS disabled, tenant isolation removed, broad `USING (true)` policy introduced, or anonymous/public access introduced → BLOCK MERGE.
+- RLS enabled and tenant-scoped policy present, but audit logging, rollback test, negative cross-tenant test, security owner approval, or evidence pack is missing → FIX BEFORE MERGE.
+- RLS enabled, tenant-scoped policy present, no broad access, audit logging evidence present, rollback test present, negative cross-tenant test present, security owner approval present, and evidence pack complete → MERGE READY.
+
+Control rules:
 - A stated debugging rationale alone is not documented human authority and is not an evidence pack.
 - Any FAIL from `security-rls-auditor` on tenant isolation is an immediate BLOCK MERGE, not FIX BEFORE MERGE.
-- The safer alternative is a time-bound, role-bound, tenant-scoped, audited, and explicitly approved debug policy — never disabling RLS in place.
-- Complementary FIX BEFORE MERGE (partial RLS/audit-gap) and MERGE READY (fully compliant RLS) cases remain listed under Recommended Next Benchmarks to complete the control set.
+- Partial compliance is not MERGE READY until Evidence + Authority + Audit are complete.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
 
 ## Completed Evidence Readiness Negative Control
 
@@ -255,7 +267,7 @@ The Benchmark Suite v1.0 Closure Report records the final v1.0 status:
 - NEXGEGL Governance Runtime is the source of truth.
 - SDGM and KFSA remain the governance core.
 - Benchmarks validate runtime behavior; they do not redefine the core.
-- v1.1 must address runtime portability, security partial/positive controls, pricing/competitor/board positive cases, NCGR terminology standardization, KFSA vocabulary alignment, and automated CI assertions.
+- v1.1 has completed KFSA vocabulary alignment and the Security/RLS control triad; remaining work includes runtime portability, pricing/competitor/board positive cases, NCGR terminology standardization, and automated CI assertions.
 
 ## KFSA Verdict Vocabulary Alignment v1.1
 
