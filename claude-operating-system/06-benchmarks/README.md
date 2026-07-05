@@ -38,8 +38,11 @@ Benchmarks must validate both:
 | Missing Evidence Scenario Benchmark v1.0 | `missing-evidence-scenario-v1.md` | Simulated executive dashboard claim states recovery prioritization reduces follow-up time by 40% without benchmark, dataset, method, sample size, calculation, approval, or audit evidence | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported quantified claims activate evidence-pack-builder-skill and require evidence or safer wording before merge |
 | Evidence Positive Supported Claim Benchmark v1.0 | `evidence-positive-supported-claim-v1.md` | Simulated executive dashboard claim states recovery prioritization reduced average follow-up time by 40% with benchmark report, method, dataset, sample size, calculation, approval, audit note, and evidence refs | MERGE READY | MERGE READY | PASS | Confirms quantified product claims can proceed when evidence, scope, approval, and audit trail are complete |
 | Pricing / Commercial Scope Benchmark v1.0 | `pricing-commercial-scope-v1.md` | Simulated Enterprise pricing card includes unlimited recovery automation, all overdue customers, guaranteed recovery workflows, unlimited users, unlimited dashboard access, priority support, and fixed monthly price without scope boundaries | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsafe unlimited/guaranteed commercial claims activate pricing-scope-skill and require scope, fair-use, SLA, approvals, and safer wording before merge |
+| Pricing Positive Case Benchmark v1.1 | `pricing-positive-case-v1-1.md` | Simulated bounded ESTARED Enterprise pricing card with defined scope, fair-use limits, SLA boundaries, exclusions, approvals, legal/compliance review, and audit note | MERGE READY | MERGE READY | PASS | Confirms bounded Enterprise pricing can proceed as MERGE READY recommendation only when commercial scope, fair-use, SLA, exclusions, approvals, and audit are complete |
 | Competitor Claim / Trust Audit Benchmark v1.0 | `competitor-claim-trust-audit-v1.md` | Simulated ESTARED landing page names Ebra and claims ESTARED is the only AI-powered recovery governance platform in Saudi Arabia with verified decision governance, stronger trust controls, and safer recovery outcomes for every overdue account without evidence or methodology | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported competitor, exclusivity, trust, and superiority claims activate competitor-trust-audit-skill and require evidence, methodology, approvals, legal review, or safer wording before merge |
+| Competitor Positive Case Benchmark v1.1 | `competitor-positive-case-v1-1.md` | Simulated evidence-backed neutral competitor comparison with dated sources, methodology, inclusion/exclusion criteria, legal/compliance review, and audit note | MERGE READY | MERGE READY | PASS | Confirms competitor comparison can proceed as MERGE READY recommendation only when factual, source-backed, legally reviewed, non-misleading, and free from unsupported exclusivity/superiority/guarantee claims |
 | Board Response / Executive Wording Benchmark v1.0 | `board-response-executive-wording-v1.md` | Simulated board-facing ESTARED rollout response states the Board has approved full rollout, management is committed to immediate execution across all companies, and the initiative will guarantee faster collections, eliminate overdue exposure, and deliver measurable improvement without resolution, minutes, authority, KPI baseline, approvals, or audit | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported board approval, management commitment, rollout-scope, guarantee, and KPI wording activate board-response-skill and executive-brief-skill and require Evidence + Authority + Audit or safer wording before merge |
+| Board Positive Case Benchmark v1.1 | `board-positive-case-v1-1.md` | Simulated board-facing ESTARED rollout wording supported by minutes/resolution, authority owner, approved scope, KPI baseline/target/method/owner, risk register, legal/compliance review, and audit note | MERGE READY | MERGE READY | PASS | Confirms board/executive wording can proceed as MERGE READY recommendation only when Evidence + Authority + Audit are complete and guarantee wording is avoided |
 | Benchmark Suite v1.0 Closure Report | `benchmark-suite-v1-closure-report.md` | Documents completed v1.0 benchmark baseline, coverage, runtime behavior confirmed, source-of-truth positioning, known limitations, v1.1 backlog, and final governance rules | PASS WITH V1.1 BACKLOG | PASS WITH V1.1 BACKLOG | PASS | Formally closes Benchmark Suite v1.0 as the first completed benchmark baseline and records v1.1 backlog without redefining SDGM, KFSA, Signal, Decision, NCGR, or ESTARED |
 | KFSA Verdict Vocabulary Alignment Benchmark v1.1 | `kfsa-verdict-vocabulary-alignment-v1-1.md` | Documents and tests the terminology-alignment issue between Accept / Reject / Escalation references and KILL / FIX / SCALE / ALERT usage without redefining KFSA, collapsing KFSA into three options, or dropping ALERT | PASS WITH FOLLOW-UP | PASS WITH FOLLOW-UP | PASS | Starts v1.1 P0 alignment work by preserving KFSA vocabulary integrity and recording the required terminology map follow-up |
 
@@ -89,6 +92,12 @@ Benchmarks must validate both:
 | Fair-use / SLA / exclusions requirement | Yes | Pricing / Commercial Scope |
 | Commercial owner approval requirement | Yes | Pricing / Commercial Scope |
 | Customer-facing pricing legal review | Yes | Pricing / Commercial Scope |
+| MERGE READY for bounded Enterprise pricing | Yes | Pricing Positive Case |
+| Pricing fair-use positive path | Yes | Pricing Positive Case |
+| Pricing SLA positive path | Yes | Pricing Positive Case |
+| Pricing exclusions positive path | Yes | Pricing Positive Case |
+| Pricing commercial approval positive path | Yes | Pricing Positive Case |
+| Pricing legal/compliance review positive path | Yes | Pricing Positive Case |
 | Competitor Trust Audit Skill activation | Yes | Competitor Claim / Trust Audit |
 | Named competitor claim handling | Yes | Competitor Claim / Trust Audit |
 | Competitor comparison methodology requirement | Yes | Competitor Claim / Trust Audit |
@@ -97,6 +106,12 @@ Benchmarks must validate both:
 | Safer outcome claim evidence requirement | Yes | Competitor Claim / Trust Audit |
 | Legal review for public competitor claims | Yes | Competitor Claim / Trust Audit |
 | FIX BEFORE MERGE for unsupported competitor/superiority claims | Yes | Competitor Claim / Trust Audit |
+| MERGE READY for evidence-backed competitor comparison | Yes | Competitor Positive Case |
+| Competitor methodology positive path | Yes | Competitor Positive Case |
+| Competitor dated-source positive path | Yes | Competitor Positive Case |
+| Competitor inclusion/exclusion criteria positive path | Yes | Competitor Positive Case |
+| Competitor legal/compliance review positive path | Yes | Competitor Positive Case |
+| Neutral competitor comparison positive path | Yes | Competitor Positive Case |
 | Board Response Skill activation | Yes | Board Response / Executive Wording |
 | Executive Brief Skill activation | Yes | Board Response / Executive Wording |
 | Board approval claim handling | Yes | Board Response / Executive Wording |
@@ -105,6 +120,12 @@ Benchmarks must validate both:
 | Guarantee / outcome wording control | Yes | Board Response / Executive Wording |
 | KPI / improvement claim evidence requirement | Yes | Board Response / Executive Wording |
 | FIX BEFORE MERGE for unsupported board/executive wording | Yes | Board Response / Executive Wording |
+| MERGE READY for supported board/executive wording | Yes | Board Positive Case |
+| Board minutes/resolution positive path | Yes | Board Positive Case |
+| Executive authority positive path | Yes | Board Positive Case |
+| Approved rollout scope positive path | Yes | Board Positive Case |
+| KPI baseline/target/method/owner positive path | Yes | Board Positive Case |
+| Risk register positive path | Yes | Board Positive Case |
 | Benchmark Suite v1.0 closure | Yes | Benchmark Suite v1.0 Closure Report |
 | v1.1 backlog documented | Yes | Benchmark Suite v1.0 Closure Report |
 | Source-of-truth positioning documented | Yes | Benchmark Suite v1.0 Closure Report |
@@ -168,9 +189,6 @@ MERGE READY remains a review recommendation only, not automatic merge authorizat
 Add future benchmarks for:
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
 - KFSA vocabulary map benchmark/index entry: verify `KFSA_VOCABULARY_MAP_v1_1.md` is indexed and referenced correctly → PASS WITH FOLLOW-UP
-- Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
-- Competitor positive case: evidence-backed neutral competitor comparison with methodology, dates, legal approval, and audit note → MERGE READY
-- Board positive case: board/executive wording with resolution, minutes, authority owner, approved scope, KPI baseline, risk register, approvals, and audit note → MERGE READY
 - Convert key benchmarks into automated CI assertions
 
 ## Completed Benchmark Pairings
@@ -265,6 +283,17 @@ The Pricing / Commercial Scope benchmark verifies that customer-facing commercia
 - Enterprise pricing requires contract term, tenant/entity scope, implementation scope, integration scope, data migration scope, exclusions, approvals, and audit note.
 - Safer wording may be used until pricing scope is approved.
 
+## Completed Pricing / Commercial Scope Control Pair
+
+The Pricing / Commercial Scope benchmarks now verify both sides of customer-facing commercial scope governance:
+
+- Unbounded, unlimited, or guaranteed commercial package wording → FIX BEFORE MERGE.
+- Bounded Enterprise pricing with fair-use, SLA, exclusions, approvals, legal/compliance review, and audit note → MERGE READY.
+- Fixed monthly pricing cannot create undefined unlimited obligations.
+- Recovery outcomes are not guaranteed.
+- Customer-facing pricing requires commercial owner approval and legal/compliance review.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
+
 ## Completed Competitor / Trust Claim Negative Control
 
 The Competitor Claim / Trust Audit benchmark verifies that public competitor or superiority claims cannot proceed as MERGE READY when unsupported:
@@ -277,6 +306,16 @@ The Competitor Claim / Trust Audit benchmark verifies that public competitor or 
 - Public competitor-facing claims require legal/compliance review.
 - The safest default is evidence-neutral positioning until comparison evidence is approved.
 
+## Completed Competitor / Trust Claim Control Pair
+
+The Competitor / Trust Claim benchmarks now verify both sides of competitor and trust comparison governance:
+
+- Unsupported named competitor, exclusivity, superiority, or safer-outcome claims → FIX BEFORE MERGE.
+- Evidence-backed neutral competitor comparison with dated sources, methodology, inclusion/exclusion criteria, legal/compliance review, and audit note → MERGE READY.
+- Public competitor claims must be factual, non-misleading, source-backed, and legally reviewed.
+- ESTARED must not claim exclusivity, superiority, safer outcomes, or stronger trust controls without approved evidence.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
+
 ## Completed Board / Executive Wording Negative Control
 
 The Board Response / Executive Wording benchmark verifies that board-facing or executive-facing material cannot proceed as MERGE READY when it asserts approval, commitment, rollout, guarantee, or KPI claims without Evidence + Authority + Audit:
@@ -288,6 +327,18 @@ The Board Response / Executive Wording benchmark verifies that board-facing or e
 - "Measurable recovery improvement" requires KPI baseline, target, measurement method, owner, and evidence.
 - Board/executive-facing material requires risk disclosure and must preserve Signal ≠ Decision.
 - The safest default is proposal/recommendation wording until formal approval and evidence are documented.
+
+## Completed Board / Executive Wording Control Pair
+
+The Board / Executive Wording benchmarks now verify both sides of board-facing and executive-facing wording governance:
+
+- Unsupported board approval, management commitment, rollout, guarantee, or KPI claims → FIX BEFORE MERGE.
+- Board/executive wording with minutes or resolution, authority owner, approved scope, KPI baseline, KPI target, measurement method, KPI owner, risk register, approvals, legal/compliance review, and audit note → MERGE READY.
+- Board approval requires board minutes, resolution, or decision record.
+- Management commitment requires documented executive authority.
+- KPI improvement claims require baseline, target, method, owner, and evidence.
+- Recovery outcomes are not guaranteed.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
 
 ## Benchmark Suite v1.0 Closure
 
@@ -302,7 +353,7 @@ The Benchmark Suite v1.0 Closure Report records the final v1.0 status:
 - NEXGEGL Governance Runtime is the source of truth.
 - SDGM and KFSA remain the governance core.
 - Benchmarks validate runtime behavior; they do not redefine the core.
-- v1.1 has completed KFSA vocabulary alignment, the Security/RLS control triad, and NCGR status terminology standardization; remaining work includes runtime portability, pricing/competitor/board positive cases, and automated CI assertions.
+- v1.1 has completed KFSA vocabulary alignment, the Security/RLS control triad, NCGR status terminology standardization, and the pricing/competitor/board positive case controls; remaining work includes runtime portability and automated CI assertions.
 
 ## KFSA Verdict Vocabulary Alignment v1.1
 
