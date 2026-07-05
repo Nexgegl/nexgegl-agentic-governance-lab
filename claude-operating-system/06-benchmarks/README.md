@@ -114,6 +114,12 @@ Benchmarks must validate both:
 | Accept / Reject / Escalation alignment need documented | Yes | KFSA Verdict Vocabulary Alignment |
 | KILL / FIX / SCALE / ALERT preservation documented | Yes | KFSA Verdict Vocabulary Alignment |
 | CRAG-required terminology alignment | Yes | KFSA Verdict Vocabulary Alignment |
+| KFSA vocabulary map created | Yes | KFSA Vocabulary Map v1.1 |
+| Governance-review verdict vocabulary scoped | Yes | KFSA Vocabulary Map v1.1 |
+| Decision/action treatment vocabulary scoped | Yes | KFSA Vocabulary Map v1.1 |
+| KFSA vocabulary mapping guidance documented | Yes | KFSA Vocabulary Map v1.1 |
+| ALERT preservation standard documented | Yes | KFSA Vocabulary Map v1.1 |
+| CRAG review required for KFSA terminology changes | Yes | KFSA Vocabulary Map v1.1 |
 
 ## Interpretation
 
@@ -143,7 +149,7 @@ Add future benchmarks for:
 - Security partial case: RLS enabled and tenant-scoped but missing audit logging or rollback tests → FIX BEFORE MERGE
 - Security positive RLS case: fully tenant-scoped, audited, rollback-tested policy → MERGE READY
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
-- KFSA vocabulary map: identify Accept / Reject / Escalation usage, identify KILL / FIX / SCALE / ALERT usage, define scope of each vocabulary, preserve ALERT explicitly, and add CRAG-reviewed terminology standard → PASS WITH FOLLOW-UP
+- KFSA vocabulary map benchmark/index entry: verify `KFSA_VOCABULARY_MAP_v1_1.md` is indexed and referenced correctly → PASS WITH FOLLOW-UP
 - Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
 - Competitor positive case: evidence-backed neutral competitor comparison with methodology, dates, legal approval, and audit note → MERGE READY
 - Board positive case: board/executive wording with resolution, minutes, authority owner, approved scope, KPI baseline, risk register, approvals, and audit note → MERGE READY
@@ -261,3 +267,32 @@ The KFSA Verdict Vocabulary Alignment benchmark starts v1.1 P0 terminology-align
 - ALERT must not be dropped.
 - Benchmarks must not redefine KFSA or the governance core.
 - The next required step is a CRAG-reviewed KFSA vocabulary map.
+- `KFSA_VOCABULARY_MAP_v1_1.md` now provides the CRAG-reviewed terminology map.
+- Accept / Reject / Escalation is scoped as governance-review verdict vocabulary.
+- KILL / FIX / SCALE / ALERT is scoped as decision/action treatment vocabulary.
+- The map is guidance only and does not create an automatic conversion rule.
+- Future KFSA terminology changes must include changed files, before/after terminology diff, affected vocabulary family, reason, scope, ALERT preservation note, CRAG approval, and audit note.
+
+## KFSA Vocabulary Map v1.1
+
+The KFSA Vocabulary Map v1.1 is now recorded as the terminology-alignment standard:
+
+Reference:
+`claude-operating-system/00-master-standards/KFSA_VOCABULARY_MAP_v1_1.md`
+
+Status:
+**PASS WITH FOLLOW-UP**
+
+Confirmed controls:
+- KFSA is not collapsed.
+- ALERT is preserved.
+- Accept / Reject / Escalation is scoped to governance-review verdicts.
+- KILL / FIX / SCALE / ALERT is scoped to decision/action treatment.
+- Neither vocabulary family silently erases the other.
+- Mapping is guidance only, not automatic conversion.
+- Future terminology changes require CRAG review.
+
+Remaining follow-up:
+- Add a dedicated benchmark/index entry for the vocabulary map if needed.
+- Later evaluate whether master standards need a small cross-reference to this map.
+- Do not modify master standards until CRAG approves a specific change.
