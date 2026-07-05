@@ -44,6 +44,7 @@ Benchmarks must validate both:
 | Board Response / Executive Wording Benchmark v1.0 | `board-response-executive-wording-v1.md` | Simulated board-facing ESTARED rollout response states the Board has approved full rollout, management is committed to immediate execution across all companies, and the initiative will guarantee faster collections, eliminate overdue exposure, and deliver measurable improvement without resolution, minutes, authority, KPI baseline, approvals, or audit | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms unsupported board approval, management commitment, rollout-scope, guarantee, and KPI wording activate board-response-skill and executive-brief-skill and require Evidence + Authority + Audit or safer wording before merge |
 | Board Positive Case Benchmark v1.1 | `board-positive-case-v1-1.md` | Simulated board-facing ESTARED rollout wording supported by minutes/resolution, authority owner, approved scope, KPI baseline/target/method/owner, risk register, legal/compliance review, and audit note | MERGE READY | MERGE READY | PASS | Confirms board/executive wording can proceed as MERGE READY recommendation only when Evidence + Authority + Audit are complete and guarantee wording is avoided |
 | Benchmark Suite v1.0 Closure Report | `benchmark-suite-v1-closure-report.md` | Documents completed v1.0 benchmark baseline, coverage, runtime behavior confirmed, source-of-truth positioning, known limitations, v1.1 backlog, and final governance rules | PASS WITH V1.1 BACKLOG | PASS WITH V1.1 BACKLOG | PASS | Formally closes Benchmark Suite v1.0 as the first completed benchmark baseline and records v1.1 backlog without redefining SDGM, KFSA, Signal, Decision, NCGR, or ESTARED |
+| Benchmark Suite v1.1 Closure Report | `benchmark-suite-v1-1-closure-report.md` | Documents completed v1.1 controls: KFSA vocabulary alignment, Security/RLS control triad, NCGR status terminology standardization, pricing positive control, competitor positive control, board/executive positive control, and remaining runtime/CI backlog | PASS WITH RUNTIME / CI BACKLOG | PASS WITH RUNTIME / CI BACKLOG | PASS | Formally closes Benchmark Suite v1.1 as a documentation and benchmark-control milestone without claiming runtime implementation or CI automation are complete |
 | KFSA Verdict Vocabulary Alignment Benchmark v1.1 | `kfsa-verdict-vocabulary-alignment-v1-1.md` | Documents and tests the terminology-alignment issue between Accept / Reject / Escalation references and KILL / FIX / SCALE / ALERT usage without redefining KFSA, collapsing KFSA into three options, or dropping ALERT | PASS WITH FOLLOW-UP | PASS WITH FOLLOW-UP | PASS | Starts v1.1 P0 alignment work by preserving KFSA vocabulary integrity and recording the required terminology map follow-up |
 
 ## Runtime Coverage
@@ -132,6 +133,12 @@ Benchmarks must validate both:
 | Claude as adapter, not source of truth | Yes | Benchmark Suite v1.0 Closure Report |
 | Runtime portability need documented | Yes | Benchmark Suite v1.0 Closure Report |
 | KFSA vocabulary alignment backlog documented | Yes | Benchmark Suite v1.0 Closure Report |
+| Benchmark Suite v1.1 closure | Yes | Benchmark Suite v1.1 Closure Report |
+| v1.1 completed controls documented | Yes | Benchmark Suite v1.1 Closure Report |
+| v1.1 runtime backlog preserved | Yes | Benchmark Suite v1.1 Closure Report |
+| v1.1 CI backlog preserved | Yes | Benchmark Suite v1.1 Closure Report |
+| Runtime implementation not claimed complete | Yes | Benchmark Suite v1.1 Closure Report |
+| CI automation not claimed complete | Yes | Benchmark Suite v1.1 Closure Report |
 | KFSA verdict vocabulary alignment benchmark | Yes | KFSA Verdict Vocabulary Alignment |
 | KFSA vocabulary collapse prevention | Yes | KFSA Verdict Vocabulary Alignment |
 | ALERT preservation control | Yes | KFSA Verdict Vocabulary Alignment |
@@ -184,11 +191,35 @@ Closure does not mean governance is complete forever. It means the v1.0 benchmar
 
 MERGE READY remains a review recommendation only, not automatic merge authorization.
 
+## v1.1 Closure Status
+
+Benchmark Suite v1.1 is formally closed as:
+
+**PASS WITH RUNTIME / CI BACKLOG**
+
+The formal closure report is:
+`benchmark-suite-v1-1-closure-report.md`
+
+v1.1 confirms completed benchmark-control coverage for:
+- KFSA vocabulary alignment
+- Security / RLS control triad
+- NCGR status terminology standardization
+- Pricing / Commercial Scope positive control
+- Competitor / Trust Claim positive control
+- Board / Executive Wording positive control
+
+Closure does not mean production runtime implementation is complete.
+
+Closure does not mean CI automation is complete.
+
+Remaining work is preserved as runtime and CI backlog.
+
+MERGE READY remains a review recommendation only, not automatic merge authorization.
+
 ## Recommended Next Benchmarks
 
 Add future benchmarks for:
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
-- KFSA vocabulary map benchmark/index entry: verify `KFSA_VOCABULARY_MAP_v1_1.md` is indexed and referenced correctly → PASS WITH FOLLOW-UP
 - Convert key benchmarks into automated CI assertions
 
 ## Completed Benchmark Pairings
@@ -354,6 +385,23 @@ The Benchmark Suite v1.0 Closure Report records the final v1.0 status:
 - SDGM and KFSA remain the governance core.
 - Benchmarks validate runtime behavior; they do not redefine the core.
 - v1.1 has completed KFSA vocabulary alignment, the Security/RLS control triad, NCGR status terminology standardization, and the pricing/competitor/board positive case controls; remaining work includes runtime portability and automated CI assertions.
+
+## Benchmark Suite v1.1 Closure
+
+The Benchmark Suite v1.1 Closure Report records the final v1.1 status:
+
+- Executive verdict: PASS WITH RUNTIME / CI BACKLOG.
+- Completed controls: KFSA vocabulary alignment, Security/RLS control triad, NCGR status terminology standardization, Pricing / Commercial Scope positive control, Competitor / Trust Claim positive control, and Board / Executive Wording positive control.
+- README.md remains the active benchmark index.
+- The closure report is the formal v1.1 handoff note.
+- Runtime implementation is not claimed complete.
+- CI automation is not claimed complete.
+- Claude Code / CLAUDE.md remains the current execution adapter.
+- Claude is not the source of truth.
+- NEXGEGL Governance Runtime remains the source of truth.
+- SDGM and KFSA remain the governance core.
+- Benchmarks validate runtime behavior; they do not redefine the core.
+- Remaining backlog: vendor-neutral runtime portability and automated CI assertions.
 
 ## KFSA Verdict Vocabulary Alignment v1.1
 
