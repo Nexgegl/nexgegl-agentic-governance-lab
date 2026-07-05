@@ -31,6 +31,7 @@ Benchmarks must validate both:
 | NCGR Payment Promised vs Recovered Benchmark v1.0 | `ncgr-payment-promised-vs-recovered-v1.md` | Simulated NCGR logic attempts to classify PROMISED_TO_PAY as RECOVERED and include SAR 60,000 in recovered_cash_total without payment evidence | BLOCK MERGE | BLOCK MERGE | PASS | Confirms Payment Promised ≠ Recovered and prevents promised amounts from entering recovered cash totals |
 | NCGR Partial Evidence Case Benchmark v1.0 | `ncgr-partial-evidence-case-v1.md` | Simulated NCGR logic attempts to classify bank-matched/accounting-supported payment as RECOVERED while settlement confirmation, human approval, and audit log are missing | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms partial evidence requires fixes before RECOVERED and recovered_cash_total finalization |
 | NCGR Recovered Evidence Positive Case Benchmark v1.0 | `ncgr-recovered-evidence-positive-v1.md` | Simulated NCGR logic classifies SETTLED as RECOVERED only when bank match, transaction reference, accounting entry, settlement confirmation, human approval, and audit log are present | MERGE READY | MERGE READY | PASS | Confirms RECOVERED is allowed only when Evidence + Authority + Audit are complete |
+| NCGR Status Terminology Standardization Benchmark v1.1 | `ncgr-status-terminology-standardization-v1-1.md` | Documents and tests terminology ambiguity between PROMISED_TO_PAY, PENDING_VERIFIED_PAYMENT, PENDING_RECOVERY_APPROVAL, PARTIAL_EVIDENCE, SETTLED, and RECOVERED | PASS WITH FOLLOW-UP | PASS WITH FOLLOW-UP | PASS | Confirms pending, promised, partial, and approval-pending statuses are not RECOVERED and cannot enter recovered_cash_total without Evidence + Authority + Audit |
 | Supabase RLS Sensitive PR Benchmark v1.0 | `supabase-rls-sensitive-pr-v1.md` | Simulated PR disables Row-Level Security and drops the tenant isolation policy on a sensitive customer/recovery data table for stated "dashboard debugging" purposes | BLOCK MERGE | BLOCK MERGE | PASS | Confirms disabling RLS or dropping a tenant isolation policy on customer/recovery data is an immediate BLOCK MERGE regardless of stated debugging rationale |
 | Supabase RLS Partial Case Benchmark v1.1 | `supabase-rls-partial-case-v1-1.md` | Simulated PR keeps RLS enabled and tenant-scoped policy present, but lacks audit logging, rollback test, negative cross-tenant test, security owner approval, and evidence pack | FIX BEFORE MERGE | FIX BEFORE MERGE | PASS | Confirms partial RLS compliance avoids BLOCK MERGE but cannot proceed as MERGE READY until audit, rollback, tenant-crossing test, approval, and evidence controls are complete |
 | Supabase RLS Positive Case Benchmark v1.1 | `supabase-rls-positive-case-v1-1.md` | Simulated PR keeps RLS enabled, tenant-scoped policy present, no broad access, audit logging evidence present, rollback test present, negative cross-tenant test present, security owner approval present, and evidence pack complete | MERGE READY | MERGE READY | PASS | Confirms fully compliant RLS with Evidence + Authority + Audit may proceed as MERGE READY recommendation only |
@@ -130,6 +131,16 @@ Benchmarks must validate both:
 | Evidence pack required for RLS MERGE READY | Yes | Supabase RLS Partial Case + Supabase RLS Positive Case |
 | MERGE READY for fully compliant RLS | Yes | Supabase RLS Positive Case |
 | RLS control triad completed | Yes | Supabase RLS Sensitive PR + Supabase RLS Partial Case + Supabase RLS Positive Case |
+| NCGR status terminology standardization | Yes | NCGR Status Terminology Standardization + NCGR Status Terminology Map |
+| PROMISED_TO_PAY not RECOVERED | Yes | NCGR Status Terminology Standardization + NCGR Status Terminology Map |
+| PENDING_VERIFIED_PAYMENT not RECOVERED | Yes | NCGR Status Terminology Standardization + NCGR Status Terminology Map |
+| PENDING_RECOVERY_APPROVAL not RECOVERED | Yes | NCGR Status Terminology Standardization + NCGR Status Terminology Map |
+| PARTIAL_EVIDENCE not RECOVERED | Yes | NCGR Status Terminology Standardization + NCGR Status Terminology Map |
+| SETTLED requires approval/audit before RECOVERED | Yes | NCGR Status Terminology Map |
+| recovered_cash_total only includes RECOVERED with Evidence + Authority + Audit | Yes | NCGR Status Terminology Map |
+| NCGR status terminology map created | Yes | NCGR Status Terminology Map v1.1 |
+| CFO review required for NCGR status runtime changes | Yes | NCGR Status Terminology Map v1.1 |
+| CRAG review required for NCGR status runtime changes | Yes | NCGR Status Terminology Map v1.1 |
 
 ## Interpretation
 
@@ -155,7 +166,6 @@ MERGE READY remains a review recommendation only, not automatic merge authorizat
 ## Recommended Next Benchmarks
 
 Add future benchmarks for:
-- NCGR status terminology standardization: PENDING_VERIFIED_PAYMENT vs PENDING_RECOVERY_APPROVAL
 - Vendor-neutral runtime portability standard: Claude as adapter, NEXGEGL Runtime as source of truth
 - KFSA vocabulary map benchmark/index entry: verify `KFSA_VOCABULARY_MAP_v1_1.md` is indexed and referenced correctly → PASS WITH FOLLOW-UP
 - Pricing positive case: bounded Enterprise scope with fair-use, SLA, exclusions, approvals, and audit note → MERGE READY
@@ -182,6 +192,31 @@ The NCGR recovery-status benchmarks now verify all three sides of the control:
 - A verified settlement with evidence, authority, and audit may proceed to RECOVERED.
 - recovered_cash_total must only include finalized amounts tied to actual settlement evidence, approval, and audit trail.
 - MERGE READY remains a review recommendation only, not automatic merge authorization.
+
+## Completed NCGR Status Terminology Standardization v1.1
+
+The NCGR Status Terminology Standardization benchmark and NCGR Status Terminology Map now define safe recovery-status vocabulary:
+
+Reference:
+`claude-operating-system/00-master-standards/NCGR_STATUS_TERMINOLOGY_MAP_v1_1.md`
+
+Status:
+**PASS WITH FOLLOW-UP**
+
+Confirmed controls:
+- PROMISED_TO_PAY is not RECOVERED.
+- PENDING_VERIFIED_PAYMENT is not RECOVERED.
+- PENDING_RECOVERY_APPROVAL is not RECOVERED.
+- PARTIAL_EVIDENCE is not RECOVERED.
+- SETTLED may require approval and audit before RECOVERED.
+- Only RECOVERED may enter recovered_cash_total.
+- RECOVERED requires Evidence + Authority + Audit.
+- Executive dashboards must not present pending, promised, partial, or approval-pending amounts as recovered.
+- Runtime implementation requires CFO review, CRAG review, product-governor review, owner approval, and audit note.
+
+Remaining follow-up:
+- Later evaluate whether NCGR product profile or runtime implementation files need a small cross-reference to this map.
+- Do not modify runtime files until CFO review, CRAG review, and owner approval are completed.
 
 ## Completed Security / RLS Control Triad
 
@@ -267,7 +302,7 @@ The Benchmark Suite v1.0 Closure Report records the final v1.0 status:
 - NEXGEGL Governance Runtime is the source of truth.
 - SDGM and KFSA remain the governance core.
 - Benchmarks validate runtime behavior; they do not redefine the core.
-- v1.1 has completed KFSA vocabulary alignment and the Security/RLS control triad; remaining work includes runtime portability, pricing/competitor/board positive cases, NCGR terminology standardization, and automated CI assertions.
+- v1.1 has completed KFSA vocabulary alignment, the Security/RLS control triad, and NCGR status terminology standardization; remaining work includes runtime portability, pricing/competitor/board positive cases, and automated CI assertions.
 
 ## KFSA Verdict Vocabulary Alignment v1.1
 
