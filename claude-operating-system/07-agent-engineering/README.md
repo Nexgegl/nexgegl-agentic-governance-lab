@@ -48,6 +48,12 @@ This space is not a skill folder.
 
 This space is not a product profile folder.
 
+## Documents Index
+
+| Document | File | Status | Purpose |
+|---|---|---|---|
+| Agent Governance Operating Model v0.1 | `01-operating-model/agent-governance-operating-model-v0-1.md` | DRAFT OPERATING MODEL | Defines how governed enterprise agents become controlled digital workers operating inside intent, authority, policy, evidence, runtime, validation, escalation, audit, and accountability boundaries |
+
 ## Scope Boundary
 
 This space must not be mixed with:
@@ -529,17 +535,65 @@ How can institutions operate thousands of digital agents while preserving author
 
 This space is the official starting point for that research and architecture track.
 
+## Agent Governance Operating Model v0.1
+
+Reference:
+`01-operating-model/agent-governance-operating-model-v0-1.md`
+
+Status:
+DRAFT OPERATING MODEL
+
+Purpose:
+Defines NEXGEGL's operating model for governed enterprise agents and digital workers.
+
+Core coverage:
+- AI Agent
+- Digital Worker
+- Multi-Agent System
+- Governed Agent Workforce
+- Intent Layer
+- Authority Layer
+- Policy Layer
+- Evidence Layer
+- Agent Runtime Layer
+- Validation Layer
+- Audit & Accountability Layer
+- Agent Identity Boundary
+- Agent Authority Boundary
+- Agent Policy Boundary
+- Agent Evidence Boundary
+- Agent Tool Boundary
+- Agent Memory Boundary
+- Agent Execution Boundary
+- Agent Escalation Boundary
+- Agent Audit Boundary
+- Supervisor Pattern
+- Fail-Closed Rules
+- Decision Boundary
+
+Core rules preserved:
+- Agents do not decide.
+- Signal is not Decision.
+- AI Output is not a Decision.
+- AI Recommendation is not Authority.
+- AI Automation is not Execution Permission.
+- RAG is Retrieval, not Authority.
+- KFSA is not collapsed.
+- ALERT is preserved.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
+
 ## Planned Documents
 
-Future documents may include:
-
+Completed / indexed:
 1. Agent Governance Operating Model v0.1
-2. Agent Runtime Reference Architecture v0.1
-3. Agent Repository Standard v0.1
-4. Agent Evaluation & Certification Framework v0.1
-5. Agent Engineering 90-Day Roadmap v0.1
 
-Each document must be opened in a separate PR unless explicitly approved.
+Future documents:
+1. Agent Runtime Reference Architecture v0.1
+2. Agent Repository Standard v0.1
+3. Agent Evaluation & Certification Framework v0.1
+4. Agent Engineering 90-Day Roadmap v0.1
+
+Each future document must be opened in a separate PR unless explicitly approved.
 
 ## Implementation Boundary
 
