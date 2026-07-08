@@ -5,7 +5,8 @@
  * Mirrors: claude-operating-system/08-ai-governance-adoption-os/02-use-case-triage-algorithm.md
  *
  * KFSA remains: KILL / FIX / SCALE / ALERT (ALERT must be preserved).
- * This module never uses KILL/FIX/SCALE/ALERT as review_outcome values.
+ * This module never uses KILL / SCALE / ALERT as review_outcome values.
+ * FIX may appear only as a review-control outcome, not as a KFSA verdict.
  * Review-control outcomes here are PASS / FIX / FAIL / ESCALATE only.
  */
 
@@ -73,7 +74,7 @@ export interface TriageOutput {
   recommended_next_action: string;
   kfsa_gate_required: boolean;
   kfsa_reference: "external_applied_verdict_interface_only";
-  notes: string;
+  notes: string[];
 }
 
 export interface ValidationIssue {

@@ -31,7 +31,7 @@ function baseOutput(overrides: Partial<TriageOutput> & Pick<TriageOutput, "recom
     recommended_next_action: "",
     kfsa_gate_required: false,
     kfsa_reference: "external_applied_verdict_interface_only",
-    notes: "",
+    notes: [],
     ...overrides,
   };
 }
@@ -45,17 +45,22 @@ function baseOutput(overrides: Partial<TriageOutput> & Pick<TriageOutput, "recom
  * 3. authority missing and decision relevance not low => NO_AI + FAIL
  * 4. high data sensitivity with low data readiness => NO_AI + FAIL
  * 5. external action without clear authority => NO_AI + FAIL
- * 6. requires_runtime_controls true:
+ * 6. regulatory_or_legal_impact high and authority not clear => NO_AI + ESCALATE
+ * 7. evidence_availability none and decision_relevance high => NO_AI + FAIL
+ * 8. requires_runtime_controls true:
  *    - audit_required false => GOVERNED_RUNTIME + FAIL
  *    - else => GOVERNED_RUNTIME + ESCALATE
- * 7. requires_multi_role_reasoning true => MULTI_AGENT_SYSTEM + ESCALATE
- * 8. tool_access_required write/external_system:
+ * 9. requires_multi_role_reasoning true => MULTI_AGENT_SYSTEM + ESCALATE
+ * 10. deterministic automation with tool access already governed
+ *     (high repeatability + high rule_clarity + low variation_complexity +
+ *      clear authority + audit_required true) => AUTOMATION + PASS
+ * 11. tool_access_required write/external_system:
  *    - audit_required false => AGENT + FAIL
  *    - else => AGENT + FIX
- * 9. high repeatability + high rule_clarity + low variation_complexity => AUTOMATION + PASS
- * 10. human_approval_required + medium/high variation_complexity => AUGMENTATION + PASS
- * 11. low volume_frequency + low decision_relevance => NO_AI + PASS
- * 12. default => WORKFLOW + FIX
+ * 12. high repeatability + high rule_clarity + low variation_complexity => AUTOMATION + PASS
+ * 13. human_approval_required + medium/high variation_complexity => AUGMENTATION + PASS
+ * 14. low volume_frequency + low decision_relevance => NO_AI + PASS
+ * 15. default => WORKFLOW + FIX
  */
 export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
   // 1. Missing minimum fields => NO_AI + FAIL
@@ -124,7 +129,32 @@ export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
     });
   }
 
-  // 6. requires_runtime_controls => GOVERNED_RUNTIME
+  // 6. regulatory_or_legal_impact high and authority not clear => NO_AI + ESCALATE
+  if (input.regulatory_or_legal_impact === "high" && input.authority_clarity !== "clear") {
+    return baseOutput({
+      recommended_mode: "NO_AI",
+      review_outcome: "ESCALATE",
+      primary_reason: "high legal or regulatory impact requires clear authority",
+      risk_level: "high",
+      required_authority: "clear authority is required for high legal or regulatory impact",
+      recommended_next_action: "escalate to legal, compliance, and decision authority before re-triage",
+      kfsa_gate_required: true,
+    });
+  }
+
+  // 7. evidence_availability none and decision_relevance high => NO_AI + FAIL
+  if (input.evidence_availability === "none" && input.decision_relevance === "high") {
+    return baseOutput({
+      recommended_mode: "NO_AI",
+      review_outcome: "FAIL",
+      primary_reason: "high decision relevance without evidence",
+      risk_level: "high",
+      required_evidence: ["traceable evidence is required before proceeding"],
+      recommended_next_action: "supply evidence before re-triage",
+    });
+  }
+
+  // 8. requires_runtime_controls => GOVERNED_RUNTIME
   if (input.requires_runtime_controls === true) {
     if (input.audit_required === false) {
       return baseOutput({
@@ -147,7 +177,7 @@ export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
     });
   }
 
-  // 7. requires_multi_role_reasoning => MULTI_AGENT_SYSTEM + ESCALATE
+  // 9. requires_multi_role_reasoning => MULTI_AGENT_SYSTEM + ESCALATE
   if (input.requires_multi_role_reasoning === true) {
     return baseOutput({
       recommended_mode: "MULTI_AGENT_SYSTEM",
@@ -159,7 +189,29 @@ export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
     });
   }
 
-  // 8. tool_access_required write/external_system => AGENT
+  // 10. Deterministic external/write-tool action can remain AUTOMATION when rules
+  // are clear, authority is clear, audit exists, and variation is low. This must be
+  // checked before the AGENT branch so a governed, deterministic automation is not
+  // misclassified as an ungoverned agent.
+  if (
+    input.repeatability === "high" &&
+    input.rule_clarity === "high" &&
+    input.variation_complexity === "low" &&
+    input.authority_clarity === "clear" &&
+    input.audit_required === true
+  ) {
+    return baseOutput({
+      recommended_mode: "AUTOMATION",
+      review_outcome: "PASS",
+      primary_reason: "deterministic, repeatable, rule-based task",
+      risk_level: input.tool_access_required === "external_system" ? "medium" : "low",
+      confidence_level: "high",
+      recommended_next_action:
+        "implement rule-based automation with audit and authority controls; no model reasoning required",
+    });
+  }
+
+  // 11. tool_access_required write/external_system => AGENT
   if (input.tool_access_required === "write" || input.tool_access_required === "external_system") {
     if (input.audit_required === false) {
       return baseOutput({
@@ -182,7 +234,7 @@ export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
     });
   }
 
-  // 9. high repeatability + high rule_clarity + low variation_complexity => AUTOMATION + PASS
+  // 12. high repeatability + high rule_clarity + low variation_complexity => AUTOMATION + PASS
   if (
     input.repeatability === "high" &&
     input.rule_clarity === "high" &&
@@ -198,7 +250,7 @@ export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
     });
   }
 
-  // 10. human_approval_required + medium/high variation_complexity => AUGMENTATION + PASS
+  // 13. human_approval_required + medium/high variation_complexity => AUGMENTATION + PASS
   if (
     input.human_approval_required === true &&
     (input.variation_complexity === "medium" || input.variation_complexity === "high")
@@ -213,7 +265,7 @@ export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
     });
   }
 
-  // 11. low volume_frequency + low decision_relevance => NO_AI + PASS
+  // 14. low volume_frequency + low decision_relevance => NO_AI + PASS
   if (input.volume_frequency === "low" && input.decision_relevance === "low") {
     return baseOutput({
       recommended_mode: "NO_AI",
@@ -224,7 +276,7 @@ export function triageUseCase(input: Partial<TriageInput>): TriageOutput {
     });
   }
 
-  // 12. default => WORKFLOW + FIX
+  // 15. default => WORKFLOW + FIX
   return baseOutput({
     recommended_mode: "WORKFLOW",
     review_outcome: "FIX",
