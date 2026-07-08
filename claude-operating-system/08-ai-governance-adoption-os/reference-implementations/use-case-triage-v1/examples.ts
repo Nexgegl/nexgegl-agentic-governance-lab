@@ -2,8 +2,13 @@
  * Reference implementation only.
  * Not production runtime. Not KFSA Core. Not SDGM.
  *
- * Executable examples mirroring the six example cases in:
+ * Executable regression examples derived from the six example patterns in:
  * claude-operating-system/08-ai-governance-adoption-os/02-use-case-triage-algorithm.md
+ *
+ * These examples validate expected modes and review outcomes.
+ * They do not replace the specification examples.
+ *
+ * Includes one additional regression case for governed deterministic external automation.
  */
 
 import { triageUseCase } from "./triage";
@@ -100,6 +105,37 @@ export const examples: TriageExample[] = [
     },
     expected_recommended_mode: "GOVERNED_RUNTIME",
     expected_review_outcome: "ESCALATE",
+  },
+  {
+    name: "Governed Deterministic External Automation",
+    input: {
+      use_case_name: "Invoice due reminder",
+      business_owner: "Finance Ops Manager",
+      problem_statement: "Send due-date reminders through an external system using clear rules",
+      expected_outcome: "Audited reminders sent based on due date and status",
+      decision_relevance: "low",
+      process_clarity: "high",
+      repeatability: "high",
+      rule_clarity: "high",
+      data_sensitivity: "medium",
+      data_readiness: "high",
+      evidence_availability: "sufficient",
+      authority_clarity: "clear",
+      human_approval_required: false,
+      external_action_required: true,
+      tool_access_required: "external_system",
+      customer_impact: "medium",
+      financial_impact: "medium",
+      regulatory_or_legal_impact: "low",
+      audit_required: true,
+      volume_frequency: "high",
+      variation_complexity: "low",
+      requires_multi_role_reasoning: false,
+      requires_runtime_controls: false,
+      known_process_owner: true,
+    },
+    expected_recommended_mode: "AUTOMATION",
+    expected_review_outcome: "PASS",
   },
 ];
 
