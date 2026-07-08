@@ -246,23 +246,30 @@ FAIL is resolved by supplying the missing use case, evidence, authority, eval, b
 
 ## Review Outcomes
 
-Every doctrine review must resolve to one of the following outcomes:
+Every doctrine review must resolve to one of the following review-control outcomes:
 
 | Outcome | Meaning | Allowed Next Action |
 |---|---|---|
-| PASS | All applicable checks pass | Proceed to next build-sequence step |
+| PASS | All applicable doctrine checks pass | Proceed to next build-sequence step |
 | FIX | One or more checks require correction | Correct and re-review before proceeding |
-| ALERT | A boundary or constraint is at risk but not yet violated | Escalate to owner before proceeding |
-| KILL | A forbidden pattern or FAIL condition is confirmed | Stop; do not proceed until root cause is resolved |
-| ESCALATE | Missing authority, evidence, or ownership prevents a doctrine ruling | Route to human decision-maker |
+| FAIL | A forbidden pattern or fail-closed condition is confirmed | Stop; do not proceed until root cause is resolved |
+| ESCALATE | Missing authority, evidence, ownership, or boundary clarity prevents a doctrine ruling | Route to human decision-maker |
 
-Review outcomes are recommendations for human review.
+These are review-control outcomes.
 
-Review outcomes are not automatic merge authorization.
+They do not replace KFSA.
 
-Review outcomes do not replace KFSA.
+They do not redefine KFSA.
 
-KFSA remains the applied verdict interface when a governed decision treatment is required.
+They must not be treated as institutional decision verdicts.
+
+KFSA remains the external applied verdict interface when a governed decision treatment is required.
+
+KFSA remains:
+
+KILL / FIX / SCALE / ALERT
+
+ALERT must be preserved.
 
 ## Example Violation Cases
 
@@ -288,7 +295,7 @@ Doctrine rule triggered:
 D03, D09, F04
 
 Outcome:
-KILL — tool access must be revoked until permission and audit requirements are defined.
+FAIL — tool access must be revoked until permission and audit requirements are defined.
 
 ### Case 3 — Production Push Without Eval
 
@@ -298,7 +305,7 @@ Doctrine rule triggered:
 D04, F05
 
 Outcome:
-KILL — production use is blocked until eval readiness (C05) passes.
+FAIL — production use is blocked until eval readiness (C05) passes.
 
 ### Case 4 — Retrieval Treated as Authority
 
