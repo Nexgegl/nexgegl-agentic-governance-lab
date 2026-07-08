@@ -5,10 +5,10 @@
  * Mirrors the input validation intent of:
  * claude-operating-system/08-ai-governance-adoption-os/02-use-case-triage-algorithm.md
  *
- * This module never accepts KILL/FIX/SCALE/ALERT as a recommended_mode
- * or review_outcome value. KFSA vocabulary (KILL / FIX / SCALE / ALERT,
- * with ALERT preserved) is referenced only in documentation/comments as
- * an external applied verdict interface, never redefined here.
+ * This module never accepts KILL / SCALE / ALERT as review_outcome values.
+ * FIX is allowed only as a review-control outcome, not as a KFSA verdict.
+ * KFSA vocabulary is referenced only in documentation/comments as an external
+ * applied verdict interface, never redefined here.
  */
 
 import type { TriageInput, ValidationIssue } from "./types";
