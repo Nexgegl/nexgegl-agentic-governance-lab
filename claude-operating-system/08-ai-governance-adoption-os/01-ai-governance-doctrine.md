@@ -170,20 +170,20 @@ KFSA remains the applied verdict interface when a governed decision treatment is
 
 ## Forbidden Patterns
 
-| ID | Forbidden Pattern | Why It Is Forbidden | Required Response |
+| ID | Forbidden Pattern | Why It Is Forbidden | Required Review Response |
 |---|---|---|---|
 | F01 | Starting with a model before defining the use case | Creates technology-first implementation risk | FIX |
-| F02 | Treating AI output as institutional truth | Violates evidence and authority boundaries | FIX or KILL |
+| F02 | Treating AI output as institutional truth | Violates evidence and authority boundaries | FIX or FAIL |
 | F03 | Treating AI recommendation as approval | Violates decision authority | FIX |
-| F04 | Allowing agent tool use without permission | Creates execution and security risk | KILL or FIX |
-| F05 | Moving to production without eval | Creates uncontrolled quality and risk exposure | KILL |
+| F04 | Allowing agent tool use without permission | Creates execution and security risk | FAIL or FIX |
+| F05 | Moving to production without eval | Creates uncontrolled quality and risk exposure | FAIL |
 | F06 | Treating RAG as authority | Retrieval is evidence input, not authority | FIX |
 | F07 | Scaling a pilot without governance gate | Creates unmanaged adoption risk | FIX |
 | F08 | Removing ALERT from KFSA | Breaks required KFSA completeness | FIX |
-| F09 | Redefining KFSA inside v0.4 | Conflicts with external source-of-truth boundary | KILL |
-| F10 | Merging Agent Governance into KFSA Core | Creates architecture drift | FIX or KILL |
+| F09 | Redefining KFSA inside v0.4 | Conflicts with external source-of-truth boundary | FAIL |
+| F10 | Merging Agent Governance into KFSA Core | Creates architecture drift | FIX or FAIL |
 | F11 | Creating client offers before internal artifacts | Converts operating system into sales copy | FIX |
-| F12 | Claiming runtime implementation without runtime code | Creates false production claim | KILL |
+| F12 | Claiming runtime implementation without runtime code | Creates false production claim | FAIL |
 
 ## Operational Checks
 
