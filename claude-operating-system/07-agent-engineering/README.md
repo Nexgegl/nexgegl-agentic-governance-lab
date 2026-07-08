@@ -53,6 +53,7 @@ This space is not a product profile folder.
 | Document | File | Status | Purpose |
 |---|---|---|---|
 | Agent Governance Operating Model v0.1 | `01-operating-model/agent-governance-operating-model-v0-1.md` | DRAFT OPERATING MODEL | Defines how governed enterprise agents become controlled digital workers operating inside intent, authority, policy, evidence, runtime, validation, escalation, audit, and accountability boundaries |
+| NEXGEGL AI Fluency & Agent Governance Vocabulary v1.0 | `00-vocabulary/nexgegl-ai-fluency-agent-governance-vocabulary-v1-0.md` | CONTROLLED VOCABULARY | Standardizes NEXGEGL operating language for AI Fluency, Delegation, Description, Discernment, Diligence, Automation, Augmentation, Agency, RAG, output classification, and agent governance |
 
 ## Scope Boundary
 
@@ -582,10 +583,73 @@ Core rules preserved:
 - ALERT is preserved.
 - MERGE READY remains a review recommendation only, not automatic merge authorization.
 
+## NEXGEGL AI Fluency & Agent Governance Vocabulary v1.0
+
+Reference:
+`00-vocabulary/nexgegl-ai-fluency-agent-governance-vocabulary-v1-0.md`
+
+Status:
+CONTROLLED VOCABULARY
+
+Purpose:
+Standardizes NEXGEGL operating language for working with AI systems, Claude, ChatGPT, agents, multi-agent systems, and governed digital workers.
+
+This document is controlled vocabulary.
+
+It is not final legal, compliance, or production AI usage policy.
+
+Core coverage:
+- AI Fluency
+- Delegation
+- Description
+- Discernment
+- Diligence
+- Automation
+- Augmentation
+- Agency
+- Hallucination
+- Context Window
+- RAG
+- Prompt Engineering
+- Chain-of-Thought Prompting
+- Temperature
+- AI Output Classification
+- Agent Governance Rules
+- Mandatory AI Use Policy vocabulary scaffolding
+
+Output classifications:
+- Draft
+- Signal
+- Analysis
+- Evidence Candidate
+- Recommendation
+- Decision
+- Audit Note
+
+Core rules preserved:
+- AI Output is not a Decision.
+- AI Recommendation is not Authority.
+- AI Automation is not Execution Permission.
+- Signal is not Decision.
+- Agents do not decide.
+- RAG is Retrieval, not Authority.
+- Retrieved Context is Evidence Input, not Decision.
+- AI output is not institutional truth until governed.
+- No execution without authority.
+- No execution without decision.
+- No decision without evidence.
+- No governance without audit.
+- No AI action without boundaries.
+- Human accountability remains mandatory.
+- KFSA is not collapsed.
+- ALERT is preserved.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
+
 ## Planned Documents
 
 Completed / indexed:
 1. Agent Governance Operating Model v0.1
+2. NEXGEGL AI Fluency & Agent Governance Vocabulary v1.0
 
 Future documents:
 1. Agent Runtime Reference Architecture v0.1
