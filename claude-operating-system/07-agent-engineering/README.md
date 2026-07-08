@@ -54,6 +54,7 @@ This space is not a product profile folder.
 |---|---|---|---|
 | Agent Governance Operating Model v0.1 | `01-operating-model/agent-governance-operating-model-v0-1.md` | DRAFT OPERATING MODEL | Defines how governed enterprise agents become controlled digital workers operating inside intent, authority, policy, evidence, runtime, validation, escalation, audit, and accountability boundaries |
 | NEXGEGL AI Fluency & Agent Governance Vocabulary v1.0 | `00-vocabulary/nexgegl-ai-fluency-agent-governance-vocabulary-v1-0.md` | CONTROLLED VOCABULARY | Standardizes NEXGEGL operating language for AI Fluency, Delegation, Description, Discernment, Diligence, Automation, Augmentation, Agency, RAG, output classification, and agent governance |
+| Agent Runtime Reference Architecture v0.1 | `02-runtime-architecture/agent-runtime-reference-architecture-v0-1.md` | REFERENCE ARCHITECTURE | Defines the conceptual components required for governed enterprise agent runtime including identity, authority, policy, evidence, memory, tools, execution, validation, escalation, audit, observability, cost control, and runtime enforcement |
 
 ## Scope Boundary
 
@@ -645,17 +646,82 @@ Core rules preserved:
 - ALERT is preserved.
 - MERGE READY remains a review recommendation only, not automatic merge authorization.
 
+## Agent Runtime Reference Architecture v0.1
+
+Reference:
+`02-runtime-architecture/agent-runtime-reference-architecture-v0-1.md`
+
+Status:
+REFERENCE ARCHITECTURE
+
+Purpose:
+Defines the conceptual reference architecture for governed enterprise agent runtime.
+
+This document is reference architecture only.
+
+It is not implemented runtime.
+
+It does not create runtime code, database tables, CI checks, or deployment assets.
+
+Core runtime components:
+- Agent Registry
+- Identity Engine
+- Ownership Engine
+- Authority Engine
+- Policy Engine
+- Context Engine
+- Evidence Engine
+- Memory Engine
+- Tool Engine
+- Execution Engine
+- Validation Engine
+- Escalation Engine
+- Audit Engine
+- Observability Engine
+- Cost Control Engine
+- Runtime Enforcement Layer
+
+Core coverage:
+- Runtime Request Flow
+- Output Classification Flow
+- Runtime Verdicts
+- Supervisor Pattern Runtime
+- Security and Tenant Isolation
+- Architecture Adoption Checklist
+- Fail-Closed Behavior
+- Applied examples for recovery status, RAG retrieval, PR review, and security-sensitive tool use
+
+Core rules preserved:
+- Agents do not decide.
+- Signal is not Decision.
+- AI Output is not a Decision.
+- AI Recommendation is not Authority.
+- AI Automation is not Execution Permission.
+- RAG is Retrieval, not Authority.
+- Retrieved Context is Evidence Input, not Decision.
+- No execution without authority.
+- No execution without decision.
+- No decision without evidence.
+- No governance without audit.
+- No AI action without boundaries.
+- Fail closed, never fail open.
+- Payment Promised is not Recovered.
+- recovered_cash_total requires RECOVERED status supported by Evidence + Authority + Audit.
+- MERGE READY remains a review recommendation only, not automatic merge authorization.
+- KFSA is not collapsed.
+- ALERT is preserved.
+
 ## Planned Documents
 
 Completed / indexed:
 1. Agent Governance Operating Model v0.1
 2. NEXGEGL AI Fluency & Agent Governance Vocabulary v1.0
+3. Agent Runtime Reference Architecture v0.1
 
 Future documents:
-1. Agent Runtime Reference Architecture v0.1
-2. Agent Repository Standard v0.1
-3. Agent Evaluation & Certification Framework v0.1
-4. Agent Engineering 90-Day Roadmap v0.1
+1. Agent Repository Standard v0.1
+2. Agent Evaluation & Certification Framework v0.1
+3. Agent Engineering 90-Day Roadmap v0.1
 
 Each future document must be opened in a separate PR unless explicitly approved.
 
