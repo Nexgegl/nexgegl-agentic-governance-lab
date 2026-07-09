@@ -178,6 +178,9 @@ KFSA remains the applied verdict interface when a governed decision treatment is
 |---|---|---|---|
 | Notion Methodology Brief v0.1 | `00-notion-methodology-brief-v0-1.md` | SOURCE ALIGNMENT BRIEF | Aligns v0.4 with Notion methodology sources and prevents KFSA / SDGM / Agent Governance drift |
 | Use Case Triage Algorithm v1.0 | `02-use-case-triage-algorithm.md` | MERGED — ALGORITHM SPECIFICATION | Algorithm specification for triaging use cases into NO_AI, PROCESS_REPAIR, AUTOMATION, AUGMENTATION, WORKFLOW, AGENT, MULTI_AGENT_SYSTEM, or GOVERNED_RUNTIME |
+| AI Readiness Scoring Model v1.0 | `03-ai-readiness-scoring-model.md` | MERGED — SCORING SPECIFICATION | Weighted scoring model that determines readiness for eval, governance gate review, repair, or escalation after triage |
+| AI Readiness Scoring Reference Implementation v1.0 | `reference-implementations/ai-readiness-scoring-v1/README.md` | MERGED — REFERENCE IMPLEMENTATION | TypeScript reference implementation of the readiness scoring model, for review and validation only; not production runtime |
+| AI Readiness Gate Engine Reference Implementation v1.0 | `reference-implementations/ai-readiness-gate-v1/README.md` | MERGED — REFERENCE IMPLEMENTATION | TypeScript reference implementation that interprets readiness scoring outputs into gate statuses; not production runtime |
 
 ## Planned Artifact Map
 
@@ -302,6 +305,44 @@ Boundary:
 - `review_outcome` values are strictly PASS / FIX / FAIL / ESCALATE.
 - KFSA vocabulary (KILL / FIX / SCALE / ALERT, with ALERT preserved) is referenced only as `external_applied_verdict_interface_only`, never redefined or produced as a `review_outcome`.
 - Agent Governance is not KFSA Core.
+
+## AI Readiness Gate Engine Reference Implementation v1.0
+
+Reference:
+`reference-implementations/ai-readiness-gate-v1/`
+
+Status:
+MERGED — REFERENCE IMPLEMENTATION
+
+Purpose:
+TypeScript reference implementation that interprets AI readiness scoring outputs into gate statuses:
+- BLOCKED
+- REPAIR_REQUIRED
+- EVAL_ALLOWED
+- GOVERNANCE_REVIEW_REQUIRED
+- ESCALATE_REQUIRED
+
+Core function:
+`runAIReadinessGate(input)`
+
+Boundary:
+- Not production runtime.
+- Not KFSA Core.
+- Not SDGM.
+- Not API.
+- Not database.
+- Not CI.
+- Not customer deployment asset.
+- Does not approve production.
+
+Governance rules preserved:
+- `production_approval_status` is always false.
+- Review-control outcomes remain PASS / FIX / FAIL / ESCALATE.
+- FIX is allowed only as a review-control outcome.
+- KILL / SCALE / ALERT are forbidden as ReviewOutcome.
+- KFSA remains external source-of-truth.
+- KFSA remains KILL / FIX / SCALE / ALERT.
+- ALERT is preserved.
 
 ## Future v0.4 Artifact Requirements
 
@@ -496,11 +537,15 @@ It is not runtime implementation.
 
 ## Immediate Next Step
 
-Next, create:
+Next implementation step:
+Create an integration reference flow connecting:
 
-`03-ai-readiness-scoring-model.md`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)`
 
-The scoring model must remain a scoring specification first, not runtime implementation.
+Target future folder:
+`reference-implementations/ai-governance-flow-v1/`
+
+Do not create it in this PR.
 
 Do not skip the approved sequence after readiness scoring: eval matrix, governance gate, agent permission schema, then client playbook / commercial offers.
 
