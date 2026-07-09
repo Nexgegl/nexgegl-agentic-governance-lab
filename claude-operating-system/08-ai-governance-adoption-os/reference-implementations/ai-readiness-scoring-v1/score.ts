@@ -167,10 +167,10 @@ export function collectMissingControls(input: Partial<AIReadinessInput>): string
     }
   }
 
-  if (!input.decision_owner) {
+  if (input.decision_relevant === true && !input.decision_owner) {
     missing.push("decision_owner not provided");
   }
-  if (!input.data_owner) {
+  if (input.data_sensitivity === "high" && !input.data_owner) {
     missing.push("data_owner not provided");
   }
   if (input.missing_controls) {
@@ -229,6 +229,14 @@ export function assignReviewOutcome(
   const forced = detectForcedFailures(input);
   if (forced.triggered) {
     return "FAIL";
+  }
+
+  if (input.triage_review_outcome === "FAIL") {
+    return "FAIL";
+  }
+
+  if (input.triage_review_outcome === "ESCALATE") {
+    return "ESCALATE";
   }
 
   if (input.regulatory_or_legal_impact === "high" && scoreOf(input, "authority_clarity_score") < 4) {
