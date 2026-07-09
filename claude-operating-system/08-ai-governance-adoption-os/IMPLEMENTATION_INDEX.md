@@ -29,10 +29,11 @@ Where applicable, `production_approval_status` remains `false`. Review-control o
 | AI Readiness Scoring Reference Implementation v1.0 | `reference-implementations/ai-readiness-scoring-v1/` | MERGED — REFERENCE IMPLEMENTATION | TypeScript reference implementation of the AI Readiness Scoring Model v1.0 |
 | AI Readiness Gate Engine Reference Implementation v1.0 | `reference-implementations/ai-readiness-gate-v1/` | MERGED — REFERENCE IMPLEMENTATION | TypeScript reference implementation that interprets readiness scoring outputs into gate statuses |
 | AI Governance Flow Reference Implementation v1.0 | `reference-implementations/ai-governance-flow-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript integration flow connecting triage, readiness scoring, and gate |
+| Eval & Grader Matrix Reference Implementation v1.0 | `reference-implementations/eval-grader-matrix-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript reference implementation for building and grading eval test-case matrices after AI Governance Flow |
 
 ## Current Implemented Flow
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
 
 Core integration function:
 `runAIGovernanceFlow(input)`
@@ -200,6 +201,57 @@ Governance rules preserved:
 - `production_approval_status` is always false.
 - Review-control outcomes remain PASS / FIX / FAIL / ESCALATE.
 - FIX is allowed only as a review-control outcome.
+- KILL / SCALE / ALERT are forbidden as ReviewOutcome.
+- KFSA remains external source-of-truth.
+- KFSA remains KILL / FIX / SCALE / ALERT.
+- ALERT is preserved.
+
+## Eval & Grader Matrix Reference Implementation v1.0
+
+Reference:
+`reference-implementations/eval-grader-matrix-v1/`
+
+Status:
+MERGED — REFERENCE IMPLEMENTATION
+
+Purpose:
+Executable TypeScript reference implementation for building and grading eval test-case matrices after AI Governance Flow.
+
+Core functions:
+- `buildEvalMatrix(input)`
+- `gradeEvalCase(...)`
+- `runEvalGraderMatrix(input)`
+
+Evaluator dimensions:
+- ACCURACY
+- GROUNDING
+- AUTHORITY_SAFETY
+- DATA_SAFETY
+- ACTION_SAFETY
+- AUDITABILITY
+- BUSINESS_FIT
+- FAILURE_HANDLING
+
+Boundary:
+- Not production runtime.
+- Not KFSA Core.
+- Not SDGM.
+- Not API.
+- Not database.
+- Not CI.
+- Not customer deployment.
+- Does not approve production.
+- Does not generate official_decision.
+- Does not generate official_verdict.
+- Does not generate KFSA verdict.
+
+Governance rules preserved:
+- `production_approval_status` is always false.
+- Eval PASS does not approve production.
+- Eval score does not equal production approval.
+- Eval score does not equal KFSA verdict.
+- Review outcomes remain PASS / FIX / FAIL / ESCALATE.
+- FIX is allowed only as ReviewOutcome.
 - KILL / SCALE / ALERT are forbidden as ReviewOutcome.
 - KFSA remains external source-of-truth.
 - KFSA remains KILL / FIX / SCALE / ALERT.
