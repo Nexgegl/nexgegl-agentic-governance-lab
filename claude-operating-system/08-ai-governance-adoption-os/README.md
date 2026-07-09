@@ -55,30 +55,41 @@ No operational artifact, no merge.
 | AI Readiness Scoring Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
 | AI Readiness Gate Engine Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
 | AI Governance Flow Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
+| Eval & Grader Matrix Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
+
+Path:
+`reference-implementations/eval-grader-matrix-v1/`
 
 Full paths, purposes, and per-artifact summaries: see `IMPLEMENTATION_INDEX.md`.
 
 ## Current Implemented Flow
 
-AI Governance Flow Reference Implementation v1.0 currently connects:
+AI Governance Flow Reference Implementation v1.0 and Eval & Grader Matrix Reference Implementation v1.0 currently connect:
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
 
-Core function:
-`runAIGovernanceFlow(input)`
+Core functions:
+`runAIGovernanceFlow(input)`, `runEvalGraderMatrix(input)`
 
 Reference:
-`reference-implementations/ai-governance-flow-v1/`
+`reference-implementations/ai-governance-flow-v1/`, `reference-implementations/eval-grader-matrix-v1/`
 
 This is a reference implementation only. It does not approve production, does not create a KFSA verdict, and does not create an official decision. `production_approval_status` is always false.
+
+Eval & Grader Matrix does not approve production; production_approval_status remains false.
 
 ## Immediate Next Step
 
 Next implementation step:
-Create Eval & Grader Matrix Reference Implementation v1.0.
+Create Governance Gate Reference Implementation v1.0.
 
 Target future folder:
-`reference-implementations/eval-grader-matrix-v1/`
+`reference-implementations/governance-gate-v1/`
+
+Purpose:
+Define executable post-eval governance gate logic after:
+
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
 
 Do not create it in this PR.
 

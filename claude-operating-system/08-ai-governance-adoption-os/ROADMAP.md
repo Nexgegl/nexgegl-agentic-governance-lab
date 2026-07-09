@@ -42,10 +42,13 @@ Do not build content-only documents without operational artifacts.
 | 02 | `01-ai-governance-doctrine.md` | Doctrine rules, forbidden patterns, operating constraints |
 | 03 | `02-use-case-triage-algorithm.md` | Decision tree and pseudocode — MERGED |
 | 04 | `03-ai-readiness-scoring-model.md` | Weighted scoring model — MERGED |
-| 05 | `04-eval-and-grader-matrix.md` | Evaluation matrix and grader logic |
+| 05 | `04-eval-and-grader-matrix.md` | Evaluation matrix and grader logic — planned specification, not yet created |
 | 06 | `05-governance-gate-algorithm.md` | KFSA-applied gate logic without redefining KFSA |
 | 07 | `06-agent-permission-schema.md` | YAML/JSON schema for agent permissions |
 | 08 | `07-client-playbook-and-commercial-offers.md` | Offer packaging, workshop flow, delivery gates |
+
+Reference implementation note:
+`reference-implementations/eval-grader-matrix-v1/` — MERGED. The `04-eval-and-grader-matrix.md` specification document above remains planned and has not been created; the reference implementation folder was built and merged ahead of it.
 
 ## Future v0.4 Artifact Requirements
 
@@ -149,17 +152,27 @@ Must not be created before internal operating artifacts exist.
 ## Immediate Next Step
 
 Next implementation step:
-Create Eval & Grader Matrix Reference Implementation v1.0.
+Create Governance Gate Reference Implementation v1.0.
 
 Target future folder:
-`reference-implementations/eval-grader-matrix-v1/`
+`reference-implementations/governance-gate-v1/`
 
 Purpose:
-Define executable evaluator/grader logic for testing governed AI use cases after:
+Define executable post-eval governance gate logic after:
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
 
-Do not create it in this PR.
+The Governance Gate must:
+- consume flow output and eval/grader output
+- fail closed on missing authority, missing evidence, eval FAIL, forbidden production approval attempts, or official decision/verdict attempts
+- preserve production_approval_status as false
+- not generate KFSA verdict
+- not generate official decision
+- keep KFSA external
+- preserve KFSA as KILL / FIX / SCALE / ALERT
+- preserve ALERT
+
+Do not create governance-gate-v1 in this PR.
 
 Do not skip the approved sequence after readiness scoring: eval matrix, governance gate, agent permission schema, then client playbook / commercial offers.
 
