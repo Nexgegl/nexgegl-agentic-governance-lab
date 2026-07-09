@@ -556,7 +556,7 @@ Key scores:
 use_case_clarity_score: 4, process_clarity_score: 4, data_readiness_score: 3, evidence_readiness_score: 3, authority_clarity_score: 3, eval_readiness_score: 2, security_boundary_score: 3, tool_permission_score: 3, auditability_score: 3, adoption_readiness_score: 3, cost_control_score: 3
 
 ```yaml
-readiness_score: 60
+readiness_score: 62
 readiness_band: EVAL_READY
 review_outcome: PASS
 recommended_next_action: "Confirm NO_AI is correct; no eval matrix required since no AI is deployed"
@@ -573,7 +573,7 @@ Key scores:
 use_case_clarity_score: 3, process_clarity_score: 1, data_readiness_score: 2, evidence_readiness_score: 2, authority_clarity_score: 2, eval_readiness_score: 1, security_boundary_score: 2, tool_permission_score: 2, auditability_score: 2, adoption_readiness_score: 2, cost_control_score: 2
 
 ```yaml
-readiness_score: 39
+readiness_score: 38
 readiness_band: NOT_READY
 review_outcome: FAIL
 recommended_next_action: "Repair and assign ownership of the underlying process before rescoring"
@@ -591,7 +591,7 @@ Key scores:
 use_case_clarity_score: 5, process_clarity_score: 5, data_readiness_score: 4, evidence_readiness_score: 4, authority_clarity_score: 4, eval_readiness_score: 3, security_boundary_score: 4, tool_permission_score: 4, auditability_score: 4, adoption_readiness_score: 3, cost_control_score: 4
 
 ```yaml
-readiness_score: 82
+readiness_score: 81
 readiness_band: GOVERNANCE_GATE_READY
 review_outcome: PASS
 recommended_next_action: "Proceed to Eval & Grader Matrix; governance gate only after eval is complete"
@@ -608,10 +608,10 @@ Key scores:
 use_case_clarity_score: 4, process_clarity_score: 3, data_readiness_score: 3, evidence_readiness_score: 3, authority_clarity_score: 3, eval_readiness_score: 2, security_boundary_score: 2, tool_permission_score: 2, auditability_score: 1, adoption_readiness_score: 2, cost_control_score: 2
 
 ```yaml
-readiness_score: 51
+readiness_score: 52
 readiness_band: REPAIR_REQUIRED
-review_outcome: FIX
-recommended_next_action: "Define tool permission profile and audit requirements before granting write access; rescore"
+review_outcome: FAIL
+recommended_next_action: "Do not proceed with agent path; define tool permission profile and audit requirements before rescoring"
 blocking_controls:
   - "Tool permission score below 3 for write tool access"
   - "Auditability score below 3 for agent use case"
@@ -627,8 +627,8 @@ Key scores:
 use_case_clarity_score: 4, process_clarity_score: 4, data_readiness_score: 4, evidence_readiness_score: 3, authority_clarity_score: 3, eval_readiness_score: 3, security_boundary_score: 4, tool_permission_score: 3, auditability_score: 4, adoption_readiness_score: 3, cost_control_score: 3
 
 ```yaml
-readiness_score: 79
-readiness_band: GOVERNANCE_GATE_READY
+readiness_score: 70
+readiness_band: EVAL_READY
 review_outcome: ESCALATE
 recommended_next_action: "Escalate to governance authority; multi-agent supervisor pattern and role boundaries required before proceeding"
 blocking_controls: []
