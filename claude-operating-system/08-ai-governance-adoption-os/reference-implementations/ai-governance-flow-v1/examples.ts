@@ -147,14 +147,37 @@ export const flowExamples: AIGovernanceFlowExample[] = [
     expected_production_approval_status: false,
   },
   {
-    // Intentionally incomplete use case, plus an attempted production-approval
-    // injection via an unsafe external payload cast. AIGovernanceFlowInput has
-    // no production_approval field that any mapping function reads, so this
-    // proves the injection has zero effect: the flow still fails closed on the
-    // incomplete use case, and production_approval_status remains false.
+    // Intentionally valid eval-allowed flow with an unsafe external payload
+    // attempting to smuggle production_approval: true before the gate stage.
+    // This proves the flow propagates the forbidden attempt to the gate and
+    // runAIReadinessGate blocks it, while final production_approval_status
+    // remains false.
     name: "Forbidden Production Approval Must Remain Blocked",
     input: {
-      use_case_name: "Unauthorized shortcut request",
+      use_case_name: "Invoice field extraction with forbidden approval",
+      business_owner: "Finance Ops Manager",
+      process_owner: "Finance Ops Manager",
+      problem_statement: "Repetitive extraction of fixed fields from standard invoices",
+      expected_outcome: "Structured invoice data",
+      repeatability: "high",
+      rule_clarity: "high",
+      variation_complexity: "low",
+      known_process_owner: true,
+      use_case_clarity_score: 4,
+      process_clarity_score: 4,
+      data_readiness_score: 3,
+      evidence_readiness_score: 3,
+      authority_clarity_score: 3,
+      eval_readiness_score: 2,
+      security_boundary_score: 3,
+      tool_permission_score: 3,
+      auditability_score: 3,
+      adoption_readiness_score: 3,
+      cost_control_score: 3,
+      risk_level: "low",
+      data_sensitivity: "low",
+      decision_relevant: false,
+      production_intended: false,
       production_approval: true,
     } as unknown as AIGovernanceFlowInput,
     expected_final_status: "BLOCKED",
