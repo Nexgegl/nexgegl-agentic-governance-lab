@@ -181,6 +181,7 @@ KFSA remains the applied verdict interface when a governed decision treatment is
 | AI Readiness Scoring Model v1.0 | `03-ai-readiness-scoring-model.md` | MERGED — SCORING SPECIFICATION | Weighted scoring model that determines readiness for eval, governance gate review, repair, or escalation after triage |
 | AI Readiness Scoring Reference Implementation v1.0 | `reference-implementations/ai-readiness-scoring-v1/README.md` | MERGED — REFERENCE IMPLEMENTATION | TypeScript reference implementation of the readiness scoring model, for review and validation only; not production runtime |
 | AI Readiness Gate Engine Reference Implementation v1.0 | `reference-implementations/ai-readiness-gate-v1/README.md` | MERGED — REFERENCE IMPLEMENTATION | TypeScript reference implementation that interprets readiness scoring outputs into gate statuses; not production runtime |
+| AI Governance Flow Reference Implementation v1.0 | `reference-implementations/ai-governance-flow-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript integration flow connecting triage, readiness scoring, and gate; not production runtime |
 
 ## Planned Artifact Map
 
@@ -334,6 +335,53 @@ Boundary:
 - Not CI.
 - Not customer deployment asset.
 - Does not approve production.
+
+Governance rules preserved:
+- `production_approval_status` is always false.
+- Review-control outcomes remain PASS / FIX / FAIL / ESCALATE.
+- FIX is allowed only as a review-control outcome.
+- KILL / SCALE / ALERT are forbidden as ReviewOutcome.
+- KFSA remains external source-of-truth.
+- KFSA remains KILL / FIX / SCALE / ALERT.
+- ALERT is preserved.
+
+## AI Governance Flow Reference Implementation v1.0
+
+Reference:
+`reference-implementations/ai-governance-flow-v1/`
+
+Status:
+MERGED — REFERENCE IMPLEMENTATION
+
+Purpose:
+Executable TypeScript integration flow connecting:
+
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)`
+
+Core function:
+`runAIGovernanceFlow(input)`
+
+Output includes:
+- triage
+- readiness
+- gate
+- final_status
+- final_review_outcome
+- production_approval_status
+- kfsa_reference
+- notes
+
+Boundary:
+- Not production runtime.
+- Not KFSA Core.
+- Not SDGM.
+- Not API.
+- Not database.
+- Not CI.
+- Not customer deployment asset.
+- Does not approve production.
+- Does not create a KFSA verdict.
+- Does not create an official decision.
 
 Governance rules preserved:
 - `production_approval_status` is always false.
@@ -538,12 +586,15 @@ It is not runtime implementation.
 ## Immediate Next Step
 
 Next implementation step:
-Create an integration reference flow connecting:
-
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)`
+Create Eval & Grader Matrix Reference Implementation v1.0.
 
 Target future folder:
-`reference-implementations/ai-governance-flow-v1/`
+`reference-implementations/eval-grader-matrix-v1/`
+
+Purpose:
+Define executable evaluator/grader logic for testing governed AI use cases after:
+
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)`
 
 Do not create it in this PR.
 
