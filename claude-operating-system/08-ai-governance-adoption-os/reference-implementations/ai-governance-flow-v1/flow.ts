@@ -167,12 +167,35 @@ export function deriveFinalStatus(gateOutput: AIReadinessGateOutput): FlowFinalS
   return gateOutput.gate_status;
 }
 
+/**
+ * Detects an unsafe external payload attempting to claim production
+ * approval before the gate stage. AIGovernanceFlowInput has no
+ * production_approval field, so this can only be true if the caller used
+ * an unsafe cast to smuggle one in.
+ */
+function hasForbiddenProductionApprovalAttempt(input: AIGovernanceFlowInput): boolean {
+  const unsafeInput = input as unknown as Record<string, unknown>;
+  return unsafeInput.production_approval === true || unsafeInput.production_approval_status === true;
+}
+
+/**
+ * Detects an unsafe external payload attempting to smuggle an official
+ * verdict or official decision before the gate stage.
+ */
+function hasForbiddenOfficialDecisionAttempt(input: AIGovernanceFlowInput): boolean {
+  const unsafeInput = input as unknown as Record<string, unknown>;
+  return (
+    ("official_verdict" in unsafeInput && unsafeInput.official_verdict !== undefined) ||
+    ("official_decision" in unsafeInput && unsafeInput.official_decision !== undefined)
+  );
+}
+
 export function runAIGovernanceFlow(input: AIGovernanceFlowInput): AIGovernanceFlowOutput {
   const triageOutput = triageUseCase(input);
   const readinessInput = mapToReadinessInput(input, triageOutput);
   const readinessOutput = scoreAIReadiness(readinessInput);
 
-  const gateInput: AIReadinessGateInput = {
+  const baseGateInput: AIReadinessGateInput = {
     readiness_score: readinessOutput.readiness_score,
     readiness_band: readinessOutput.readiness_band,
     review_outcome: readinessOutput.review_outcome,
@@ -186,6 +209,23 @@ export function runAIGovernanceFlow(input: AIGovernanceFlowInput): AIGovernanceF
     production_approval: readinessOutput.production_approval,
     notes: readinessOutput.notes,
   };
+
+  // If the original flow input attempted to smuggle a production approval
+  // or an official verdict/decision before the gate stage, forward that
+  // attempt into the gate input (via an unsafe cast) so runAIReadinessGate's
+  // own defensive checks detect it and block it. This module never
+  // generates official_verdict or official_decision itself.
+  const hasForbiddenProductionAttempt = hasForbiddenProductionApprovalAttempt(input);
+  const hasForbiddenDecisionAttempt = hasForbiddenOfficialDecisionAttempt(input);
+  const gateInput =
+    hasForbiddenProductionAttempt || hasForbiddenDecisionAttempt
+      ? ({
+          ...baseGateInput,
+          ...(hasForbiddenProductionAttempt ? { production_approval: true } : {}),
+          ...(hasForbiddenDecisionAttempt ? { official_decision: "forbidden" } : {}),
+        } as unknown as AIReadinessGateInput)
+      : baseGateInput;
+
   const gateOutput = runAIReadinessGate(gateInput);
 
   return {
