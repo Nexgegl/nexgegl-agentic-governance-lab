@@ -56,40 +56,43 @@ No operational artifact, no merge.
 | AI Readiness Gate Engine Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
 | AI Governance Flow Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
 | Eval & Grader Matrix Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
+| Governance Gate Reference Implementation v1.0 | MERGED — REFERENCE IMPLEMENTATION |
 
 Path:
-`reference-implementations/eval-grader-matrix-v1/`
+`reference-implementations/eval-grader-matrix-v1/`, `reference-implementations/governance-gate-v1/`
 
 Full paths, purposes, and per-artifact summaries: see `IMPLEMENTATION_INDEX.md`.
 
 ## Current Implemented Flow
 
-AI Governance Flow Reference Implementation v1.0 and Eval & Grader Matrix Reference Implementation v1.0 currently connect:
+AI Governance Flow Reference Implementation v1.0, Eval & Grader Matrix Reference Implementation v1.0, and Governance Gate Reference Implementation v1.0 currently connect:
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)` → `runGovernanceGate(input)`
 
 Core functions:
-`runAIGovernanceFlow(input)`, `runEvalGraderMatrix(input)`
+`runAIGovernanceFlow(input)`, `runEvalGraderMatrix(input)`, `runGovernanceGate(input)`
 
 Reference:
-`reference-implementations/ai-governance-flow-v1/`, `reference-implementations/eval-grader-matrix-v1/`
+`reference-implementations/ai-governance-flow-v1/`, `reference-implementations/eval-grader-matrix-v1/`, `reference-implementations/governance-gate-v1/`
 
 This is a reference implementation only. It does not approve production, does not create a KFSA verdict, and does not create an official decision. `production_approval_status` is always false.
 
 Eval & Grader Matrix does not approve production; production_approval_status remains false.
 
+Governance Gate does not approve production; READY_FOR_AUTHORITY_REVIEW does not approve production; production_approval_status remains false.
+
 ## Immediate Next Step
 
 Next implementation step:
-Create Governance Gate Reference Implementation v1.0.
+Create Agent Permission Schema Reference Implementation v1.0.
 
 Target future folder:
-`reference-implementations/governance-gate-v1/`
+`reference-implementations/agent-permission-schema-v1/`
 
 Purpose:
-Define executable post-eval governance gate logic after:
+Define executable schema and validation logic for agent/tool permissions after:
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)` → `runGovernanceGate(input)`
 
 Do not create it in this PR.
 

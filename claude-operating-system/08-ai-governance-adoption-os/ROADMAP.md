@@ -43,12 +43,15 @@ Do not build content-only documents without operational artifacts.
 | 03 | `02-use-case-triage-algorithm.md` | Decision tree and pseudocode — MERGED |
 | 04 | `03-ai-readiness-scoring-model.md` | Weighted scoring model — MERGED |
 | 05 | `04-eval-and-grader-matrix.md` | Evaluation matrix and grader logic — planned specification, not yet created |
-| 06 | `05-governance-gate-algorithm.md` | KFSA-applied gate logic without redefining KFSA |
+| 06 | `05-governance-gate-algorithm.md` | KFSA-applied gate logic without redefining KFSA — planned specification, not yet created |
 | 07 | `06-agent-permission-schema.md` | YAML/JSON schema for agent permissions |
 | 08 | `07-client-playbook-and-commercial-offers.md` | Offer packaging, workshop flow, delivery gates |
 
 Reference implementation note:
 `reference-implementations/eval-grader-matrix-v1/` — MERGED. The `04-eval-and-grader-matrix.md` specification document above remains planned and has not been created; the reference implementation folder was built and merged ahead of it.
+
+Reference implementation note:
+`reference-implementations/governance-gate-v1/` — MERGED. The `05-governance-gate-algorithm.md` specification document above remains planned and has not been created; the reference implementation folder was built and merged ahead of it.
 
 ## Future v0.4 Artifact Requirements
 
@@ -152,19 +155,25 @@ Must not be created before internal operating artifacts exist.
 ## Immediate Next Step
 
 Next implementation step:
-Create Governance Gate Reference Implementation v1.0.
+Create Agent Permission Schema Reference Implementation v1.0.
 
 Target future folder:
-`reference-implementations/governance-gate-v1/`
+`reference-implementations/agent-permission-schema-v1/`
 
 Purpose:
-Define executable post-eval governance gate logic after:
+Define executable schema and validation logic for agent/tool permissions after:
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)` → `runGovernanceGate(input)`
 
-The Governance Gate must:
-- consume flow output and eval/grader output
-- fail closed on missing authority, missing evidence, eval FAIL, forbidden production approval attempts, or official decision/verdict attempts
+The Agent Permission Schema must:
+- define allowed tools
+- define forbidden tools
+- define read-only vs write permissions
+- define external-system access rules
+- define authority requirements
+- define evidence requirements
+- define audit requirements
+- fail closed on missing owner, missing authority, unsafe write access, external-system access without approval, or autonomous action without policy boundary
 - preserve production_approval_status as false
 - not generate KFSA verdict
 - not generate official decision
@@ -172,7 +181,7 @@ The Governance Gate must:
 - preserve KFSA as KILL / FIX / SCALE / ALERT
 - preserve ALERT
 
-Do not create governance-gate-v1 in this PR.
+Do not create agent-permission-schema-v1 in this PR.
 
 Do not skip the approved sequence after readiness scoring: eval matrix, governance gate, agent permission schema, then client playbook / commercial offers.
 
