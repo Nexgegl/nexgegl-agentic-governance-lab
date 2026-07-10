@@ -110,44 +110,66 @@ export function validateAgentPermissions(input: AgentPermissionValidationInput):
     blocking_failures.push(message);
   }
 
-  if (schema.write_tools.length > 0 && !authorityPresent) {
-    const message = "Missing authority for write tools.";
-    findings.push({ severity: "HIGH", message, required_fix: "Confirm authority for write tool access." });
-    blocking_failures.push(message);
-  }
+  // Enforce every schema-derived requirement directly, rather than
+  // re-deriving narrow trigger conditions (e.g. "write_tools present") that
+  // only cover a subset of the reasons schema.ts may have set a given
+  // required_* flag (e.g. decision_relevant, production_intended, or
+  // supervised/autonomous autonomy also set required_authority).
 
-  if (schema.external_systems.length > 0 && !authorityPresent) {
-    const message = "Missing authority for external-system access.";
-    findings.push({ severity: "HIGH", message, required_fix: "Confirm authority for external-system access." });
-    blocking_failures.push(message);
-  }
-
-  if (schema.autonomy_level === "autonomous" && !policyBoundaryPresent) {
-    const message = "Autonomous action without policy boundary.";
+  if (schema.required_authority && !authorityPresent) {
+    const message = "Missing authority required by the agent permission schema.";
     findings.push({
-      severity: "CRITICAL",
+      severity: "HIGH",
       message,
-      required_fix: "Define a policy boundary before granting autonomous action.",
+      required_fix: "Confirm authority before granting this agent's permissions.",
     });
     blocking_failures.push(message);
   }
 
-  if (input.schema_input.external_data_movement === true && !auditPresent) {
-    const message = "External data movement without audit requirement.";
-    findings.push({ severity: "HIGH", message, required_fix: "Enable audit requirement for external data movement." });
+  if (schema.required_audit && !auditPresent) {
+    const message = "Missing audit requirement required by the agent permission schema.";
+    findings.push({
+      severity: "HIGH",
+      message,
+      required_fix: "Enable audit requirement before granting this agent's permissions.",
+    });
     blocking_failures.push(message);
   }
 
-  if (schema.data_sensitivity === "high" && !evidencePresent) {
-    const message = "Sensitive data access without evidence requirement.";
-    findings.push({ severity: "HIGH", message, required_fix: "Enable evidence requirement for sensitive data access." });
+  if (schema.required_approval && !approvalPresent) {
+    const message = "Missing approval requirement required by the agent permission schema.";
+    findings.push({
+      severity: "HIGH",
+      message,
+      required_fix: "Enable approval requirement before granting this agent's permissions.",
+    });
     blocking_failures.push(message);
   }
 
-  if (schema.write_tools.length > 0 && !approvalPresent) {
-    const message = "Write tools without approval requirement.";
-    findings.push({ severity: "HIGH", message, required_fix: "Enable approval requirement for write tool access." });
+  if (schema.policy_boundary_required && !policyBoundaryPresent) {
+    const message = "Missing policy boundary required by the agent permission schema.";
+    findings.push({
+      severity: "CRITICAL",
+      message,
+      required_fix: "Define a policy boundary before granting this agent's permissions.",
+    });
     blocking_failures.push(message);
+  }
+
+  if (schema.required_evidence && !evidencePresent) {
+    if (schema.data_sensitivity === "high") {
+      const message = "Sensitive data access without evidence requirement.";
+      findings.push({
+        severity: "HIGH",
+        message,
+        required_fix: "Enable evidence requirement for sensitive data access.",
+      });
+      blocking_failures.push(message);
+    } else {
+      const message = "Missing evidence requirement required by the agent permission schema.";
+      findings.push({ severity: "MEDIUM", message, required_fix: "Enable evidence requirement for this agent." });
+      required_fixes.push(message);
+    }
   }
 
   if (hasForbiddenToolOverlap(schema)) {
@@ -160,12 +182,6 @@ export function validateAgentPermissions(input: AgentPermissionValidationInput):
     const message = "High risk agent without escalation requirement.";
     findings.push({ severity: "HIGH", message });
     escalation_reasons.push(message);
-  }
-
-  if (schema.risk_level === "medium" && !evidencePresent) {
-    const message = "Missing evidence requirement for medium-risk agent.";
-    findings.push({ severity: "MEDIUM", message, required_fix: "Enable evidence requirement for this agent." });
-    required_fixes.push(message);
   }
 
   let review_outcome: AgentPermissionValidationOutput["review_outcome"];

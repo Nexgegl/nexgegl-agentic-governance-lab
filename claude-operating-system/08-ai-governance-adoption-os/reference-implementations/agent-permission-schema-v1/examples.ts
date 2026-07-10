@@ -120,6 +120,58 @@ export const agentPermissionExamples: AgentPermissionExample[] = [
     expected_production_approval_status: false,
   },
   {
+    name: "External System Without Approval Fail",
+    input: {
+      schema_input: {
+        agent_name: "CRM Read Agent",
+        agent_type: "operations",
+        owner_user_id: "user-201",
+        external_systems: ["salesforce"],
+        authority_required: true,
+        audit_required: true,
+        policy_boundary_defined: true,
+        approval_required: false,
+      },
+    },
+    expected_review_outcome: "FAIL",
+    expected_production_approval_status: false,
+  },
+  {
+    name: "Supervised Agent Without Policy Boundary Fail",
+    input: {
+      schema_input: {
+        agent_name: "Supervised Ops Agent",
+        agent_type: "operations",
+        owner_user_id: "user-202",
+        autonomy_level: "supervised",
+        authority_required: true,
+        audit_required: true,
+        approval_required: true,
+        policy_boundary_defined: false,
+      },
+    },
+    expected_review_outcome: "FAIL",
+    expected_production_approval_status: false,
+  },
+  {
+    name: "Decision Relevant Agent Without Authority Fail",
+    input: {
+      schema_input: {
+        agent_name: "Decision Relevant Advisory Agent",
+        agent_type: "operations",
+        owner_user_id: "user-203",
+        decision_relevant: true,
+        authority_required: false,
+        evidence_required: true,
+        audit_required: true,
+        approval_required: true,
+        policy_boundary_defined: true,
+      },
+    },
+    expected_review_outcome: "FAIL",
+    expected_production_approval_status: false,
+  },
+  {
     name: "Forbidden Production Approval Attempt",
     input: {
       schema_input: {
