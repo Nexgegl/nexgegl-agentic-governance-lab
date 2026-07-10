@@ -30,10 +30,11 @@ Where applicable, `production_approval_status` remains `false`. Review-control o
 | AI Readiness Gate Engine Reference Implementation v1.0 | `reference-implementations/ai-readiness-gate-v1/` | MERGED — REFERENCE IMPLEMENTATION | TypeScript reference implementation that interprets readiness scoring outputs into gate statuses |
 | AI Governance Flow Reference Implementation v1.0 | `reference-implementations/ai-governance-flow-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript integration flow connecting triage, readiness scoring, and gate |
 | Eval & Grader Matrix Reference Implementation v1.0 | `reference-implementations/eval-grader-matrix-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript reference implementation for building and grading eval test-case matrices after AI Governance Flow |
+| Governance Gate Reference Implementation v1.0 | `reference-implementations/governance-gate-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript post-eval governance gate that derives BLOCKED, REPAIR_REQUIRED, GOVERNANCE_REVIEW_REQUIRED, ESCALATE_REQUIRED, or READY_FOR_AUTHORITY_REVIEW |
 
 ## Current Implemented Flow
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)` → `runGovernanceGate(input)`
 
 Core integration function:
 `runAIGovernanceFlow(input)`
@@ -250,6 +251,55 @@ Governance rules preserved:
 - Eval PASS does not approve production.
 - Eval score does not equal production approval.
 - Eval score does not equal KFSA verdict.
+- Review outcomes remain PASS / FIX / FAIL / ESCALATE.
+- FIX is allowed only as ReviewOutcome.
+- KILL / SCALE / ALERT are forbidden as ReviewOutcome.
+- KFSA remains external source-of-truth.
+- KFSA remains KILL / FIX / SCALE / ALERT.
+- ALERT is preserved.
+
+## Governance Gate Reference Implementation v1.0
+
+Reference:
+`reference-implementations/governance-gate-v1/`
+
+Status:
+MERGED — REFERENCE IMPLEMENTATION
+
+Purpose:
+Executable TypeScript reference implementation for post-eval governance gate logic after AI Governance Flow and Eval & Grader Matrix.
+
+Core function:
+- `runGovernanceGate(input)`
+
+Gate statuses:
+- BLOCKED
+- REPAIR_REQUIRED
+- GOVERNANCE_REVIEW_REQUIRED
+- ESCALATE_REQUIRED
+- READY_FOR_AUTHORITY_REVIEW
+
+Decision priority:
+FAIL > ESCALATE > FIX > PASS
+
+Boundary:
+- Not production runtime.
+- Not KFSA Core.
+- Not SDGM.
+- Not API.
+- Not database.
+- Not CI.
+- Not customer deployment.
+- Does not approve production.
+- READY_FOR_AUTHORITY_REVIEW does not approve production.
+- Does not generate official_decision.
+- Does not generate official_verdict.
+- Does not generate KFSA verdict.
+
+Governance rules preserved:
+- production_approval_status is always false.
+- Governance Gate status does not equal production approval.
+- Governance Gate status does not equal KFSA verdict.
 - Review outcomes remain PASS / FIX / FAIL / ESCALATE.
 - FIX is allowed only as ReviewOutcome.
 - KILL / SCALE / ALERT are forbidden as ReviewOutcome.
