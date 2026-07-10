@@ -31,10 +31,11 @@ Where applicable, `production_approval_status` remains `false`. Review-control o
 | AI Governance Flow Reference Implementation v1.0 | `reference-implementations/ai-governance-flow-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript integration flow connecting triage, readiness scoring, and gate |
 | Eval & Grader Matrix Reference Implementation v1.0 | `reference-implementations/eval-grader-matrix-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript reference implementation for building and grading eval test-case matrices after AI Governance Flow |
 | Governance Gate Reference Implementation v1.0 | `reference-implementations/governance-gate-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript post-eval governance gate that derives BLOCKED, REPAIR_REQUIRED, GOVERNANCE_REVIEW_REQUIRED, ESCALATE_REQUIRED, or READY_FOR_AUTHORITY_REVIEW |
+| Agent Permission Schema Reference Implementation v1.0 | `reference-implementations/agent-permission-schema-v1/` | MERGED — REFERENCE IMPLEMENTATION | Executable TypeScript schema and validation logic for agent/tool permissions, derived from owner, authority, tool access, data sensitivity, autonomy, risk, audit, approval, policy boundary, and escalation controls |
 
 ## Current Implemented Flow
 
-`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)` → `runGovernanceGate(input)`
+`triageUseCase(input)` → `scoreAIReadiness(input)` → `runAIReadinessGate(input)` → `runEvalGraderMatrix(input)` → `runGovernanceGate(input)` → `validateAgentPermissions(input)`
 
 Core integration function:
 `runAIGovernanceFlow(input)`
@@ -300,6 +301,68 @@ Governance rules preserved:
 - production_approval_status is always false.
 - Governance Gate status does not equal production approval.
 - Governance Gate status does not equal KFSA verdict.
+- Review outcomes remain PASS / FIX / FAIL / ESCALATE.
+- FIX is allowed only as ReviewOutcome.
+- KILL / SCALE / ALERT are forbidden as ReviewOutcome.
+- KFSA remains external source-of-truth.
+- KFSA remains KILL / FIX / SCALE / ALERT.
+- ALERT is preserved.
+
+## Agent Permission Schema Reference Implementation v1.0
+
+Reference:
+`reference-implementations/agent-permission-schema-v1/`
+
+Status:
+MERGED — REFERENCE IMPLEMENTATION
+
+Purpose:
+Executable TypeScript reference implementation for deriving and validating agent/tool permission requirements after Governance Gate.
+
+Core functions:
+- `buildAgentPermissionSchema(input)`
+- `validateAgentPermissions(input)`
+
+Permission concepts:
+- owner
+- allowed tools
+- forbidden tools
+- read-only tools
+- write tools
+- external-system access
+- data scope
+- authority requirement
+- evidence requirement
+- audit requirement
+- autonomy level
+- policy boundary
+- approval requirement
+- escalation requirement
+
+Validation priority:
+FAIL > ESCALATE > FIX > PASS
+
+Boundary:
+- Not production runtime.
+- Not KFSA Core.
+- Not SDGM.
+- Not API.
+- Not database.
+- Not CI.
+- Not live RLS.
+- Not live permission enforcement.
+- Not customer deployment.
+- Does not approve production.
+- Permission validation PASS does not approve production.
+- Does not generate official_decision.
+- Does not generate official_verdict.
+- Does not generate KFSA verdict.
+
+Governance rules preserved:
+- production_approval_status is always false.
+- Agent Action != Approved Institutional Action.
+- Permission schema status does not equal production approval.
+- Permission schema status does not equal KFSA verdict.
 - Review outcomes remain PASS / FIX / FAIL / ESCALATE.
 - FIX is allowed only as ReviewOutcome.
 - KILL / SCALE / ALERT are forbidden as ReviewOutcome.
