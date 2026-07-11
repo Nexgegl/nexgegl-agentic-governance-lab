@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
 import { AuthorityBadge, EvidenceBadge, GateStatusBadge, RiskBadge } from "@/components/badges";
+import { ScoreValue } from "@/components/ScoreValue";
 import { getUseCaseById, useCases } from "@/lib/mock-data";
-import { computeDecisionPacketSummary, getSensitivityLabel } from "@/lib/governance-model";
+import { computeDecisionPacketSummary, getSensitivityLabel, getToolAccessLabel } from "@/lib/governance-model";
 
 export function generateStaticParams() {
   return useCases.map((u) => ({ id: u.id }));
@@ -14,6 +15,7 @@ export default function DecisionPacketPage({ params }: { params: { id: string } 
 
   const summary = computeDecisionPacketSummary(useCase);
   const sensitivity = getSensitivityLabel(useCase.dataSensitivity);
+  const toolAccess = getToolAccessLabel(useCase.toolAccess);
 
   return (
     <div className="space-y-6">
@@ -34,7 +36,7 @@ export default function DecisionPacketPage({ params }: { params: { id: string } 
         <div className="space-y-8 px-8 py-8">
           <section>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">ملخص حالة الاستخدام</h3>
-            <p className="text-sm leading-relaxed text-navy-800">{useCase.businessPurpose}</p>
+            <p className="text-sm leading-relaxed text-navy-800">{summary.executiveSummary}</p>
             <dl className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-xs text-navy-400">الإدارة</dt>
@@ -73,12 +75,12 @@ export default function DecisionPacketPage({ params }: { params: { id: string } 
             <div className="rounded-lg border border-navy-100 bg-navy-50 p-4">
               <p className="text-xs text-navy-400">نتيجة التقييم</p>
               <p className="mt-2 text-sm font-semibold text-navy-900">
-                {useCase.evalOutcome} · {useCase.evalScore}/100
+                {useCase.evalOutcome} · <ScoreValue value={useCase.evalScore} />
               </p>
             </div>
             <div className="rounded-lg border border-navy-100 bg-navy-50 p-4">
               <p className="text-xs text-navy-400">حالة الصلاحيات</p>
-              <p className="mt-2 text-sm font-semibold text-navy-900">{useCase.toolAccess}</p>
+              <p className="mt-2 text-sm font-semibold text-navy-900">{toolAccess.ar}</p>
             </div>
           </section>
 

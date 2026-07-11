@@ -37,6 +37,27 @@ export default function PermissionsPage() {
         </div>
       </section>
 
+      <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-navy-100 bg-white p-4 shadow-card">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-navy-500">مفتاح الحالات:</span>
+          <div className="w-28">
+            <PermissionCellBadge status="allowed" />
+          </div>
+          <div className="w-28">
+            <PermissionCellBadge status="requires_approval" />
+          </div>
+          <div className="w-24">
+            <PermissionCellBadge status="blocked" />
+          </div>
+          <div className="w-24">
+            <PermissionCellBadge status="forbidden" />
+          </div>
+        </div>
+        <p className="flex items-center gap-1 text-xs text-navy-400">
+          <span aria-hidden>⇠</span> اسحب الجدول أفقيًا لعرض جميع الصلاحيات
+        </p>
+      </section>
+
       <section className="overflow-x-auto rounded-xl border border-navy-100 bg-white shadow-card">
         <table className="w-full min-w-[1200px] text-sm">
           <thead className="bg-navy-50 text-xs text-navy-500">

@@ -5,7 +5,13 @@ import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
 import { AuthorityBadge, EvidenceBadge, GateStatusBadge, RiskBadge } from "@/components/badges";
 import { useCases } from "@/lib/mock-data";
-import { computeNextAction, type Department, type GateStatus, type RiskLevel } from "@/lib/governance-model";
+import {
+  computeNextAction,
+  getToolAccessLabel,
+  type Department,
+  type GateStatus,
+  type RiskLevel,
+} from "@/lib/governance-model";
 
 const DEPARTMENTS: Department[] = [
   "Finance",
@@ -26,13 +32,6 @@ const STATUSES: GateStatus[] = [
   "ESCALATE_REQUIRED",
   "READY_FOR_AUTHORITY_REVIEW",
 ];
-
-const TOOL_ACCESS_LABELS: Record<string, string> = {
-  none: "بدون",
-  read_only: "قراءة فقط",
-  write: "كتابة",
-  external_system: "نظام خارجي",
-};
 
 export default function UseCasesPage() {
   const [department, setDepartment] = useState<string>("all");
@@ -134,15 +133,15 @@ export default function UseCasesPage() {
           <thead className="bg-navy-50 text-xs text-navy-500">
             <tr>
               <th className="px-4 py-3 text-start font-medium">اسم حالة الاستخدام</th>
-              <th className="px-4 py-3 text-start font-medium">الإدارة</th>
-              <th className="px-4 py-3 text-start font-medium">المالك</th>
-              <th className="px-4 py-3 text-start font-medium">نوع الذكاء الاصطناعي</th>
-              <th className="px-4 py-3 text-start font-medium">الخطورة</th>
-              <th className="px-4 py-3 text-start font-medium">حساسية البيانات</th>
-              <th className="px-4 py-3 text-start font-medium">الوصول للأدوات</th>
               <th className="px-4 py-3 text-start font-medium">حالة الحوكمة</th>
               <th className="px-4 py-3 text-start font-medium">حالة الأدلة</th>
               <th className="px-4 py-3 text-start font-medium">حالة السلطة</th>
+              <th className="px-4 py-3 text-start font-medium">الخطورة</th>
+              <th className="px-4 py-3 text-start font-medium">الإدارة</th>
+              <th className="px-4 py-3 text-start font-medium">المالك</th>
+              <th className="px-4 py-3 text-start font-medium">حساسية البيانات</th>
+              <th className="px-4 py-3 text-start font-medium">الوصول للأدوات</th>
+              <th className="px-4 py-3 text-start font-medium">نوع الذكاء الاصطناعي</th>
               <th className="px-4 py-3 text-start font-medium">آخر مراجعة</th>
               <th className="px-4 py-3 text-start font-medium">الإجراء التالي</th>
             </tr>
@@ -156,14 +155,6 @@ export default function UseCasesPage() {
                   </Link>
                   <p className="text-[11px] text-navy-400">{u.name}</p>
                 </td>
-                <td className="px-4 py-3 text-navy-700">{u.department}</td>
-                <td className="px-4 py-3 text-navy-700">{u.owner}</td>
-                <td className="px-4 py-3 text-navy-700">{u.aiType}</td>
-                <td className="px-4 py-3">
-                  <RiskBadge risk={u.riskLevel} />
-                </td>
-                <td className="px-4 py-3 text-navy-700">{u.dataSensitivity}</td>
-                <td className="px-4 py-3 text-navy-700">{TOOL_ACCESS_LABELS[u.toolAccess]}</td>
                 <td className="px-4 py-3">
                   <GateStatusBadge status={u.governanceStatus} />
                 </td>
@@ -173,6 +164,14 @@ export default function UseCasesPage() {
                 <td className="px-4 py-3">
                   <AuthorityBadge status={u.authorityStatus} />
                 </td>
+                <td className="px-4 py-3">
+                  <RiskBadge risk={u.riskLevel} />
+                </td>
+                <td className="px-4 py-3 text-navy-700">{u.department}</td>
+                <td className="px-4 py-3 text-navy-700">{u.owner}</td>
+                <td className="px-4 py-3 text-navy-700">{u.dataSensitivity}</td>
+                <td className="px-4 py-3 text-navy-700">{getToolAccessLabel(u.toolAccess).ar}</td>
+                <td className="px-4 py-3 text-navy-700">{u.aiType}</td>
                 <td className="px-4 py-3 text-navy-500">{u.lastReviewed}</td>
                 <td className="px-4 py-3 text-navy-700">{computeNextAction(u)}</td>
               </tr>

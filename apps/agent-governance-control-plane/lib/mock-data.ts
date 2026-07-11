@@ -18,7 +18,7 @@ export const useCases: UseCase[] = [
       "Answers employee questions from internal HR and operations policy documents without requiring direct contact with HR or Legal.",
     riskLevel: "low",
     dataSensitivity: "low",
-    toolAccess: "read_only",
+    toolAccess: "none",
     externalSystems: [],
     writeTools: [],
     readOnlyTools: ["Internal policy repository"],
@@ -50,9 +50,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["Policy Repository"],
     timeline: [
-      { date: "2026-06-10", event: "Use case triaged as AUTOMATION", actor: "Governance Intake" },
-      { date: "2026-06-20", event: "Eval matrix passed (96/100)", actor: "Eval & Grader Matrix" },
-      { date: "2026-06-28", event: "Marked ready for authority review", actor: "Governance Gate" },
+      { date: "2026-06-10", event: "تم تصنيف حالة الاستخدام كأتمتة (AUTOMATION)", actor: "Governance Intake" },
+      { date: "2026-06-20", event: "اجتاز مصفوفة التقييم (96/100)", actor: "Eval & Grader Matrix" },
+      { date: "2026-06-28", event: "تم تحديدها كجاهزة لمراجعة صاحب الصلاحية", actor: "Governance Gate" },
     ],
   },
   {
@@ -98,9 +98,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["Helpdesk Platform"],
     timeline: [
-      { date: "2026-06-12", event: "Use case triaged as AUGMENTATION", actor: "Governance Intake" },
-      { date: "2026-06-24", event: "Eval flagged missing grounding evidence", actor: "Eval & Grader Matrix" },
-      { date: "2026-07-02", event: "Routed to repair for eval evidence", actor: "Governance Gate" },
+      { date: "2026-06-12", event: "تم تصنيف حالة الاستخدام كتعزيز (AUGMENTATION)", actor: "Governance Intake" },
+      { date: "2026-06-24", event: "رصد التقييم نقصًا في دليل الإسناد المرجعي", actor: "Eval & Grader Matrix" },
+      { date: "2026-07-02", event: "تم التوجيه إلى الإصلاح لاستكمال دليل التقييم", actor: "Governance Gate" },
     ],
   },
   {
@@ -146,9 +146,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["CRM Platform"],
     timeline: [
-      { date: "2026-06-05", event: "Use case triaged as AGENT", actor: "Governance Intake" },
-      { date: "2026-06-22", event: "Eval matrix passed (82/100)", actor: "Eval & Grader Matrix" },
-      { date: "2026-06-30", event: "Flagged for governance review — missing policy boundary", actor: "Governance Gate" },
+      { date: "2026-06-05", event: "تم تصنيف حالة الاستخدام كوكيل (AGENT)", actor: "Governance Intake" },
+      { date: "2026-06-22", event: "اجتاز مصفوفة التقييم (82/100)", actor: "Eval & Grader Matrix" },
+      { date: "2026-06-30", event: "تم ترشيحها لمراجعة الحوكمة — حدود السياسة غير مكتملة", actor: "Governance Gate" },
     ],
   },
   {
@@ -194,9 +194,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["ERP System"],
     timeline: [
-      { date: "2026-06-08", event: "Use case triaged as AUGMENTATION", actor: "Governance Intake" },
-      { date: "2026-06-27", event: "Eval matrix passed (93/100)", actor: "Eval & Grader Matrix" },
-      { date: "2026-07-05", event: "Marked ready for authority review", actor: "Governance Gate" },
+      { date: "2026-06-08", event: "تم تصنيف حالة الاستخدام كتعزيز (AUGMENTATION)", actor: "Governance Intake" },
+      { date: "2026-06-27", event: "اجتاز مصفوفة التقييم (93/100)", actor: "Eval & Grader Matrix" },
+      { date: "2026-07-05", event: "تم تحديدها كجاهزة لمراجعة صاحب الصلاحية", actor: "Governance Gate" },
     ],
   },
   {
@@ -242,9 +242,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "partial",
     connectedSystems: ["Vendor Verification API"],
     timeline: [
-      { date: "2026-05-30", event: "Use case triaged as GOVERNED_RUNTIME", actor: "Governance Intake" },
-      { date: "2026-06-14", event: "Eval flagged decision-authority ambiguity", actor: "Eval & Grader Matrix" },
-      { date: "2026-06-20", event: "Escalated — no confirmed decision authority for vendor rejection", actor: "Governance Gate" },
+      { date: "2026-05-30", event: "تم تصنيف حالة الاستخدام كتشغيل محكوم (GOVERNED_RUNTIME)", actor: "Governance Intake" },
+      { date: "2026-06-14", event: "رصد التقييم غموضًا في صلاحية اتخاذ القرار", actor: "Eval & Grader Matrix" },
+      { date: "2026-06-20", event: "تم التصعيد — لا توجد صلاحية معتمدة لرفض المورد", actor: "Governance Gate" },
     ],
   },
   {
@@ -290,9 +290,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "missing",
     connectedSystems: ["Applicant Tracking System"],
     timeline: [
-      { date: "2026-06-01", event: "Use case triaged as GOVERNED_RUNTIME", actor: "Governance Intake" },
-      { date: "2026-06-15", event: "Eval failed — no confirmed authority, no audit trail", actor: "Eval & Grader Matrix" },
-      { date: "2026-06-15", event: "Blocked pending owner and authority evidence", actor: "Governance Gate" },
+      { date: "2026-06-01", event: "تم تصنيف حالة الاستخدام كتشغيل محكوم (GOVERNED_RUNTIME)", actor: "Governance Intake" },
+      { date: "2026-06-15", event: "فشل التقييم — لا توجد صلاحية معتمدة ولا سجل تدقيق", actor: "Eval & Grader Matrix" },
+      { date: "2026-06-15", event: "تم الحظر لحين استكمال دليل المالك والصلاحية", actor: "Governance Gate" },
     ],
   },
   {
@@ -338,9 +338,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["Board Portal"],
     timeline: [
-      { date: "2026-06-18", event: "Use case triaged as AUGMENTATION", actor: "Governance Intake" },
-      { date: "2026-06-29", event: "Eval matrix passed (90/100)", actor: "Eval & Grader Matrix" },
-      { date: "2026-07-08", event: "Marked ready for authority review", actor: "Governance Gate" },
+      { date: "2026-06-18", event: "تم تصنيف حالة الاستخدام كتعزيز (AUGMENTATION)", actor: "Governance Intake" },
+      { date: "2026-06-29", event: "اجتاز مصفوفة التقييم (90/100)", actor: "Eval & Grader Matrix" },
+      { date: "2026-07-08", event: "تم تحديدها كجاهزة لمراجعة صاحب الصلاحية", actor: "Governance Gate" },
     ],
   },
   {
@@ -386,9 +386,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "partial",
     connectedSystems: ["Collections Agency System"],
     timeline: [
-      { date: "2026-05-25", event: "Use case triaged as GOVERNED_RUNTIME", actor: "Governance Intake" },
-      { date: "2026-06-10", event: "Eval flagged customer-impact escalation", actor: "Eval & Grader Matrix" },
-      { date: "2026-06-18", event: "Escalated — no confirmed authority for outreach prioritization", actor: "Governance Gate" },
+      { date: "2026-05-25", event: "تم تصنيف حالة الاستخدام كتشغيل محكوم (GOVERNED_RUNTIME)", actor: "Governance Intake" },
+      { date: "2026-06-10", event: "رصد التقييم تصعيدًا بسبب التأثير على العملاء", actor: "Eval & Grader Matrix" },
+      { date: "2026-06-18", event: "تم التصعيد — لا توجد صلاحية معتمدة لترتيب أولويات التواصل", actor: "Governance Gate" },
     ],
   },
   {
@@ -434,9 +434,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["Sales Pipeline Dashboard"],
     timeline: [
-      { date: "2026-06-11", event: "Use case triaged as AUGMENTATION", actor: "Governance Intake" },
-      { date: "2026-06-23", event: "Eval matrix passed (89/100)", actor: "Eval & Grader Matrix" },
-      { date: "2026-07-01", event: "Marked ready for authority review", actor: "Governance Gate" },
+      { date: "2026-06-11", event: "تم تصنيف حالة الاستخدام كتعزيز (AUGMENTATION)", actor: "Governance Intake" },
+      { date: "2026-06-23", event: "اجتاز مصفوفة التقييم (89/100)", actor: "Eval & Grader Matrix" },
+      { date: "2026-07-01", event: "تم تحديدها كجاهزة لمراجعة صاحب الصلاحية", actor: "Governance Gate" },
     ],
   },
   {
@@ -482,9 +482,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["Contract Repository"],
     timeline: [
-      { date: "2026-06-02", event: "Use case triaged as AUGMENTATION", actor: "Governance Intake" },
-      { date: "2026-06-19", event: "Eval matrix passed (78/100)", actor: "Eval & Grader Matrix" },
-      { date: "2026-06-25", event: "Flagged for governance review — regulatory/legal impact medium", actor: "Governance Gate" },
+      { date: "2026-06-02", event: "تم تصنيف حالة الاستخدام كتعزيز (AUGMENTATION)", actor: "Governance Intake" },
+      { date: "2026-06-19", event: "اجتاز مصفوفة التقييم (78/100)", actor: "Eval & Grader Matrix" },
+      { date: "2026-06-25", event: "تم ترشيحها لمراجعة الحوكمة — تأثير نظامي/قانوني متوسط", actor: "Governance Gate" },
     ],
   },
   {
@@ -530,9 +530,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "present",
     connectedSystems: ["Customer Analytics Platform"],
     timeline: [
-      { date: "2026-06-14", event: "Use case triaged as WORKFLOW", actor: "Governance Intake" },
-      { date: "2026-06-27", event: "Eval flagged missing eval evidence for churn model", actor: "Eval & Grader Matrix" },
-      { date: "2026-07-03", event: "Routed to repair for eval evidence", actor: "Governance Gate" },
+      { date: "2026-06-14", event: "تم تصنيف حالة الاستخدام كسير عمل (WORKFLOW)", actor: "Governance Intake" },
+      { date: "2026-06-27", event: "رصد التقييم نقصًا في دليل تقييم نموذج تسرب العملاء", actor: "Eval & Grader Matrix" },
+      { date: "2026-07-03", event: "تم التوجيه إلى الإصلاح لاستكمال دليل التقييم", actor: "Governance Gate" },
     ],
   },
   {
@@ -578,9 +578,9 @@ export const useCases: UseCase[] = [
     auditTrailStatus: "missing",
     connectedSystems: ["Logistics API", "Billing API"],
     timeline: [
-      { date: "2026-05-20", event: "Use case triaged as MULTI_AGENT_SYSTEM", actor: "Governance Intake" },
-      { date: "2026-06-10", event: "Eval failed — no policy boundary, no audit trail", actor: "Eval & Grader Matrix" },
-      { date: "2026-06-10", event: "Blocked pending authority and policy boundary evidence", actor: "Governance Gate" },
+      { date: "2026-05-20", event: "تم تصنيف حالة الاستخدام كنظام متعدد الوكلاء (MULTI_AGENT_SYSTEM)", actor: "Governance Intake" },
+      { date: "2026-06-10", event: "فشل التقييم — لا توجد حدود سياسة ولا سجل تدقيق", actor: "Eval & Grader Matrix" },
+      { date: "2026-06-10", event: "تم الحظر لحين استكمال دليل الصلاحية وحدود السياسة", actor: "Governance Gate" },
     ],
   },
 ];
