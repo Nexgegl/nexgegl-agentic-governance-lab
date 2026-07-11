@@ -264,4 +264,4 @@ Conceptually, an eval run produces:
 This specification is backfilled to align with:
 `reference-implementations/eval-grader-matrix-v1/`
 
-It describes, at the specification level, the behavior already implemented and merged in that folder (`types.ts`, `matrix.ts`, `grader.ts`, `examples.ts`, `README.md`). Do not change the reference implementation in this PR. Where this document and the reference implementation could ever be read as disagreeing, the reference implementation's executable behavior is the source of truth for what is actually built; this document exists to give that behavior a durable, non-code specification.
+It describes, at the specification level, the behavior already implemented and merged in that folder (`types.ts`, `matrix.ts`, `grade.ts`, `examples.ts`, `README.md`). Do not change the reference implementation in this PR. Where this document and the reference implementation could ever be read as disagreeing, the reference implementation's executable behavior is the source of truth for what is actually built; this document exists to give that behavior a durable, non-code specification.
