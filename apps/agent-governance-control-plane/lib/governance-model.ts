@@ -106,11 +106,15 @@ export const PERMISSION_COLUMNS: { key: PermissionColumn; labelEn: string; label
   { key: "external_api_access", labelEn: "External API Access", labelAr: "الوصول لواجهة خارجية" },
 ];
 
+// Ordered by governance severity priority (FAIL > ESCALATE > FIX > PASS),
+// matching the Governance Gate decision priority. Used by both the Gate
+// Board (columns) and the Dashboard (status distribution) so the two views
+// stay consistent with each other.
 export const GATE_STATUS_ORDER: GateStatus[] = [
   "BLOCKED",
+  "ESCALATE_REQUIRED",
   "REPAIR_REQUIRED",
   "GOVERNANCE_REVIEW_REQUIRED",
-  "ESCALATE_REQUIRED",
   "READY_FOR_AUTHORITY_REVIEW",
 ];
 
@@ -166,6 +170,17 @@ const SENSITIVITY_LABELS: Record<DataSensitivity, { en: string; ar: string }> = 
 
 export function getSensitivityLabel(sensitivity: DataSensitivity): { en: string; ar: string } {
   return SENSITIVITY_LABELS[sensitivity];
+}
+
+const TOOL_ACCESS_LABELS: Record<ToolAccessLevel, { en: string; ar: string }> = {
+  none: { en: "None", ar: "بدون" },
+  read_only: { en: "Read Only", ar: "قراءة فقط" },
+  write: { en: "Write", ar: "كتابة" },
+  external_system: { en: "External System", ar: "نظام خارجي" },
+};
+
+export function getToolAccessLabel(level: ToolAccessLevel): { en: string; ar: string } {
+  return TOOL_ACCESS_LABELS[level];
 }
 
 const EVIDENCE_LABELS: Record<EvidenceStatus, { en: string; ar: string }> = {
@@ -291,31 +306,31 @@ export function computeUrgentItems(useCases: UseCase[], limit = 5): UseCase[] {
 export function computeMissingControls(useCase: UseCase): string[] {
   const missing: string[] = [];
   const d = useCase.evidenceDetail;
-  if (!d.owner_evidence) missing.push("Owner evidence");
-  if (!d.authority_evidence) missing.push("Authority evidence");
-  if (!d.eval_evidence) missing.push("Eval evidence");
-  if (!d.audit_evidence) missing.push("Audit evidence");
-  if (!d.policy_boundary_evidence) missing.push("Policy boundary evidence");
-  if (!d.approval_evidence) missing.push("Approval evidence");
-  if (useCase.authorityStatus === "missing") missing.push("Confirmed decision authority");
-  if (useCase.authorityStatus === "escalation_required") missing.push("Resolved authority escalation");
+  if (!d.owner_evidence) missing.push("دليل المالك غير مكتمل");
+  if (!d.authority_evidence) missing.push("دليل السلطة غير مكتمل");
+  if (!d.eval_evidence) missing.push("دليل التقييم غير مكتمل");
+  if (!d.audit_evidence) missing.push("دليل التدقيق غير مكتمل");
+  if (!d.policy_boundary_evidence) missing.push("حدود السياسة والصلاحيات غير مكتملة");
+  if (!d.approval_evidence) missing.push("دليل الموافقة غير مكتمل");
+  if (useCase.authorityStatus === "missing") missing.push("الصلاحية غير مثبتة");
+  if (useCase.authorityStatus === "escalation_required") missing.push("مراجعة السلطة المؤسسية مطلوبة");
   return missing;
 }
 
 export function computeNextAction(useCase: UseCase): string {
   switch (useCase.governanceStatus) {
     case "BLOCKED":
-      return "Resolve blocking failure before re-review";
+      return "أعد الحالة إلى المالك لإغلاق العوائق قبل أي مراجعة لاحقة";
     case "REPAIR_REQUIRED":
-      return "Provide missing evidence and resubmit for eval";
+      return "أكمل النواقص ثم أعد التقييم";
     case "GOVERNANCE_REVIEW_REQUIRED":
-      return "Route to governance review committee";
+      return "التوجيه إلى لجنة مراجعة الحوكمة";
     case "ESCALATE_REQUIRED":
-      return "Escalate to named institutional authority";
+      return "تصعيد إلى صاحب الصلاحية المؤسسية المعتمدة";
     case "READY_FOR_AUTHORITY_REVIEW":
-      return "Present to institutional authority for decision";
+      return "العرض على صاحب الصلاحية المعتمدة للمراجعة";
     default:
-      return "Review use case";
+      return "مراجعة حالة الاستخدام";
   }
 }
 
@@ -333,8 +348,28 @@ export function computeEvidenceCompleteness(useCase: UseCase): number {
   return Math.round((present / items.length) * 100);
 }
 
+/**
+ * A short, distinct Arabic governance summary sentence — status, risk,
+ * evidence, authority, and whether the case can move to authority review.
+ * Deliberately separate from the use case's business-purpose description so
+ * the Decision Packet's Executive Summary and Business Purpose sections
+ * never repeat the same paragraph.
+ */
+export function computeExecutiveSummary(useCase: UseCase): string {
+  const statusLabel = getGateStatusLabel(useCase.governanceStatus).ar;
+  const riskLabel = getRiskLabel(useCase.riskLevel).ar;
+  const evidenceLabel = getEvidenceLabel(useCase.evidenceStatus).ar;
+  const authorityLabel = getAuthorityLabel(useCase.authorityStatus).ar;
+  const movementNote =
+    useCase.governanceStatus === "READY_FOR_AUTHORITY_REVIEW"
+      ? "يمكن عرض هذه الحالة على صاحب الصلاحية المعتمدة للمراجعة."
+      : "لا يمكن عرض هذه الحالة على صاحب الصلاحية المعتمدة في وضعها الحالي.";
+  return `حالة الحوكمة: ${statusLabel}. مستوى الخطورة: ${riskLabel}. حالة الأدلة: ${evidenceLabel}. حالة السلطة المعتمدة: ${authorityLabel}. ${movementNote}`;
+}
+
 export interface DecisionPacketSummary {
   useCase: UseCase;
+  executiveSummary: string;
   missingControls: string[];
   nextAction: string;
   evidenceCompleteness: number;
@@ -347,18 +382,25 @@ export function computeDecisionPacketSummary(useCase: UseCase): DecisionPacketSu
 
   let recommendedExecutiveAction: string;
   if (useCase.governanceStatus === "BLOCKED") {
-    recommendedExecutiveAction = "Do not proceed. Return to owner to resolve blocking failures before any further review.";
+    recommendedExecutiveAction = "لا تنتقل للمراجعة. أعد الحالة إلى المالك لإغلاق العوائق قبل أي خطوة لاحقة.";
   } else if (useCase.governanceStatus === "ESCALATE_REQUIRED") {
-    recommendedExecutiveAction = "Escalate to a named institutional authority for judgment before proceeding.";
+    recommendedExecutiveAction = "تصعيد مطلوب. تحتاج الحالة إلى مراجعة حوكمة بشرية.";
   } else if (useCase.governanceStatus === "REPAIR_REQUIRED") {
-    recommendedExecutiveAction = "Return to owner for evidence remediation, then resubmit for eval.";
+    recommendedExecutiveAction = "إصلاح مطلوب. أكمل النواقص ثم أعد التقييم.";
   } else if (useCase.governanceStatus === "GOVERNANCE_REVIEW_REQUIRED") {
-    recommendedExecutiveAction = "Route to governance review committee before authority review.";
+    recommendedExecutiveAction = "مراجعة حوكمة مطلوبة قبل العرض على صاحب الصلاحية.";
   } else {
-    recommendedExecutiveAction = "May be presented to institutional authority for review and decision.";
+    recommendedExecutiveAction = "جاهز للمراجعة من صاحب الصلاحية، ولا يعني ذلك موافقة إنتاج.";
   }
 
-  return { useCase, missingControls, nextAction: computeNextAction(useCase), evidenceCompleteness, recommendedExecutiveAction };
+  return {
+    useCase,
+    executiveSummary: computeExecutiveSummary(useCase),
+    missingControls,
+    nextAction: computeNextAction(useCase),
+    evidenceCompleteness,
+    recommendedExecutiveAction,
+  };
 }
 
 export const BOUNDARY_NOTE_AR =

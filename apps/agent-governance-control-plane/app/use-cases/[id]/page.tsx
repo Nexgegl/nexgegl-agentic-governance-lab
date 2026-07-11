@@ -2,8 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
 import { AuthorityBadge, EvidenceBadge, GateStatusBadge, RiskBadge } from "@/components/badges";
+import { ScoreValue } from "@/components/ScoreValue";
 import { getUseCaseById, useCases } from "@/lib/mock-data";
-import { computeEvidenceCompleteness, computeMissingControls, computeNextAction, getSensitivityLabel } from "@/lib/governance-model";
+import {
+  computeEvidenceCompleteness,
+  computeMissingControls,
+  computeNextAction,
+  getSensitivityLabel,
+  getToolAccessLabel,
+} from "@/lib/governance-model";
 
 export function generateStaticParams() {
   return useCases.map((u) => ({ id: u.id }));
@@ -17,6 +24,7 @@ export default function UseCaseDetailPage({ params }: { params: { id: string } }
   const nextAction = computeNextAction(useCase);
   const evidenceCompleteness = computeEvidenceCompleteness(useCase);
   const sensitivity = getSensitivityLabel(useCase.dataSensitivity);
+  const toolAccess = getToolAccessLabel(useCase.toolAccess);
 
   return (
     <div className="space-y-6">
@@ -47,7 +55,9 @@ export default function UseCaseDetailPage({ params }: { params: { id: string } }
             </div>
             <div>
               <dt className="text-xs text-navy-400">درجة الجاهزية</dt>
-              <dd className="font-medium text-navy-900">{useCase.readinessScore} / 100</dd>
+              <dd className="font-medium text-navy-900">
+                <ScoreValue value={useCase.readinessScore} />
+              </dd>
             </div>
             <div>
               <dt className="text-xs text-navy-400">حساسية البيانات</dt>
@@ -90,12 +100,12 @@ export default function UseCaseDetailPage({ params }: { params: { id: string } }
               <li className="flex items-center justify-between">
                 <span className="text-navy-500">نتيجة التقييم</span>
                 <span className="font-medium text-navy-900">
-                  {useCase.evalOutcome} · {useCase.evalScore}/100
+                  {useCase.evalOutcome} · <ScoreValue value={useCase.evalScore} />
                 </span>
               </li>
               <li className="flex items-center justify-between">
                 <span className="text-navy-500">حالة صلاحيات الوكيل</span>
-                <span className="font-medium text-navy-900">{useCase.toolAccess}</span>
+                <span className="font-medium text-navy-900">{toolAccess.ar}</span>
               </li>
               <li className="flex items-center justify-between">
                 <span className="text-navy-500">اكتمال الأدلة</span>
