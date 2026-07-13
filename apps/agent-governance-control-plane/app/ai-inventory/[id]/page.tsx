@@ -3,15 +3,31 @@ import { notFound } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
 import { AuthorityBadge, EvidenceBadge, GateStatusBadge, RiskBadge } from "@/components/badges";
 import { ScoreValue } from "@/components/ScoreValue";
-import { agents, dataSources, getModelById, getUseCaseById, getVendorById, useCases } from "@/lib/mock-data";
+import {
+  agents,
+  dataSources,
+  getModelById,
+  getUseCaseById,
+  getVendorById,
+  humanReviews,
+  incidents,
+  useCases,
+} from "@/lib/mock-data";
 import {
   computeEvidenceCompleteness,
   computeMissingControls,
   computeNextAction,
+  getAuditTrailStatusLabel,
   getLifecycleStageLabel,
   getSensitivityLabel,
   getToolAccessLabel,
 } from "@/lib/governance-model";
+import {
+  getHumanReviewDecisionLabel,
+  getIncidentSeverityLabel,
+  getIncidentStatusClasses,
+  getIncidentStatusLabel,
+} from "@/lib/labels";
 
 export function generateStaticParams() {
   return useCases.map((u) => ({ id: u.id }));
@@ -27,10 +43,16 @@ export default function AiInventoryDetailPage({ params }: { params: { id: string
   const sensitivity = getSensitivityLabel(useCase.dataSensitivity);
   const toolAccess = getToolAccessLabel(useCase.toolAccess);
   const lifecycle = getLifecycleStageLabel(useCase.lifecycleStage);
+  const auditTrail = getAuditTrailStatusLabel(useCase.auditTrailStatus);
   const linkedAgents = agents.filter((a) => useCase.agentIds.includes(a.id));
   const linkedModel = useCase.modelId ? getModelById(useCase.modelId) : undefined;
   const linkedVendor = useCase.vendorId ? getVendorById(useCase.vendorId) : undefined;
   const linkedDataSources = dataSources.filter((d) => useCase.dataSourceIds.includes(d.id));
+  const linkedReviews = humanReviews
+    .filter((r) => r.assetId === useCase.id)
+    .slice()
+    .sort((a, b) => (a.reviewDate < b.reviewDate ? 1 : -1));
+  const linkedIncidents = incidents.filter((i) => i.assetId === useCase.id);
 
   return (
     <div className="space-y-6">
@@ -55,7 +77,8 @@ export default function AiInventoryDetailPage({ params }: { params: { id: string
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-xl border border-navy-100 bg-white p-5 shadow-card lg:col-span-2">
           <h2 className="mb-2 text-sm font-semibold text-navy-900">الملخص التنفيذي</h2>
-          <p className="text-sm leading-relaxed text-navy-700">{useCase.businessPurpose}</p>
+          <p className="text-sm leading-relaxed text-navy-700">{useCase.businessPurposeAr}</p>
+          <p className="mt-1 text-xs leading-relaxed text-navy-400">{useCase.businessPurpose}</p>
 
           <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
             <div>
@@ -74,7 +97,7 @@ export default function AiInventoryDetailPage({ params }: { params: { id: string
             </div>
             <div>
               <dt className="text-xs text-navy-400">حالة سجل التدقيق</dt>
-              <dd className="font-medium text-navy-900">{useCase.auditTrailStatus}</dd>
+              <dd className="font-medium text-navy-900">{auditTrail.ar}</dd>
             </div>
             <div>
               <dt className="text-xs text-navy-400">المالك</dt>
@@ -134,6 +157,56 @@ export default function AiInventoryDetailPage({ params }: { params: { id: string
                   </Link>
                 ))
               )}
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border border-navy-100 p-3">
+              <p className="mb-1 text-xs text-navy-400">آخر مراجعة بشرية</p>
+              {linkedReviews.length === 0 ? (
+                <p className="mt-1 text-xs text-red-600">لا توجد مراجعة بشرية مسجلة</p>
+              ) : (
+                <>
+                  <p className="mt-1 text-sm font-medium text-navy-900">
+                    {getHumanReviewDecisionLabel(linkedReviews[0].decision).ar}
+                  </p>
+                  <p className="mt-1 text-[11px] text-navy-400">
+                    {linkedReviews[0].reviewer} · {linkedReviews[0].reviewDate}
+                  </p>
+                  <Link href="/oversight" className="mt-1 block text-[11px] text-navy-500 hover:text-gold-600">
+                    عرض سجل الإشراف البشري ←
+                  </Link>
+                </>
+              )}
+            </div>
+            <div className="rounded-lg border border-navy-100 p-3">
+              <p className="mb-1 text-xs text-navy-400">الحوادث المرتبطة</p>
+              {linkedIncidents.length === 0 ? (
+                <p className="mt-1 text-xs text-navy-400">لا توجد حوادث مسجلة لهذا الأصل</p>
+              ) : (
+                linkedIncidents.map((i) => (
+                  <Link key={i.id} href="/incidents" className="mt-1 block hover:text-gold-600">
+                    <span className="flex items-center justify-between gap-2 text-sm text-navy-900">
+                      <span>{i.titleAr}</span>
+                      <span
+                        className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium ${getIncidentStatusClasses(i.status)}`}
+                      >
+                        {getIncidentStatusLabel(i.status).ar}
+                      </span>
+                    </span>
+                    <span className="text-[11px] text-navy-400">الخطورة: {getIncidentSeverityLabel(i.severity).ar}</span>
+                  </Link>
+                ))
+              )}
+            </div>
+            <div className="rounded-lg border border-navy-100 p-3">
+              <p className="mb-1 text-xs text-navy-400">ربط الامتثال</p>
+              <p className="mt-1 text-xs text-navy-500">
+                لا يوجد ربط مباشر بين حالات الاستخدام الفردية ومتطلبات الامتثال في هذا الإصدار.
+              </p>
+              <Link href="/compliance" className="mt-1 block text-[11px] text-navy-500 hover:text-gold-600">
+                عرض خريطة الامتثال الكاملة ←
+              </Link>
             </div>
           </div>
         </div>

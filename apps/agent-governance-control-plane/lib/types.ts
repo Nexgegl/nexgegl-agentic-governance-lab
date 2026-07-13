@@ -183,4 +183,6 @@ export interface ComplianceMapping {
   requirementAr: string;
   mappedControlIds: string[];
   status: EvidenceStatus;
+  /** Institutional owner accountable for this requirement — required for any "complete" mapping. */
+  owner: string;
 }

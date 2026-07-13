@@ -30,6 +30,8 @@ export type EvidenceStatus = "complete" | "partial" | "missing";
 
 export type AuthorityStatus = "confirmed" | "missing" | "escalation_required";
 
+export type AuditTrailStatus = "present" | "partial" | "missing";
+
 export type Department =
   | "Finance"
   | "Sales"
@@ -76,6 +78,9 @@ export interface UseCase {
   owner: string;
   authority: string;
   aiType: string;
+  /** Arabic-first business purpose — the primary rendering on executive pages. */
+  businessPurposeAr: string;
+  /** English business purpose — secondary/supporting text only. */
   businessPurpose: string;
   riskLevel: RiskLevel;
   dataSensitivity: DataSensitivity;
@@ -92,7 +97,7 @@ export interface UseCase {
   evidenceDetail: EvidenceDetail;
   permissions: Record<PermissionColumn, PermissionCellStatus>;
   lastReviewed: string;
-  auditTrailStatus: "present" | "partial" | "missing";
+  auditTrailStatus: AuditTrailStatus;
   connectedSystems: string[];
   timeline: TimelineEvent[];
   lifecycleStage: LifecycleStage;
@@ -190,6 +195,16 @@ export function getToolAccessLabel(level: ToolAccessLevel): { en: string; ar: st
   return TOOL_ACCESS_LABELS[level];
 }
 
+const AUDIT_TRAIL_STATUS_LABELS: Record<AuditTrailStatus, { en: string; ar: string }> = {
+  present: { en: "Present", ar: "متوفر" },
+  partial: { en: "Partial", ar: "جزئي" },
+  missing: { en: "Missing", ar: "غير متوفر" },
+};
+
+export function getAuditTrailStatusLabel(status: AuditTrailStatus): { en: string; ar: string } {
+  return AUDIT_TRAIL_STATUS_LABELS[status];
+}
+
 const LIFECYCLE_STAGE_LABELS: Record<LifecycleStage, { en: string; ar: string }> = {
   proposed: { en: "Proposed", ar: "مقترح" },
   pilot: { en: "Pilot", ar: "تجريبي" },
@@ -265,7 +280,8 @@ export function getPermissionCellClasses(status: PermissionCellStatus): string {
 
 export interface KpiSet {
   totalUseCases: number;
-  activeAgents: number;
+  /** AI assets with any tool access (none excluded) — distinct from real Agent Governance records. */
+  toolEnabledAssets: number;
   highRiskUseCases: number;
   blockedCases: number;
   missingAuthorityCases: number;
@@ -277,7 +293,7 @@ export interface KpiSet {
 export function computeKpis(useCases: UseCase[]): KpiSet {
   return {
     totalUseCases: useCases.length,
-    activeAgents: useCases.filter((u) => u.toolAccess !== "none").length,
+    toolEnabledAssets: useCases.filter((u) => u.toolAccess !== "none").length,
     highRiskUseCases: useCases.filter((u) => u.riskLevel === "high").length,
     blockedCases: useCases.filter((u) => u.governanceStatus === "BLOCKED").length,
     missingAuthorityCases: useCases.filter((u) => u.authorityStatus === "missing").length,

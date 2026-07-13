@@ -7,7 +7,10 @@ import { AuthorityBadge, EvidenceBadge, GateStatusBadge, RiskBadge } from "@/com
 import { useCases } from "@/lib/mock-data";
 import {
   computeNextAction,
+  getGateStatusLabel,
   getLifecycleStageLabel,
+  getRiskLabel,
+  getSensitivityLabel,
   getToolAccessLabel,
   type Department,
   type GateStatus,
@@ -86,7 +89,7 @@ export default function AiInventoryPage() {
           <option value="all">كل مستويات الخطورة</option>
           {RISK_LEVELS.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {getRiskLabel(r).ar}
             </option>
           ))}
         </select>
@@ -99,7 +102,7 @@ export default function AiInventoryPage() {
           <option value="all">كل حالات الحوكمة</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {getGateStatusLabel(s).ar}
             </option>
           ))}
         </select>
@@ -171,7 +174,7 @@ export default function AiInventoryPage() {
                 <td className="px-4 py-3 text-navy-700">{getLifecycleStageLabel(u.lifecycleStage).ar}</td>
                 <td className="px-4 py-3 text-navy-700">{u.department}</td>
                 <td className="px-4 py-3 text-navy-700">{u.owner}</td>
-                <td className="px-4 py-3 text-navy-700">{u.dataSensitivity}</td>
+                <td className="px-4 py-3 text-navy-700">{getSensitivityLabel(u.dataSensitivity).ar}</td>
                 <td className="px-4 py-3 text-navy-700">{getToolAccessLabel(u.toolAccess).ar}</td>
                 <td className="px-4 py-3 text-navy-500">{u.lastReviewed}</td>
                 <td className="px-4 py-3 text-navy-700">{computeNextAction(u)}</td>

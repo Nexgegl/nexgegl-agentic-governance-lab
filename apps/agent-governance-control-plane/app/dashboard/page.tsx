@@ -19,11 +19,12 @@ import {
   computeStatusDistribution,
   computeUrgentItems,
 } from "@/lib/governance-model";
-import { computeLayerReadiness } from "@/lib/governance-engine";
+import { computeAgentGovernancePosture, computeLayerReadiness } from "@/lib/governance-engine";
 import { GOVERNANCE_LAYERS } from "@/lib/labels";
 
 export default function DashboardPage() {
   const kpis = computeKpis(useCases);
+  const agentPosture = computeAgentGovernancePosture(agents);
   const statusDistribution = computeStatusDistribution(useCases);
   const riskDistribution = computeRiskDistribution(useCases);
   const urgentItems = computeUrgentItems(useCases, 5);
@@ -76,7 +77,7 @@ export default function DashboardPage() {
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard label="إجمالي حالات الاستخدام" labelEn="Total Use Cases" value={kpis.totalUseCases} />
-        <KpiCard label="الوكلاء النشطون" labelEn="Active Agents" value={kpis.activeAgents} />
+        <KpiCard label="الوكلاء النشطون" labelEn="Active Agents" value={agentPosture.activeAgents} />
         <KpiCard label="حالات عالية الخطورة" labelEn="High-Risk Use Cases" value={kpis.highRiskUseCases} tone="warning" />
         <KpiCard label="حالات محظورة" labelEn="Blocked Cases" value={kpis.blockedCases} tone="danger" />
         <KpiCard label="بدون سلطة معتمدة" labelEn="Missing Authority" value={kpis.missingAuthorityCases} tone="danger" />
