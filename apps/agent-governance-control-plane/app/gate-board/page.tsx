@@ -44,7 +44,7 @@ export default function GateBoardPage() {
                     return (
                       <Link
                         key={u.id}
-                        href={`/use-cases/${u.id}`}
+                        href={`/ai-inventory/${u.id}`}
                         className="block rounded-lg border border-navy-100 bg-white p-3 shadow-card transition-shadow hover:shadow-md"
                       >
                         <p className="text-sm font-medium text-navy-900">{u.nameAr}</p>

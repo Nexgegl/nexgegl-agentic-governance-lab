@@ -2,8 +2,13 @@ import { notFound } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
 import { AuthorityBadge, EvidenceBadge, GateStatusBadge, RiskBadge } from "@/components/badges";
 import { ScoreValue } from "@/components/ScoreValue";
-import { getUseCaseById, useCases } from "@/lib/mock-data";
-import { computeDecisionPacketSummary, getSensitivityLabel, getToolAccessLabel } from "@/lib/governance-model";
+import { agents, getModelById, getUseCaseById, getVendorById, useCases } from "@/lib/mock-data";
+import {
+  computeDecisionPacketSummary,
+  getLifecycleStageLabel,
+  getSensitivityLabel,
+  getToolAccessLabel,
+} from "@/lib/governance-model";
 
 export function generateStaticParams() {
   return useCases.map((u) => ({ id: u.id }));
@@ -16,6 +21,10 @@ export default function DecisionPacketPage({ params }: { params: { id: string } 
   const summary = computeDecisionPacketSummary(useCase);
   const sensitivity = getSensitivityLabel(useCase.dataSensitivity);
   const toolAccess = getToolAccessLabel(useCase.toolAccess);
+  const lifecycle = getLifecycleStageLabel(useCase.lifecycleStage);
+  const linkedAgents = agents.filter((a) => useCase.agentIds.includes(a.id));
+  const linkedModel = useCase.modelId ? getModelById(useCase.modelId) : undefined;
+  const linkedVendor = useCase.vendorId ? getVendorById(useCase.vendorId) : undefined;
 
   return (
     <div className="space-y-6">
@@ -117,6 +126,28 @@ export default function DecisionPacketPage({ params }: { params: { id: string } 
           <section className="rounded-lg border border-gold-400 bg-gold-100/60 p-4">
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gold-600">الإجراء التنفيذي الموصى به</h3>
             <p className="text-sm font-medium leading-relaxed text-navy-900">{summary.recommendedExecutiveAction}</p>
+          </section>
+
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-navy-400">لقطة الطبقات المرتبطة</h3>
+            <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+              <div>
+                <dt className="text-xs text-navy-400">مرحلة دورة الحياة</dt>
+                <dd className="font-medium text-navy-900">{lifecycle.ar}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-navy-400">النموذج المستخدم</dt>
+                <dd className="font-medium text-navy-900">{linkedModel?.name ?? "غير محدد"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-navy-400">المورد المرتبط</dt>
+                <dd className="font-medium text-navy-900">{linkedVendor?.nameAr ?? "لا يوجد"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-navy-400">عدد الوكلاء المرتبطين</dt>
+                <dd className="font-medium text-navy-900">{linkedAgents.length}</dd>
+              </div>
+            </dl>
           </section>
 
           <section className="rounded-lg border-2 border-navy-900 bg-navy-950 p-5 text-white">

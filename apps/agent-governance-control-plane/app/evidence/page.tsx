@@ -87,7 +87,7 @@ export default function EvidencePage() {
             {useCases.map((u) => (
               <tr key={u.id} className="hover:bg-navy-50/60">
                 <td className="px-4 py-3">
-                  <Link href={`/use-cases/${u.id}`} className="font-medium text-navy-900 hover:text-gold-600">
+                  <Link href={`/ai-inventory/${u.id}`} className="font-medium text-navy-900 hover:text-gold-600">
                     {u.nameAr}
                   </Link>
                 </td>

@@ -4,9 +4,9 @@ import { Sidebar } from "@/components/Sidebar";
 import { BoundaryFooter } from "@/components/BoundaryFooter";
 
 export const metadata: Metadata = {
-  title: "مركز تحكم حوكمة وكلاء الذكاء الاصطناعي — NEXGEGL",
+  title: "نظام تشغيل حوكمة الذكاء الاصطناعي — NEXGEGL",
   description:
-    "NEXGEGL Agent Governance Control Plane — منصة تنفيذية لعرض وتصنيف وحوكمة ومراجعة حالات استخدام الذكاء الاصطناعي والوكلاء عبر المؤسسة.",
+    "NEXGEGL AI Governance Operating System — منصة تنفيذية موحدة تغطي طبقات حوكمة الذكاء الاصطناعي الثماني: السجل والملكية، الأساس البياني، دورة حياة النماذج، أمن البيانات والخصوصية، التحكم في الوصول، حوكمة الوكلاء، الإشراف البشري، والامتثال والتدقيق.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

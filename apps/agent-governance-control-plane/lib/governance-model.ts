@@ -66,6 +66,8 @@ export interface TimelineEvent {
   actor: string;
 }
 
+export type LifecycleStage = "proposed" | "pilot" | "governed_runtime" | "retired";
+
 export interface UseCase {
   id: string;
   name: string;
@@ -93,6 +95,11 @@ export interface UseCase {
   auditTrailStatus: "present" | "partial" | "missing";
   connectedSystems: string[];
   timeline: TimelineEvent[];
+  lifecycleStage: LifecycleStage;
+  agentIds: string[];
+  vendorId?: string;
+  modelId?: string;
+  dataSourceIds: string[];
 }
 
 export const PERMISSION_COLUMNS: { key: PermissionColumn; labelEn: string; labelAr: string }[] = [
@@ -181,6 +188,17 @@ const TOOL_ACCESS_LABELS: Record<ToolAccessLevel, { en: string; ar: string }> = 
 
 export function getToolAccessLabel(level: ToolAccessLevel): { en: string; ar: string } {
   return TOOL_ACCESS_LABELS[level];
+}
+
+const LIFECYCLE_STAGE_LABELS: Record<LifecycleStage, { en: string; ar: string }> = {
+  proposed: { en: "Proposed", ar: "مقترح" },
+  pilot: { en: "Pilot", ar: "تجريبي" },
+  governed_runtime: { en: "Governed Runtime", ar: "تشغيل محكوم" },
+  retired: { en: "Retired", ar: "متوقف" },
+};
+
+export function getLifecycleStageLabel(stage: LifecycleStage): { en: string; ar: string } {
+  return LIFECYCLE_STAGE_LABELS[stage];
 }
 
 const EVIDENCE_LABELS: Record<EvidenceStatus, { en: string; ar: string }> = {

@@ -2,19 +2,42 @@ import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
 import { KpiCard } from "@/components/KpiCard";
 import { GateStatusBadge, RiskBadge } from "@/components/badges";
-import { useCases } from "@/lib/mock-data";
+import {
+  agents,
+  complianceMappings,
+  dataSources,
+  humanReviews,
+  incidents,
+  models,
+  privacyControls,
+  securityControls,
+  useCases,
+} from "@/lib/mock-data";
 import {
   computeKpis,
   computeRiskDistribution,
   computeStatusDistribution,
   computeUrgentItems,
 } from "@/lib/governance-model";
+import { computeLayerReadiness } from "@/lib/governance-engine";
+import { GOVERNANCE_LAYERS } from "@/lib/labels";
 
 export default function DashboardPage() {
   const kpis = computeKpis(useCases);
   const statusDistribution = computeStatusDistribution(useCases);
   const riskDistribution = computeRiskDistribution(useCases);
   const urgentItems = computeUrgentItems(useCases, 5);
+  const layerCoverage = computeLayerReadiness({
+    useCases,
+    dataSources,
+    models,
+    securityControls,
+    privacyControls,
+    agents,
+    humanReviews,
+    incidents,
+    complianceMappings,
+  });
 
   const recentActivity = useCases
     .flatMap((u) => u.timeline.map((t) => ({ ...t, useCase: u })))
@@ -28,6 +51,28 @@ export default function DashboardPage() {
         titleEn="Command Center Dashboard"
         subtitleAr="نظرة تنفيذية على وضع حوكمة الذكاء الاصطناعي عبر المؤسسة"
       />
+
+      <section className="rounded-xl border border-navy-100 bg-white p-5 shadow-card">
+        <h2 className="mb-4 text-sm font-semibold text-navy-900">تغطية الطبقات الثماني للحوكمة</h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {GOVERNANCE_LAYERS.map((l) => {
+            const coverage = layerCoverage.find((c) => c.layer === l.key);
+            const percent = coverage?.readinessPercent ?? 0;
+            const tone = percent >= 70 ? "text-emerald-700" : percent >= 40 ? "text-amber-700" : "text-red-700";
+            return (
+              <Link
+                key={l.key}
+                href={l.href}
+                className="rounded-lg border border-navy-100 p-3 transition-shadow hover:shadow-md"
+              >
+                <p className="text-xs text-navy-500">{l.labelAr}</p>
+                <p className="text-[10px] text-navy-400">{l.labelEn}</p>
+                <p className={`mt-2 text-xl font-semibold tabular-nums ${tone}`}>{percent}%</p>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard label="إجمالي حالات الاستخدام" labelEn="Total Use Cases" value={kpis.totalUseCases} />
@@ -83,7 +128,7 @@ export default function DashboardPage() {
             ) : (
               urgentItems.map((u) => (
                 <li key={u.id} className="border-s-2 border-red-400 ps-3">
-                  <Link href={`/use-cases/${u.id}`} className="text-sm font-medium text-navy-900 hover:text-gold-600">
+                  <Link href={`/ai-inventory/${u.id}`} className="text-sm font-medium text-navy-900 hover:text-gold-600">
                     {u.nameAr}
                   </Link>
                   <div className="mt-1 flex items-center gap-2">
@@ -104,7 +149,7 @@ export default function DashboardPage() {
             <li key={idx} className="flex items-center justify-between gap-4 py-3">
               <div>
                 <p className="text-sm text-navy-900">{a.event}</p>
-                <Link href={`/use-cases/${a.useCase.id}`} className="text-xs text-navy-400 hover:text-gold-600">
+                <Link href={`/ai-inventory/${a.useCase.id}`} className="text-xs text-navy-400 hover:text-gold-600">
                   {a.useCase.nameAr}
                 </Link>
               </div>
