@@ -21,8 +21,23 @@ import {
 } from "@/lib/governance-model";
 import { computeAgentGovernancePosture, computeLayerReadiness } from "@/lib/governance-engine";
 import { GOVERNANCE_LAYERS } from "@/lib/labels";
+import { RunStatusBadge } from "@/components/RuntimeBadges";
+import { runs } from "@/runtime/run-store";
+import { demoSkills } from "@/runtime/demo-skills";
+import { demoTools } from "@/runtime/demo-tools";
 
 export default function DashboardPage() {
+  const totalRuns = runs.length;
+  const activeRuns = runs.filter((r) => !["BLOCKED", "FAILED", "READY_FOR_AUTHORITY_REVIEW", "COMPLETED_WITHOUT_DECISION"].includes(r.status)).length;
+  const blockedRuns = runs.filter((r) => r.status === "BLOCKED").length;
+  const escalatedRuns = runs.filter((r) => r.status === "ESCALATE_REQUIRED").length;
+  const readyRuns = runs.filter((r) => r.status === "READY_FOR_AUTHORITY_REVIEW").length;
+  const skillsApproved = demoSkills.filter((s) => s.approvedForUse).length;
+  const skillsUnderReview = demoSkills.filter((s) => s.reviewStatus === "UNDER_REVIEW").length;
+  const toolsEnabled = demoTools.filter((t) => t.enabled).length;
+  const evidenceAwaitingReview = runs.flatMap((r) => r.evidence).filter((e) => e.reviewerStatus === "UNREVIEWED").length;
+  const loopDetections = runs.filter((r) => r.stopReason === "LOOP_DETECTED").length;
+  const recentRuns = [...runs].sort((a, b) => (a.submittedAt < b.submittedAt ? 1 : -1)).slice(0, 5);
   const kpis = computeKpis(useCases);
   const agentPosture = computeAgentGovernancePosture(agents);
   const statusDistribution = computeStatusDistribution(useCases);
@@ -72,6 +87,44 @@ export default function DashboardPage() {
               </Link>
             );
           })}
+        </div>
+      </section>
+
+      <section className="rounded-xl border border-navy-100 bg-white p-5 shadow-card">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-navy-900">وقت التشغيل المحكوم — أول تنفيذ محكوم للوكلاء</h2>
+          <Link href="/research-runs" className="text-xs font-medium text-navy-500 hover:text-gold-600">
+            عرض جميع التشغيلات ←
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+          <KpiCard label="إجمالي تشغيلات البحث" labelEn="Total Research Runs" value={totalRuns} />
+          <KpiCard label="تشغيلات نشطة" labelEn="Active Runs" value={activeRuns} />
+          <KpiCard label="تشغيلات محظورة" labelEn="Blocked Runs" value={blockedRuns} tone="danger" />
+          <KpiCard label="تشغيلات مُصعَّدة" labelEn="Escalated Runs" value={escalatedRuns} tone="warning" />
+          <KpiCard label="جاهزة لمراجعة السلطة" labelEn="Authority-Review-Ready Runs" value={readyRuns} tone="success" />
+          <KpiCard label="مهارات معتمدة" labelEn="Skills Approved" value={skillsApproved} />
+          <KpiCard label="مهارات قيد المراجعة" labelEn="Skills Under Review" value={skillsUnderReview} tone="warning" />
+          <KpiCard label="أدوات مفعّلة" labelEn="Tools Enabled" value={toolsEnabled} />
+          <KpiCard label="أدلة بانتظار المراجعة" labelEn="Evidence Awaiting Review" value={evidenceAwaitingReview} tone="warning" />
+          <KpiCard label="حالات اكتشاف حلقة تكرار" labelEn="Loop Detections" value={loopDetections} tone="danger" />
+        </div>
+
+        <div className="mt-5 border-t border-navy-100 pt-4">
+          <h3 className="mb-3 text-xs font-semibold text-navy-500">أحدث تشغيلات البحث المحكوم</h3>
+          <ul className="divide-y divide-navy-100">
+            {recentRuns.map((r) => (
+              <li key={r.runId} className="flex items-center justify-between gap-4 py-2.5">
+                <Link href={`/research-runs/${r.runId}`} className="text-sm font-medium text-navy-900 hover:text-gold-600">
+                  {r.request.titleAr}
+                </Link>
+                <div className="flex items-center gap-2">
+                  <RunStatusBadge status={r.status} />
+                  <span className="text-[11px] text-navy-400">{r.submittedAt.slice(0, 10)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

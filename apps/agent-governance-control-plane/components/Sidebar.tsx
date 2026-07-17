@@ -16,6 +16,11 @@ const NAV_ITEMS = [
   { href: "/gate-board", labelAr: "لوحة بوابات الحوكمة", labelEn: "Governance Gate Board" },
   { href: "/evidence", labelAr: "غرفة الأدلة", labelEn: "Evidence Room" },
   { href: "/decision-packet/uc-01", labelAr: "حزمة القرار", labelEn: "Decision Packet" },
+  { href: "/research-runs", labelAr: "تشغيلات البحث", labelEn: "Research Runs" },
+  { href: "/research-runs/new", labelAr: "تسجيل طلب بحث", labelEn: "New Research Request" },
+  { href: "/skills", labelAr: "سجل المهارات", labelEn: "Skill Registry" },
+  { href: "/skills/intake", labelAr: "فحص مهارة", labelEn: "Skill Intake Review" },
+  { href: "/tools", labelAr: "سجل الأدوات", labelEn: "Tool Registry" },
 ];
 
 export function Sidebar() {

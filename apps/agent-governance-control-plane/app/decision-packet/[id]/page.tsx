@@ -19,9 +19,11 @@ import {
 import { computeDecisionPacketSummary, getSensitivityLabel, getToolAccessLabel } from "@/lib/governance-model";
 import { computeDecisionPacketLayers, type LayerSeverity } from "@/lib/governance-engine";
 import { GOVERNANCE_LAYERS } from "@/lib/labels";
+import { getRunById, runs } from "@/runtime/run-store";
+import { ResearchRunDecisionPacket } from "@/components/ResearchRunDecisionPacket";
 
 export function generateStaticParams() {
-  return useCases.map((u) => ({ id: u.id }));
+  return [...useCases.map((u) => ({ id: u.id })), ...runs.map((r) => ({ id: r.runId }))];
 }
 
 const SEVERITY_CLASSES: Record<LayerSeverity, string> = {
@@ -37,6 +39,9 @@ const SEVERITY_DOT_CLASSES: Record<LayerSeverity, string> = {
 };
 
 export default function DecisionPacketPage({ params }: { params: { id: string } }) {
+  const run = getRunById(params.id);
+  if (run) return <ResearchRunDecisionPacket run={run} />;
+
   const useCase = getUseCaseById(params.id);
   if (!useCase) notFound();
 
