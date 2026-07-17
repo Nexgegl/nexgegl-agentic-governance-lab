@@ -45,10 +45,6 @@ function averagePercent(scores: number[]): number {
   return Math.round((scores.reduce((sum, s) => sum + s, 0) / scores.length) * 100);
 }
 
-export function computeAssetRisk(asset: UseCase): "low" | "medium" | "high" {
-  return asset.riskLevel;
-}
-
 export function computeDataGovernancePosture(sources: DataSource[]): {
   readinessPercent: number;
   missingClassification: number;
@@ -107,25 +103,6 @@ export function computeAgentGovernancePosture(agents: Agent[]): {
   };
 }
 
-export function computeOversightPosture(
-  reviews: HumanReview[],
-  incidents: IncidentRecord[]
-): {
-  approvedReviews: number;
-  returnedReviews: number;
-  escalatedReviews: number;
-  openIncidents: number;
-  resolvedIncidents: number;
-} {
-  return {
-    approvedReviews: reviews.filter((r) => r.decision === "approved_for_next_stage").length,
-    returnedReviews: reviews.filter((r) => r.decision === "returned_for_repair").length,
-    escalatedReviews: reviews.filter((r) => r.decision === "escalated").length,
-    openIncidents: incidents.filter((i) => i.status !== "resolved").length,
-    resolvedIncidents: incidents.filter((i) => i.status === "resolved").length,
-  };
-}
-
 export function computeComplianceReadiness(mappings: ComplianceMapping[]): {
   readinessPercent: number;
   missingRequirements: number;
@@ -138,27 +115,11 @@ export function computeComplianceReadiness(mappings: ComplianceMapping[]): {
   };
 }
 
-export function computeVendorRiskSummary(vendors: VendorRecord[]): {
-  highRiskVendors: number;
-  expiredContracts: number;
-  totalVendors: number;
-} {
-  return {
-    highRiskVendors: vendors.filter((v) => v.riskTier === "high").length,
-    expiredContracts: vendors.filter((v) => v.contractStatus === "expired").length,
-    totalVendors: vendors.length,
-  };
-}
-
 export function computeAuditEventsForAsset(events: AuditEvent[], assetId: string): AuditEvent[] {
   return events
     .filter((e) => e.assetId === assetId)
     .slice()
     .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
-}
-
-export function computeAuditEventsByLayer(events: AuditEvent[], layer: GovernanceLayer): AuditEvent[] {
-  return events.filter((e) => e.layer === layer);
 }
 
 export interface LayerCoverage {

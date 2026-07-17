@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
 import { ApprovalModeBadge } from "@/components/RuntimeBadges";
 import { demoTools, getToolById } from "@/runtime/demo-tools";
-import { getToolTypeLabel } from "@/runtime/runtime-labels";
+import { getReadWriteClassLabel, getToolTypeLabel } from "@/runtime/runtime-labels";
+import { getSensitivityLabel } from "@/lib/governance-model";
 
 export function generateStaticParams() {
   return demoTools.map((t) => ({ id: t.id }));
@@ -42,7 +43,7 @@ export default function ToolDetailPage({ params }: { params: { id: string } }) {
           </div>
           <div>
             <dt className="text-xs text-navy-400">فئة القراءة/الكتابة</dt>
-            <dd className="font-medium text-navy-900">{tool.readWriteClass}</dd>
+            <dd className="font-medium text-navy-900">{getReadWriteClassLabel(tool.readWriteClass)}</dd>
           </div>
           <div>
             <dt className="text-xs text-navy-400">وصول خارجي</dt>
@@ -66,7 +67,9 @@ export default function ToolDetailPage({ params }: { params: { id: string } }) {
           </div>
           <div>
             <dt className="text-xs text-navy-400">فئات البيانات المسموحة</dt>
-            <dd className="font-medium text-navy-900">{tool.dataClasses.join("، ") || "لا يوجد"}</dd>
+            <dd className="font-medium text-navy-900">
+              {tool.dataClasses.map((c) => getSensitivityLabel(c).ar).join("، ") || "لا يوجد"}
+            </dd>
           </div>
         </dl>
       </section>

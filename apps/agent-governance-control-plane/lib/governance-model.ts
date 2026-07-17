@@ -20,6 +20,9 @@ export type GateStatus =
   | "ESCALATE_REQUIRED"
   | "READY_FOR_AUTHORITY_REVIEW";
 
+/** Same vocabulary as the Eval & Grader Matrix reference implementation — not KFSA. */
+export type ReviewOutcome = "PASS" | "FIX" | "FAIL" | "ESCALATE";
+
 export type RiskLevel = "low" | "medium" | "high";
 
 export type DataSensitivity = "low" | "medium" | "high";
@@ -90,7 +93,7 @@ export interface UseCase {
   readOnlyTools: string[];
   governanceStatus: GateStatus;
   evalScore: number;
-  evalOutcome: "PASS" | "FIX" | "FAIL" | "ESCALATE";
+  evalOutcome: ReviewOutcome;
   readinessScore: number;
   evidenceStatus: EvidenceStatus;
   authorityStatus: AuthorityStatus;
@@ -203,6 +206,17 @@ const AUDIT_TRAIL_STATUS_LABELS: Record<AuditTrailStatus, { en: string; ar: stri
 
 export function getAuditTrailStatusLabel(status: AuditTrailStatus): { en: string; ar: string } {
   return AUDIT_TRAIL_STATUS_LABELS[status];
+}
+
+const REVIEW_OUTCOME_LABELS: Record<ReviewOutcome, { en: string; ar: string }> = {
+  PASS: { en: "PASS", ar: "اجتياز" },
+  FIX: { en: "FIX", ar: "يتطلب إصلاحًا" },
+  FAIL: { en: "FAIL", ar: "فشل" },
+  ESCALATE: { en: "ESCALATE", ar: "تصعيد" },
+};
+
+export function getReviewOutcomeLabel(outcome: ReviewOutcome): { en: string; ar: string } {
+  return REVIEW_OUTCOME_LABELS[outcome];
 }
 
 const LIFECYCLE_STAGE_LABELS: Record<LifecycleStage, { en: string; ar: string }> = {

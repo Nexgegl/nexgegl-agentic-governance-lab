@@ -1,15 +1,32 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
 import { RunStatusBadge } from "@/components/RuntimeBadges";
 import { RiskBadge } from "@/components/badges";
-import { runs } from "@/runtime/run-store";
+import { runs as demoRuns } from "@/runtime/run-store";
+import { loadLocalRuns, resetLocalRuns } from "@/runtime/local-run-store";
 import { getStopReasonLabel } from "@/runtime/runtime-labels";
+import type { ExecutionRun } from "@/runtime/types";
 
 export default function ResearchRunsPage() {
+  const [localRuns, setLocalRuns] = useState<ExecutionRun[]>([]);
+
+  useEffect(() => {
+    setLocalRuns(loadLocalRuns());
+  }, []);
+
+  const runs = [...demoRuns, ...localRuns];
   const blocked = runs.filter((r) => r.status === "BLOCKED").length;
   const escalated = runs.filter((r) => r.status === "ESCALATE_REQUIRED").length;
   const ready = runs.filter((r) => r.status === "READY_FOR_AUTHORITY_REVIEW").length;
   const failed = runs.filter((r) => r.status === "FAILED").length;
+
+  function handleReset() {
+    resetLocalRuns();
+    setLocalRuns([]);
+  }
 
   return (
     <div className="space-y-6">
@@ -38,10 +55,25 @@ export default function ResearchRunsPage() {
         </div>
       </section>
 
-      <div className="flex justify-end">
-        <Link href="/research-runs/new" className="rounded-lg bg-navy-950 px-4 py-2 text-sm font-medium text-gold-400 hover:bg-navy-900">
-          تسجيل طلب بحث جديد ←
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs text-navy-400">
+          {localRuns.length > 0
+            ? `يتضمن ${localRuns.length} تشغيلًا محفوظًا محليًا في هذا المتصفح (localStorage) بالإضافة إلى التشغيلات التجريبية الثابتة.`
+            : "التشغيلات المعروضة حاليًا هي التشغيلات التجريبية الثابتة فقط."}
+        </p>
+        <div className="flex gap-2">
+          {localRuns.length > 0 ? (
+            <button
+              onClick={handleReset}
+              className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+            >
+              إعادة تعيين التشغيلات المحلية
+            </button>
+          ) : null}
+          <Link href="/research-runs/new" className="rounded-lg bg-navy-950 px-4 py-2 text-sm font-medium text-gold-400 hover:bg-navy-900">
+            تسجيل طلب بحث جديد ←
+          </Link>
+        </div>
       </div>
 
       <section className="overflow-x-auto rounded-xl border border-navy-100 bg-white shadow-card">

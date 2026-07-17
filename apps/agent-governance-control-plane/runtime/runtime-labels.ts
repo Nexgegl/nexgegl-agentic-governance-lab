@@ -8,13 +8,67 @@ import type {
   EvaluationDimension,
   EvidenceReviewerStatus,
   EvidenceSourceQuality,
+  ReadWriteClass,
   ReviewOutcome,
   RunStatus,
+  SkillActionType,
+  SkillReversibility,
   SkillReviewStatus,
   SkillSourceType,
   StopReason,
   ToolType,
+  TraceStage,
 } from "./types";
+
+const SKILL_ACTION_TYPE_LABELS: Record<SkillActionType, string> = {
+  READ: "قراءة",
+  ANALYSIS: "تحليل",
+  GENERATION: "توليد",
+  WRITE: "كتابة",
+};
+
+export function getSkillActionTypeLabel(type: SkillActionType): string {
+  return SKILL_ACTION_TYPE_LABELS[type];
+}
+
+const SKILL_REVERSIBILITY_LABELS: Record<SkillReversibility, string> = {
+  REVERSIBLE: "قابلة للتراجع",
+  IRREVERSIBLE: "غير قابلة للتراجع",
+  NOT_APPLICABLE: "لا ينطبق",
+};
+
+export function getSkillReversibilityLabel(reversibility: SkillReversibility): string {
+  return SKILL_REVERSIBILITY_LABELS[reversibility];
+}
+
+const READ_WRITE_CLASS_LABELS: Record<ReadWriteClass, string> = {
+  READ_ONLY: "قراءة فقط",
+  WRITE: "كتابة",
+};
+
+export function getReadWriteClassLabel(cls: ReadWriteClass): string {
+  return READ_WRITE_CLASS_LABELS[cls];
+}
+
+const TRACE_STAGE_LABELS: Record<TraceStage, string> = {
+  REQUEST_RECEIVED: "استلام الطلب",
+  PLAN_CREATED: "إنشاء الخطة",
+  SKILL_SELECTED: "اختيار المهارة",
+  TOOL_SELECTED: "اختيار الأداة",
+  PERMISSION_CHECK: "فحص الصلاحية",
+  TOOL_CALL: "استدعاء الأداة",
+  RESULT_REFERENCE: "مرجع النتيجة",
+  EVIDENCE_CREATED: "إنشاء دليل",
+  EVALUATION_RESULT: "نتيجة تقييم",
+  GOVERNANCE_FINDING: "نتيجة حوكمة",
+  RETRY: "إعادة محاولة",
+  STOP: "إيقاف",
+  HUMAN_REVIEW_TRANSITION: "انتقال مراجعة بشرية",
+};
+
+export function getTraceStageLabel(stage: TraceStage): string {
+  return TRACE_STAGE_LABELS[stage];
+}
 
 const RUN_STATUS_LABELS: Record<RunStatus, { ar: string; en: string }> = {
   SUBMITTED: { ar: "تم التقديم", en: "Submitted" },

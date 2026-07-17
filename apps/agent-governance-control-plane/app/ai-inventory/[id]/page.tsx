@@ -19,6 +19,7 @@ import {
   computeNextAction,
   getAuditTrailStatusLabel,
   getLifecycleStageLabel,
+  getReviewOutcomeLabel,
   getSensitivityLabel,
   getToolAccessLabel,
 } from "@/lib/governance-model";
@@ -222,7 +223,7 @@ export default function AiInventoryDetailPage({ params }: { params: { id: string
               <li className="flex items-center justify-between">
                 <span className="text-navy-500">نتيجة التقييم</span>
                 <span className="font-medium text-navy-900">
-                  {useCase.evalOutcome} · <ScoreValue value={useCase.evalScore} />
+                  {getReviewOutcomeLabel(useCase.evalOutcome).ar} · <ScoreValue value={useCase.evalScore} />
                 </span>
               </li>
               <li className="flex items-center justify-between">

@@ -16,7 +16,7 @@ import {
   useCases,
   vendors,
 } from "@/lib/mock-data";
-import { computeDecisionPacketSummary, getSensitivityLabel, getToolAccessLabel } from "@/lib/governance-model";
+import { computeDecisionPacketSummary, getReviewOutcomeLabel, getSensitivityLabel, getToolAccessLabel } from "@/lib/governance-model";
 import { computeDecisionPacketLayers, type LayerSeverity } from "@/lib/governance-engine";
 import { GOVERNANCE_LAYERS } from "@/lib/labels";
 import { getRunById, runs } from "@/runtime/run-store";
@@ -120,7 +120,7 @@ export default function DecisionPacketPage({ params }: { params: { id: string } 
             <div className="rounded-lg border border-navy-100 bg-navy-50 p-4">
               <p className="text-xs text-navy-400">نتيجة التقييم</p>
               <p className="mt-2 text-sm font-semibold text-navy-900">
-                {useCase.evalOutcome} · <ScoreValue value={useCase.evalScore} />
+                {getReviewOutcomeLabel(useCase.evalOutcome).ar} · <ScoreValue value={useCase.evalScore} />
               </p>
             </div>
             <div className="rounded-lg border border-navy-100 bg-navy-50 p-4">

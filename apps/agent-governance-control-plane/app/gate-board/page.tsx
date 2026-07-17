@@ -30,7 +30,7 @@ export default function GateBoardPage() {
               <div className="px-4 py-3">
                 <h2 className="text-sm font-semibold text-navy-900">{label.ar}</h2>
                 <p className="text-[11px] text-navy-400">
-                  {status} · {items.length}
+                  {label.en} · {items.length}
                 </p>
               </div>
               <div className="flex-1 space-y-3 px-3 pb-4">

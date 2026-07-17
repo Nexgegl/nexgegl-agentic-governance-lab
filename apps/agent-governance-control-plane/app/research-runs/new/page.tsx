@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
-import { RunDetailView } from "@/components/RunDetailView";
 import { runGovernedResearch } from "@/runtime/execution-engine";
 import { newRunTemplates } from "@/runtime/demo-requests";
+import { nextLocalRunId, saveLocalRun } from "@/runtime/local-run-store";
 import type { DataSensitivity, Department, RiskLevel } from "@/lib/governance-model";
-import type { ExecutionRun, GovernedResearchRequest } from "@/runtime/types";
+import type { GovernedResearchRequest } from "@/runtime/types";
 
 const DEPARTMENTS: Department[] = ["Finance", "Sales", "HR", "Legal", "Operations", "Customer Service", "Executive Office"];
 const RISK_LEVELS: RiskLevel[] = ["low", "medium", "high"];
 const SENSITIVITY_LEVELS: DataSensitivity[] = ["low", "medium", "high"];
 
-/** Fixed placeholder timestamp for interactively-created runs — keeps this demo run deterministic like the seeded ones. */
-const LIVE_RUN_TIMESTAMP = "2026-07-17T09:00:00.000Z";
+/** Fixed base timestamp for interactively-created runs, offset deterministically per local run index — no Date.now(). */
+const LIVE_RUN_BASE_TIMESTAMP = new Date("2026-07-17T09:00:00.000Z").getTime();
 
 const EMPTY_FORM: Omit<GovernedResearchRequest, "id" | "submittedAt"> = {
   titleAr: "",
@@ -32,8 +33,9 @@ const EMPTY_FORM: Omit<GovernedResearchRequest, "id" | "submittedAt"> = {
 };
 
 export default function NewResearchRunPage() {
+  const router = useRouter();
   const [form, setForm] = useState(EMPTY_FORM);
-  const [result, setResult] = useState<ExecutionRun | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   function applyTemplate(key: string) {
     const template = newRunTemplates.find((t) => t.key === key);
@@ -41,8 +43,14 @@ export default function NewResearchRunPage() {
   }
 
   function submit() {
-    const request: GovernedResearchRequest = { id: "run-live-preview", submittedAt: LIVE_RUN_TIMESTAMP, ...form };
-    setResult(runGovernedResearch(request));
+    setSubmitting(true);
+    const id = nextLocalRunId();
+    const index = Number(id.split("-").pop()) || 1;
+    const submittedAt = new Date(LIVE_RUN_BASE_TIMESTAMP + index * 60 * 60 * 1000).toISOString();
+    const request: GovernedResearchRequest = { id, submittedAt, ...form };
+    const result = runGovernedResearch(request);
+    saveLocalRun(result);
+    router.push(`/research-runs/${result.runId}`);
   }
 
   return (
@@ -131,17 +139,17 @@ export default function NewResearchRunPage() {
       </section>
 
       <div className="flex justify-end">
-        <button onClick={submit} className="rounded-lg bg-navy-950 px-5 py-2.5 text-sm font-semibold text-gold-400 hover:bg-navy-900">
-          تشغيل بحث محكوم
+        <button
+          onClick={submit}
+          disabled={submitting}
+          className="rounded-lg bg-navy-950 px-5 py-2.5 text-sm font-semibold text-gold-400 hover:bg-navy-900 disabled:opacity-60"
+        >
+          {submitting ? "جارٍ التشغيل…" : "تشغيل بحث محكوم"}
         </button>
       </div>
-
-      {result ? (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-navy-900">نتيجة التشغيل (معاينة داخل المتصفح — غير محفوظة)</h2>
-          <RunDetailView run={result} />
-        </section>
-      ) : null}
+      <p className="text-end text-xs text-navy-400">
+        يُنفَّذ التشغيل محليًا داخل المتصفح، ويُحفظ في تخزين هذا المتصفح المحلي (localStorage) فقط — بدون خادم أو قاعدة بيانات.
+      </p>
 
       <style jsx>{`
         .input {

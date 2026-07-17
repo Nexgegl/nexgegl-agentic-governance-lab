@@ -4,7 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { GateStatusBadge, RiskBadge } from "@/components/badges";
 import { RunStatusBadge, ReviewOutcomeBadge } from "@/components/RuntimeBadges";
-import { getEvaluationDimensionLabel, getEvidenceReviewerStatusLabel, getEvidenceSourceQualityLabel, getStopReasonLabel } from "@/runtime/runtime-labels";
+import {
+  getEvaluationDimensionLabel,
+  getEvidenceReviewerStatusLabel,
+  getEvidenceSourceQualityLabel,
+  getStopReasonLabel,
+  getTraceStageLabel,
+} from "@/runtime/runtime-labels";
+import { getHumanReviewDecisionLabel } from "@/lib/labels";
 import { getSkillById } from "@/runtime/demo-skills";
 import { getToolById } from "@/runtime/demo-tools";
 import type { ExecutionRun } from "@/runtime/types";
@@ -279,7 +286,7 @@ function TraceTab({ run }: { run: ExecutionRun }) {
             <p className="text-navy-900">{t.actionAr}</p>
             <p className="text-xs text-navy-500">{t.summaryAr}</p>
             <p className="text-[11px] text-navy-400">
-              {t.actor} · {t.stage} · {t.timestamp.slice(11, 19)}
+              {t.actor} · {getTraceStageLabel(t.stage)} · {t.timestamp.slice(11, 19)}
             </p>
           </li>
         ))}
@@ -298,7 +305,7 @@ function ReviewTab({ run }: { run: ExecutionRun }) {
   }
   return (
     <div className="text-sm">
-      <p className="font-medium text-navy-900">{run.humanReview.decision}</p>
+      <p className="font-medium text-navy-900">{getHumanReviewDecisionLabel(run.humanReview.decision).ar}</p>
       <p className="mt-1 text-navy-600">{run.humanReview.notesAr}</p>
       <p className="mt-1 text-[11px] text-navy-400">
         {run.humanReview.reviewer} · {run.humanReview.reviewDate}

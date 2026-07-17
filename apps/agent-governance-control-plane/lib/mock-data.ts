@@ -903,10 +903,6 @@ export const agents: Agent[] = [
   },
 ];
 
-export function getAgentById(id: string): Agent | undefined {
-  return agents.find((a) => a.id === id);
-}
-
 // --- Layer 3: Model Lifecycle ------------------------------------------------
 
 export const models: ModelRecord[] = [
@@ -1185,10 +1181,6 @@ export const dataSources: DataSource[] = [
     lastClassified: "2026-06-12",
   },
 ];
-
-export function getDataSourceById(id: string): DataSource | undefined {
-  return dataSources.find((d) => d.id === id);
-}
 
 export const dataLineage: DataLineageRecord[] = [
   { id: "dl-001", dataSourceId: "ds-001", assetId: "uc-01", flowDescriptionAr: "قراءة فقط من المستودع إلى المساعد", flowDescription: "Read-only from repository into assistant" },

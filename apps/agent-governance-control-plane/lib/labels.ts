@@ -14,8 +14,6 @@ import type {
   ModelProvider,
   PrivacyControlCategory,
   SecurityControlCategory,
-  VendorContractStatus,
-  VendorRiskTier,
 } from "./types";
 
 export const GOVERNANCE_LAYERS: { key: GovernanceLayer; labelAr: string; labelEn: string; href: string }[] = [
@@ -28,10 +26,6 @@ export const GOVERNANCE_LAYERS: { key: GovernanceLayer; labelAr: string; labelEn
   { key: "human_oversight", labelAr: "الإشراف البشري", labelEn: "Human Oversight", href: "/oversight" },
   { key: "compliance_audit", labelAr: "الامتثال والتدقيق", labelEn: "Compliance & Audit", href: "/compliance" },
 ];
-
-export function getGovernanceLayerLabel(layer: GovernanceLayer) {
-  return GOVERNANCE_LAYERS.find((l) => l.key === layer)!;
-}
 
 const MODEL_PROVIDER_LABELS: Record<ModelProvider, string> = {
   OpenAI: "OpenAI",
@@ -65,26 +59,6 @@ const DATA_SOURCE_TYPE_LABELS: Record<DataSourceType, { en: string; ar: string }
 
 export function getDataSourceTypeLabel(type: DataSourceType) {
   return DATA_SOURCE_TYPE_LABELS[type];
-}
-
-const VENDOR_RISK_LABELS: Record<VendorRiskTier, { en: string; ar: string }> = {
-  low: { en: "Low", ar: "منخفضة" },
-  medium: { en: "Medium", ar: "متوسطة" },
-  high: { en: "High", ar: "عالية" },
-};
-
-export function getVendorRiskLabel(tier: VendorRiskTier) {
-  return VENDOR_RISK_LABELS[tier];
-}
-
-const VENDOR_CONTRACT_LABELS: Record<VendorContractStatus, { en: string; ar: string }> = {
-  active: { en: "Active", ar: "سارٍ" },
-  under_review: { en: "Under Review", ar: "قيد المراجعة" },
-  expired: { en: "Expired", ar: "منتهٍ" },
-};
-
-export function getVendorContractLabel(status: VendorContractStatus) {
-  return VENDOR_CONTRACT_LABELS[status];
 }
 
 const SECURITY_CATEGORY_LABELS: Record<SecurityControlCategory, { en: string; ar: string }> = {

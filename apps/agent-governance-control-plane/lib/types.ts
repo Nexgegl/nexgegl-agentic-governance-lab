@@ -6,12 +6,7 @@
  * UseCase model from governance-model.ts.
  */
 
-import type { DataSensitivity, EvidenceStatus, RiskLevel, ToolAccessLevel, UseCase } from "./governance-model";
-
-/** AI Inventory & Ownership layer — an AI asset is the existing UseCase record. */
-export type AIAsset = UseCase;
-
-export type LifecycleStage = "proposed" | "pilot" | "governed_runtime" | "retired";
+import type { DataSensitivity, EvidenceStatus, RiskLevel, ToolAccessLevel } from "./governance-model";
 
 export type GovernanceLayer =
   | "ai_inventory"

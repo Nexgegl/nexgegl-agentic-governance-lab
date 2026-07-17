@@ -3,7 +3,7 @@ import { Topbar } from "@/components/Topbar";
 import { SkillReviewStatusBadge } from "@/components/RuntimeBadges";
 import { RiskBadge } from "@/components/badges";
 import { demoSkills, getSkillById } from "@/runtime/demo-skills";
-import { getSkillSourceTypeLabel } from "@/runtime/runtime-labels";
+import { getSkillActionTypeLabel, getSkillReversibilityLabel, getSkillSourceTypeLabel } from "@/runtime/runtime-labels";
 
 export function generateStaticParams() {
   return demoSkills.map((s) => ({ id: s.id }));
@@ -36,11 +36,11 @@ export default function SkillDetailPage({ params }: { params: { id: string } }) 
           </div>
           <div>
             <dt className="text-xs text-navy-400">نوع الإجراء</dt>
-            <dd className="font-medium text-navy-900">{skill.actionType}</dd>
+            <dd className="font-medium text-navy-900">{getSkillActionTypeLabel(skill.actionType)}</dd>
           </div>
           <div>
             <dt className="text-xs text-navy-400">قابلية التراجع</dt>
-            <dd className="font-medium text-navy-900">{skill.reversibility}</dd>
+            <dd className="font-medium text-navy-900">{getSkillReversibilityLabel(skill.reversibility)}</dd>
           </div>
           <div>
             <dt className="text-xs text-navy-400">آخر مراجعة</dt>
