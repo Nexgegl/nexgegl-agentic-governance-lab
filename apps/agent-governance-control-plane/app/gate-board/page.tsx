@@ -30,7 +30,7 @@ export default function GateBoardPage() {
               <div className="px-4 py-3">
                 <h2 className="text-sm font-semibold text-navy-900">{label.ar}</h2>
                 <p className="text-[11px] text-navy-400">
-                  {status} · {items.length}
+                  {label.en} · {items.length}
                 </p>
               </div>
               <div className="flex-1 space-y-3 px-3 pb-4">
@@ -44,7 +44,7 @@ export default function GateBoardPage() {
                     return (
                       <Link
                         key={u.id}
-                        href={`/use-cases/${u.id}`}
+                        href={`/ai-inventory/${u.id}`}
                         className="block rounded-lg border border-navy-100 bg-white p-3 shadow-card transition-shadow hover:shadow-md"
                       >
                         <p className="text-sm font-medium text-navy-900">{u.nameAr}</p>

@@ -20,6 +20,9 @@ export type GateStatus =
   | "ESCALATE_REQUIRED"
   | "READY_FOR_AUTHORITY_REVIEW";
 
+/** Same vocabulary as the Eval & Grader Matrix reference implementation — not KFSA. */
+export type ReviewOutcome = "PASS" | "FIX" | "FAIL" | "ESCALATE";
+
 export type RiskLevel = "low" | "medium" | "high";
 
 export type DataSensitivity = "low" | "medium" | "high";
@@ -29,6 +32,8 @@ export type ToolAccessLevel = "none" | "read_only" | "write" | "external_system"
 export type EvidenceStatus = "complete" | "partial" | "missing";
 
 export type AuthorityStatus = "confirmed" | "missing" | "escalation_required";
+
+export type AuditTrailStatus = "present" | "partial" | "missing";
 
 export type Department =
   | "Finance"
@@ -66,6 +71,8 @@ export interface TimelineEvent {
   actor: string;
 }
 
+export type LifecycleStage = "proposed" | "pilot" | "governed_runtime" | "retired";
+
 export interface UseCase {
   id: string;
   name: string;
@@ -74,6 +81,9 @@ export interface UseCase {
   owner: string;
   authority: string;
   aiType: string;
+  /** Arabic-first business purpose — the primary rendering on executive pages. */
+  businessPurposeAr: string;
+  /** English business purpose — secondary/supporting text only. */
   businessPurpose: string;
   riskLevel: RiskLevel;
   dataSensitivity: DataSensitivity;
@@ -83,16 +93,21 @@ export interface UseCase {
   readOnlyTools: string[];
   governanceStatus: GateStatus;
   evalScore: number;
-  evalOutcome: "PASS" | "FIX" | "FAIL" | "ESCALATE";
+  evalOutcome: ReviewOutcome;
   readinessScore: number;
   evidenceStatus: EvidenceStatus;
   authorityStatus: AuthorityStatus;
   evidenceDetail: EvidenceDetail;
   permissions: Record<PermissionColumn, PermissionCellStatus>;
   lastReviewed: string;
-  auditTrailStatus: "present" | "partial" | "missing";
+  auditTrailStatus: AuditTrailStatus;
   connectedSystems: string[];
   timeline: TimelineEvent[];
+  lifecycleStage: LifecycleStage;
+  agentIds: string[];
+  vendorId?: string;
+  modelId?: string;
+  dataSourceIds: string[];
 }
 
 export const PERMISSION_COLUMNS: { key: PermissionColumn; labelEn: string; labelAr: string }[] = [
@@ -183,6 +198,38 @@ export function getToolAccessLabel(level: ToolAccessLevel): { en: string; ar: st
   return TOOL_ACCESS_LABELS[level];
 }
 
+const AUDIT_TRAIL_STATUS_LABELS: Record<AuditTrailStatus, { en: string; ar: string }> = {
+  present: { en: "Present", ar: "متوفر" },
+  partial: { en: "Partial", ar: "جزئي" },
+  missing: { en: "Missing", ar: "غير متوفر" },
+};
+
+export function getAuditTrailStatusLabel(status: AuditTrailStatus): { en: string; ar: string } {
+  return AUDIT_TRAIL_STATUS_LABELS[status];
+}
+
+const REVIEW_OUTCOME_LABELS: Record<ReviewOutcome, { en: string; ar: string }> = {
+  PASS: { en: "PASS", ar: "اجتياز" },
+  FIX: { en: "FIX", ar: "يتطلب إصلاحًا" },
+  FAIL: { en: "FAIL", ar: "فشل" },
+  ESCALATE: { en: "ESCALATE", ar: "تصعيد" },
+};
+
+export function getReviewOutcomeLabel(outcome: ReviewOutcome): { en: string; ar: string } {
+  return REVIEW_OUTCOME_LABELS[outcome];
+}
+
+const LIFECYCLE_STAGE_LABELS: Record<LifecycleStage, { en: string; ar: string }> = {
+  proposed: { en: "Proposed", ar: "مقترح" },
+  pilot: { en: "Pilot", ar: "تجريبي" },
+  governed_runtime: { en: "Governed Runtime", ar: "تشغيل محكوم" },
+  retired: { en: "Retired", ar: "متوقف" },
+};
+
+export function getLifecycleStageLabel(stage: LifecycleStage): { en: string; ar: string } {
+  return LIFECYCLE_STAGE_LABELS[stage];
+}
+
 const EVIDENCE_LABELS: Record<EvidenceStatus, { en: string; ar: string }> = {
   complete: { en: "Complete", ar: "مكتملة" },
   partial: { en: "Partial", ar: "جزئية" },
@@ -247,7 +294,8 @@ export function getPermissionCellClasses(status: PermissionCellStatus): string {
 
 export interface KpiSet {
   totalUseCases: number;
-  activeAgents: number;
+  /** AI assets with any tool access (none excluded) — distinct from real Agent Governance records. */
+  toolEnabledAssets: number;
   highRiskUseCases: number;
   blockedCases: number;
   missingAuthorityCases: number;
@@ -259,7 +307,7 @@ export interface KpiSet {
 export function computeKpis(useCases: UseCase[]): KpiSet {
   return {
     totalUseCases: useCases.length,
-    activeAgents: useCases.filter((u) => u.toolAccess !== "none").length,
+    toolEnabledAssets: useCases.filter((u) => u.toolAccess !== "none").length,
     highRiskUseCases: useCases.filter((u) => u.riskLevel === "high").length,
     blockedCases: useCases.filter((u) => u.governanceStatus === "BLOCKED").length,
     missingAuthorityCases: useCases.filter((u) => u.authorityStatus === "missing").length,
