@@ -17,10 +17,12 @@ import {
   getToolAccessLabel,
   type EvidenceStatus,
   type GateStatus,
+  type RiskLevel,
   type UseCase,
 } from "./governance-model";
 import type {
   Agent,
+  AgentStatus,
   AuditEvent,
   ComplianceMapping,
   DataSource,
@@ -45,7 +47,7 @@ function averagePercent(scores: number[]): number {
   return Math.round((scores.reduce((sum, s) => sum + s, 0) / scores.length) * 100);
 }
 
-export function computeDataGovernancePosture(sources: DataSource[]): {
+export function computeDataGovernancePosture(sources: { classificationStatus: EvidenceStatus }[]): {
   readinessPercent: number;
   missingClassification: number;
   totalSources: number;
@@ -57,7 +59,7 @@ export function computeDataGovernancePosture(sources: DataSource[]): {
   };
 }
 
-export function computeModelLifecyclePosture(models: ModelRecord[]): {
+export function computeModelLifecyclePosture(models: { evaluationStatus: EvidenceStatus; riskTier: RiskLevel }[]): {
   readinessPercent: number;
   unreviewedModels: number;
   highRiskModels: number;
@@ -87,7 +89,7 @@ export function computeSecurityPosture(
   };
 }
 
-export function computeAgentGovernancePosture(agents: Agent[]): {
+export function computeAgentGovernancePosture(agents: { status: AgentStatus }[]): {
   readinessPercent: number;
   activeAgents: number;
   underReviewAgents: number;
@@ -103,7 +105,7 @@ export function computeAgentGovernancePosture(agents: Agent[]): {
   };
 }
 
-export function computeComplianceReadiness(mappings: ComplianceMapping[]): {
+export function computeComplianceReadiness(mappings: { status: EvidenceStatus }[]): {
   readinessPercent: number;
   missingRequirements: number;
   totalRequirements: number;
@@ -128,15 +130,14 @@ export interface LayerCoverage {
 }
 
 export function computeLayerReadiness(input: {
-  useCases: UseCase[];
-  dataSources: DataSource[];
-  models: ModelRecord[];
+  useCases: { evidenceStatus: EvidenceStatus; evidenceDetail: { policy_boundary_evidence: boolean } }[];
+  dataSources: { classificationStatus: EvidenceStatus }[];
+  models: { evaluationStatus: EvidenceStatus; riskTier: RiskLevel }[];
   securityControls: SecurityControl[];
   privacyControls: PrivacyControl[];
-  agents: Agent[];
+  agents: { status: AgentStatus }[];
   humanReviews: HumanReview[];
-  incidents: IncidentRecord[];
-  complianceMappings: ComplianceMapping[];
+  complianceMappings: { status: EvidenceStatus }[];
 }): LayerCoverage[] {
   const inventoryReadiness = averagePercent(input.useCases.map((u) => statusScore(u.evidenceStatus)));
   const dataFoundation = computeDataGovernancePosture(input.dataSources).readinessPercent;

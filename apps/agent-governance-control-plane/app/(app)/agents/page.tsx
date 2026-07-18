@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
-import { DevDataNote } from "@/components/DevDataNote";
-import { agents } from "@/lib/mock-data";
 import { getToolAccessLabel } from "@/lib/governance-model";
 import { getAgentStatusClasses, getAgentStatusLabel } from "@/lib/labels";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listAgents } from "@/repositories/agents-repository";
 
-export default function AgentsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AgentsPage() {
+  const supabase = createServerSupabaseClient();
+  const agents = await listAgents(supabase);
+
   const active = agents.filter((a) => a.status === "active").length;
   const underReview = agents.filter((a) => a.status === "under_review").length;
   const suspended = agents.filter((a) => a.status === "suspended").length;
@@ -16,9 +21,9 @@ export default function AgentsPage() {
         titleAr="حوكمة الوكلاء"
         titleEn="Agent Governance"
         subtitleAr="حالة الوكلاء المشغّلين لأصول الذكاء الاصطناعي وحالة مراجعة صلاحياتهم"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
-
-      <DevDataNote />
 
       <section className="grid grid-cols-3 gap-4">
         <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-card">
@@ -52,23 +57,26 @@ export default function AgentsPage() {
               <tr key={a.id} className="hover:bg-navy-50/60">
                 <td className="px-4 py-3">
                   <Link href={`/agents/${a.id}`} className="font-medium text-navy-900 hover:text-gold-600">
-                    {a.nameAr}
+                    {a.name_ar}
                   </Link>
                   <p className="text-[11px] text-navy-400">{a.name}</p>
                 </td>
-                <td className="px-4 py-3 text-navy-700">{a.agentType}</td>
-                <td className="px-4 py-3 text-navy-700">{a.ownerTeam}</td>
-                <td className="px-4 py-3 text-navy-700">{getToolAccessLabel(a.toolAccess).ar}</td>
+                <td className="px-4 py-3 text-navy-700">{a.agent_type ?? "—"}</td>
+                <td className="px-4 py-3 text-navy-700">{a.owner_team ?? "—"}</td>
+                <td className="px-4 py-3 text-navy-700">{getToolAccessLabel(a.tool_access).ar}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${getAgentStatusClasses(a.status)}`}>
                     {getAgentStatusLabel(a.status).ar}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-navy-500">{a.lastPermissionReview}</td>
+                <td className="px-4 py-3 text-navy-500">{a.last_permission_review ?? "—"}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {agents.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-navy-400">لا يوجد وكلاء مسجلون بعد لمؤسستك.</div>
+        ) : null}
       </section>
     </div>
   );

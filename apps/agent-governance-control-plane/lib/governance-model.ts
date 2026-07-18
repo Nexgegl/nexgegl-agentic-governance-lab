@@ -326,14 +326,16 @@ export function computeKpis(useCases: KpiInput[]): KpiSet {
   };
 }
 
-export function computeStatusDistribution(useCases: UseCase[]): { status: GateStatus; count: number }[] {
+export function computeStatusDistribution(
+  useCases: { governanceStatus: GateStatus }[]
+): { status: GateStatus; count: number }[] {
   return GATE_STATUS_ORDER.map((status) => ({
     status,
     count: useCases.filter((u) => u.governanceStatus === status).length,
   }));
 }
 
-export function computeRiskDistribution(useCases: UseCase[]): { risk: RiskLevel; count: number }[] {
+export function computeRiskDistribution(useCases: { riskLevel: RiskLevel }[]): { risk: RiskLevel; count: number }[] {
   const levels: RiskLevel[] = ["low", "medium", "high"];
   return levels.map((risk) => ({ risk, count: useCases.filter((u) => u.riskLevel === risk).length }));
 }
@@ -348,7 +350,10 @@ const URGENCY_WEIGHT: Record<GateStatus, number> = {
 
 const RISK_WEIGHT: Record<RiskLevel, number> = { high: 2, medium: 1, low: 0 };
 
-export function computeUrgentItems(useCases: UseCase[], limit = 5): UseCase[] {
+export function computeUrgentItems<T extends { governanceStatus: GateStatus; riskLevel: RiskLevel }>(
+  useCases: T[],
+  limit = 5
+): T[] {
   return [...useCases]
     .sort((a, b) => {
       const scoreA = URGENCY_WEIGHT[a.governanceStatus] * 10 + RISK_WEIGHT[a.riskLevel];
@@ -359,7 +364,10 @@ export function computeUrgentItems(useCases: UseCase[], limit = 5): UseCase[] {
     .slice(0, limit);
 }
 
-export function computeMissingControls(useCase: UseCase): string[] {
+export function computeMissingControls(useCase: {
+  evidenceDetail: EvidenceDetail;
+  authorityStatus: AuthorityStatus;
+}): string[] {
   const missing: string[] = [];
   const d = useCase.evidenceDetail;
   if (!d.owner_evidence) missing.push("دليل المالك غير مكتمل");
@@ -390,7 +398,7 @@ export function computeNextAction(useCase: { governanceStatus: GateStatus }): st
   }
 }
 
-export function computeEvidenceCompleteness(useCase: UseCase): number {
+export function computeEvidenceCompleteness(useCase: { evidenceDetail: EvidenceDetail }): number {
   const d = useCase.evidenceDetail;
   const items = [
     d.owner_evidence,

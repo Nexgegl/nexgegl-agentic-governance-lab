@@ -117,7 +117,6 @@ if (!existsSync(path.join(ROOT, "middleware.ts"))) {
 
 // 3. No service-role key exposed to client code ------------------------------
 
-const CLIENT_REACHABLE_DIRS = ["app", "components", "lib/supabase/client.ts"];
 for (const relPath of [
   ...listFiles("app", [".ts", ".tsx"]),
   ...listFiles("components", [".ts", ".tsx"]),
@@ -128,7 +127,6 @@ for (const relPath of [
     fail("service-role-key", `${relPath} references SUPABASE_SERVICE_ROLE_KEY but must never read it.`);
   }
 }
-void CLIENT_REACHABLE_DIRS;
 
 // 4. Migrations exist ---------------------------------------------------------
 
@@ -137,11 +135,28 @@ if (migrationFiles.length === 0) {
   fail("migrations-exist", "No .sql files found under supabase/migrations/.");
 }
 
-// 5. RLS enabled + 6. production_approval_status defaults false -------------
+// 5. RLS enabled on every table + 6. production approval always defaults false --
 
 const allMigrationSql = migrationFiles.map((f) => read(f) ?? "").join("\n");
 
-for (const table of ["organizations", "profiles", "use_cases"]) {
+const ALL_TABLES = [
+  "organizations",
+  "profiles",
+  "use_cases",
+  "vendors",
+  "data_sources",
+  "models",
+  "agents",
+  "incidents",
+  "compliance_mappings",
+  "audit_events",
+  "data_lineage",
+  "use_case_data_sources",
+  "skills",
+  "tools",
+];
+
+for (const table of ALL_TABLES) {
   const pattern = new RegExp(`alter table public\\.${table} enable row level security`, "i");
   if (!pattern.test(allMigrationSql)) {
     fail("rls-enabled", `No "enable row level security" statement found for ${table}.`);
@@ -152,54 +167,75 @@ if (!/production_approval_status\s+boolean\s+not null\s+default\s+false/i.test(a
   fail("production-approval-default", "use_cases.production_approval_status is not declared as boolean not null default false.");
 }
 
-// 7. AI Inventory pages no longer import lib/mock-data.ts --------------------
+if (!/approved_for_production\s+boolean\s+not null\s+default\s+false/i.test(allMigrationSql)) {
+  fail("production-approval-default", "models.approved_for_production is not declared as boolean not null default false.");
+}
 
-for (const relPath of ["app/(app)/ai-inventory/page.tsx", "app/(app)/ai-inventory/[id]/page.tsx"]) {
+// 7. Live (Supabase-backed) pages: no mock-data import, no Demo Data note ----
+
+const LIVE_PAGES = [
+  "app/(app)/ai-inventory/page.tsx",
+  "app/(app)/ai-inventory/[id]/page.tsx",
+  "app/(app)/data-sources/page.tsx",
+  "app/(app)/data-sources/[id]/page.tsx",
+  "app/(app)/models/page.tsx",
+  "app/(app)/models/[id]/page.tsx",
+  "app/(app)/agents/page.tsx",
+  "app/(app)/agents/[id]/page.tsx",
+  "app/(app)/incidents/page.tsx",
+  "app/(app)/evidence/page.tsx",
+  "app/(app)/compliance/page.tsx",
+  "app/(app)/audit-trails/page.tsx",
+  "app/(app)/access-control/page.tsx",
+  "app/(app)/gate-board/page.tsx",
+  "app/(app)/skills/page.tsx",
+  "app/(app)/skills/[id]/page.tsx",
+  "app/(app)/tools/page.tsx",
+  "app/(app)/tools/[id]/page.tsx",
+];
+
+for (const relPath of LIVE_PAGES) {
   const content = read(relPath);
   if (content === null) {
-    fail("ai-inventory-live", `${relPath} is missing.`);
-  } else if (content.includes("@/lib/mock-data")) {
-    fail("ai-inventory-live", `${relPath} still imports @/lib/mock-data.`);
-  } else if (!content.includes("@/repositories/use-cases-repository")) {
-    fail("ai-inventory-live", `${relPath} does not read from repositories/use-cases-repository.`);
+    fail("live-pages", `${relPath} is missing.`);
+    continue;
+  }
+  if (content.includes("@/lib/mock-data")) {
+    fail("live-pages", `${relPath} still imports @/lib/mock-data.`);
+  }
+  if (content.includes("runtime/demo-skills") || content.includes("runtime/demo-tools")) {
+    fail("live-pages", `${relPath} still reads from the hardcoded runtime demo catalog instead of the live skills/tools tables.`);
+  }
+  if (!content.includes("@/repositories/") && !content.includes("@/lib/supabase/server")) {
+    fail("live-pages", `${relPath} does not appear to read from a Supabase repository.`);
   }
 }
 
-// 8. Dashboard AI Inventory KPIs no longer derive from mock useCases ---------
+// 8. Dashboard KPIs and distributions read directly from Supabase ------------
 
 const dashboardSource = read("app/(app)/dashboard/page.tsx");
 if (dashboardSource === null) {
-  fail("dashboard-live-kpis", "app/(app)/dashboard/page.tsx is missing.");
+  fail("dashboard-live", "app/(app)/dashboard/page.tsx is missing.");
 } else {
-  if (!dashboardSource.includes("computeKpis(") || !/computeKpis\(\s*realUseCases/.test(dashboardSource)) {
-    fail("dashboard-live-kpis", "Dashboard's computeKpis(...) call no longer appears to be driven by live (Supabase) use cases.");
+  if (!/computeKpis\(\s*realUseCases/.test(dashboardSource)) {
+    fail("dashboard-live", "Dashboard's computeKpis(...) call no longer appears to be driven by live (Supabase) use cases.");
   }
-  if (!dashboardSource.includes("@/repositories/use-cases-repository")) {
-    fail("dashboard-live-kpis", "Dashboard does not import the use-cases repository.");
+  if (!/computeAgentGovernancePosture\(\s*liveAgents/.test(dashboardSource)) {
+    fail("dashboard-live", "Dashboard's agent posture no longer appears to be driven by live (Supabase) agents.");
+  }
+  if (!dashboardSource.includes("listRecentAuditEvents")) {
+    fail("dashboard-live", "Dashboard's recent-activity feed no longer appears to read from live audit_events.");
+  }
+  if (dashboardSource.includes("<DevDataNote")) {
+    fail("dashboard-live", "Dashboard still renders a blanket Demo Data banner instead of per-layer labeling.");
   }
 }
 
-// 9. Remaining mock-backed pages are explicitly labeled as development data -
+// 9. Remaining mock-backed pages are still explicitly labeled ----------------
 
-const MOCK_BACKED_PAGES = [
-  "app/(app)/access-control/page.tsx",
-  "app/(app)/agents/page.tsx",
-  "app/(app)/agents/[id]/page.tsx",
-  "app/(app)/audit-trails/page.tsx",
-  "app/(app)/compliance/page.tsx",
-  "app/(app)/data-sources/page.tsx",
-  "app/(app)/data-sources/[id]/page.tsx",
-  "app/(app)/decision-packet/[id]/page.tsx",
-  "app/(app)/evidence/page.tsx",
-  "app/(app)/gate-board/page.tsx",
-  "app/(app)/incidents/page.tsx",
-  "app/(app)/models/page.tsx",
-  "app/(app)/models/[id]/page.tsx",
-  "app/(app)/oversight/page.tsx",
-  "app/(app)/security/page.tsx",
-];
+const REMAINING_MOCK_PAGES = ["app/(app)/decision-packet/[id]/page.tsx", "app/(app)/oversight/page.tsx", "app/(app)/security/page.tsx"];
 
-for (const relPath of MOCK_BACKED_PAGES) {
+for (const relPath of REMAINING_MOCK_PAGES) {
   const content = read(relPath);
   if (content === null) {
     fail("mock-pages-labeled", `${relPath} is missing.`);
@@ -208,13 +244,9 @@ for (const relPath of MOCK_BACKED_PAGES) {
   }
 }
 
-if (dashboardSource && !dashboardSource.includes("DevDataNote")) {
-  fail("mock-pages-labeled", "Dashboard's remaining mock-backed sections are not labeled with <DevDataNote />.");
-}
-
 // ----------------------------------------------------------------------------
 
-console.log(`Supabase Foundation v1 validation: ${issues.length === 0 ? "OK" : "FAILED"}`);
+console.log(`Supabase Foundation v1 (Phase 2) validation: ${issues.length === 0 ? "OK" : "FAILED"}`);
 console.log(`Issues: ${issues.length}`);
 for (const issue of issues) {
   console.log(`  [${issue.check}] ${issue.message}`);

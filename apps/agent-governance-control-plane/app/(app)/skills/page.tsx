@@ -2,12 +2,18 @@ import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
 import { SkillReviewStatusBadge } from "@/components/RuntimeBadges";
 import { RiskBadge } from "@/components/badges";
-import { demoSkills } from "@/runtime/demo-skills";
 import { getSkillSourceTypeLabel } from "@/runtime/runtime-labels";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listSkills } from "@/repositories/skills-repository";
 
-export default function SkillsPage() {
-  const approved = demoSkills.filter((s) => s.approvedForUse).length;
-  const underReview = demoSkills.filter((s) => s.reviewStatus === "UNDER_REVIEW").length;
+export const dynamic = "force-dynamic";
+
+export default async function SkillsPage() {
+  const supabase = createServerSupabaseClient();
+  const skills = await listSkills(supabase);
+
+  const approved = skills.filter((s) => s.approved_for_use).length;
+  const underReview = skills.filter((s) => s.review_status === "UNDER_REVIEW").length;
 
   return (
     <div className="space-y-6">
@@ -15,12 +21,14 @@ export default function SkillsPage() {
         titleAr="سجل المهارات المحكوم"
         titleEn="Governed Skill Registry"
         subtitleAr="مهارات NEXGEGL الداخلية المعتمدة للاستخدام ضمن التشغيلات المحكومة فقط"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
           <p className="text-xs text-navy-400">إجمالي المهارات</p>
-          <p className="mt-1 text-2xl font-semibold text-navy-900">{demoSkills.length}</p>
+          <p className="mt-1 text-2xl font-semibold text-navy-900">{skills.length}</p>
         </div>
         <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-card">
           <p className="text-xs text-emerald-700">معتمدة للاستخدام</p>
@@ -48,29 +56,32 @@ export default function SkillsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-navy-100">
-            {demoSkills.map((s) => (
+            {skills.map((s) => (
               <tr key={s.id} className="hover:bg-navy-50/60">
                 <td className="px-4 py-3">
                   <Link href={`/skills/${s.id}`} className="font-medium text-navy-900 hover:text-gold-600">
-                    {s.nameAr}
+                    {s.name_ar}
                   </Link>
                   <p className="text-[11px] text-navy-400">v{s.version}</p>
                 </td>
-                <td className="px-4 py-3 text-navy-700">{getSkillSourceTypeLabel(s.sourceType)}</td>
+                <td className="px-4 py-3 text-navy-700">{getSkillSourceTypeLabel(s.source_type)}</td>
                 <td className="px-4 py-3 text-navy-700">{s.category}</td>
                 <td className="px-4 py-3">
-                  <RiskBadge risk={s.riskLevel} />
+                  <RiskBadge risk={s.risk_level} />
                 </td>
                 <td className="px-4 py-3">
-                  <SkillReviewStatusBadge status={s.reviewStatus} />
+                  <SkillReviewStatusBadge status={s.review_status} />
                 </td>
                 <td className="px-4 py-3 font-medium">
-                  <span className={s.approvedForUse ? "text-emerald-700" : "text-red-700"}>{s.approvedForUse ? "نعم" : "لا"}</span>
+                  <span className={s.approved_for_use ? "text-emerald-700" : "text-red-700"}>{s.approved_for_use ? "نعم" : "لا"}</span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {skills.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-navy-400">لا توجد مهارات مسجلة بعد لمؤسستك.</div>
+        ) : null}
       </section>
     </div>
   );

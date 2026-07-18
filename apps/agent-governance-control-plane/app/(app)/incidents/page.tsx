@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
-import { DevDataNote } from "@/components/DevDataNote";
-import { getUseCaseById, incidents } from "@/lib/mock-data";
 import { getIncidentSeverityLabel, getIncidentStatusClasses, getIncidentStatusLabel } from "@/lib/labels";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listIncidents } from "@/repositories/incidents-repository";
+import { listUseCases } from "@/repositories/use-cases-repository";
 
-export default function IncidentsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function IncidentsPage() {
+  const supabase = createServerSupabaseClient();
+  const [incidents, useCases] = await Promise.all([listIncidents(supabase), listUseCases(supabase)]);
+  const useCasesById = new Map(useCases.map((u) => [u.id, u]));
+
   const open = incidents.filter((i) => i.status === "open").length;
   const investigating = incidents.filter((i) => i.status === "investigating").length;
   const resolved = incidents.filter((i) => i.status === "resolved").length;
@@ -15,9 +22,9 @@ export default function IncidentsPage() {
         titleAr="سجل الحوادث"
         titleEn="Incident Register"
         subtitleAr="حوادث الحوكمة المرصودة عبر أصول الذكاء الاصطناعي والوكلاء"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
-
-      <DevDataNote />
 
       <section className="grid grid-cols-3 gap-4">
         <div className="rounded-xl border border-red-100 bg-red-50/60 p-4 shadow-card">
@@ -36,29 +43,34 @@ export default function IncidentsPage() {
 
       <section className="space-y-3">
         {incidents.map((i) => {
-          const asset = getUseCaseById(i.assetId);
+          const asset = i.use_case_id ? useCasesById.get(i.use_case_id) : undefined;
           return (
             <div key={i.id} className="rounded-xl border border-navy-100 bg-white p-5 shadow-card">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-navy-900">{i.titleAr}</h2>
+                <h2 className="text-sm font-semibold text-navy-900">{i.title_ar}</h2>
                 <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${getIncidentStatusClasses(i.status)}`}>
                   {getIncidentStatusLabel(i.status).ar}
                 </span>
               </div>
-              <p className="mt-2 text-sm leading-relaxed text-navy-700">{i.summaryAr}</p>
+              <p className="mt-2 text-sm leading-relaxed text-navy-700">{i.summary_ar}</p>
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-navy-400">
                 <span>الخطورة: {getIncidentSeverityLabel(i.severity).ar}</span>
-                <span>تاريخ الإبلاغ: {i.reportedDate}</span>
-                {i.resolvedDate ? <span>تاريخ الحل: {i.resolvedDate}</span> : null}
+                <span>تاريخ الإبلاغ: {i.reported_date ?? "—"}</span>
+                {i.resolved_date ? <span>تاريخ الحل: {i.resolved_date}</span> : null}
                 {asset ? (
-                  <Link href={`/decision-packet/${asset.id}`} className="text-navy-500 hover:text-gold-600">
-                    الأصل المرتبط: {asset.nameAr}
+                  <Link href={`/ai-inventory/${asset.id}`} className="text-navy-500 hover:text-gold-600">
+                    الأصل المرتبط: {asset.name_ar}
                   </Link>
                 ) : null}
               </div>
             </div>
           );
         })}
+        {incidents.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-navy-200 px-4 py-10 text-center text-sm text-navy-400">
+            لا توجد حوادث مسجلة بعد لمؤسستك.
+          </p>
+        ) : null}
       </section>
     </div>
   );

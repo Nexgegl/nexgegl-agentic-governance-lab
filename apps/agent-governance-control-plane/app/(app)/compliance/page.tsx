@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
-import { DevDataNote } from "@/components/DevDataNote";
 import { EvidenceBadge } from "@/components/badges";
-import { complianceMappings } from "@/lib/mock-data";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listComplianceMappings } from "@/repositories/compliance-mappings-repository";
 
-export default function CompliancePage() {
+export const dynamic = "force-dynamic";
+
+export default async function CompliancePage() {
+  const supabase = createServerSupabaseClient();
+  const complianceMappings = await listComplianceMappings(supabase);
+
   const complete = complianceMappings.filter((c) => c.status === "complete").length;
   const partial = complianceMappings.filter((c) => c.status === "partial").length;
   const missing = complianceMappings.filter((c) => c.status === "missing").length;
-  const frameworks = Array.from(new Set(complianceMappings.map((c) => c.frameworkName)));
+  const frameworks = Array.from(new Set(complianceMappings.map((c) => c.framework_name)));
 
   return (
     <div className="space-y-6">
@@ -16,9 +21,9 @@ export default function CompliancePage() {
         titleAr="الامتثال والتدقيق"
         titleEn="Compliance & Audit"
         subtitleAr="ربط متطلبات الحوكمة الداخلية بالضوابط المطبقة، دون أي ادعاء باعتماد أو شهادة رسمية"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
-
-      <DevDataNote />
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
@@ -58,9 +63,9 @@ export default function CompliancePage() {
           <tbody className="divide-y divide-navy-100">
             {complianceMappings.map((c) => (
               <tr key={c.id} className="hover:bg-navy-50/60">
-                <td className="px-4 py-3 text-navy-700">{c.frameworkName}</td>
-                <td className="px-4 py-3 text-navy-900">{c.requirementAr}</td>
-                <td className="px-4 py-3 text-navy-700">{c.mappedControlIds.length}</td>
+                <td className="px-4 py-3 text-navy-700">{c.framework_name}</td>
+                <td className="px-4 py-3 text-navy-900">{c.requirement_ar}</td>
+                <td className="px-4 py-3 text-navy-700">{c.mapped_control_ids.length}</td>
                 <td className="px-4 py-3">
                   <EvidenceBadge status={c.status} />
                 </td>
@@ -68,6 +73,9 @@ export default function CompliancePage() {
             ))}
           </tbody>
         </table>
+        {complianceMappings.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-navy-400">لا توجد متطلبات امتثال مسجلة بعد لمؤسستك.</div>
+        ) : null}
       </section>
 
       <section className="rounded-lg border-2 border-navy-900 bg-navy-950 p-5 text-white">

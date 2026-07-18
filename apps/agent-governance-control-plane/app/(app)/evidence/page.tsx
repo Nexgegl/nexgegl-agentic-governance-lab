@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
-import { DevDataNote } from "@/components/DevDataNote";
 import { EvidenceBadge } from "@/components/badges";
-import { useCases } from "@/lib/mock-data";
 import { computeEvidenceCompleteness } from "@/lib/governance-model";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listUseCases } from "@/repositories/use-cases-repository";
+
+export const dynamic = "force-dynamic";
 
 function EvidenceCheck({ ok }: { ok: boolean }) {
   return ok ? (
@@ -17,18 +19,38 @@ function EvidenceCheck({ ok }: { ok: boolean }) {
   );
 }
 
-export default function EvidencePage() {
-  const overallCompleteness = Math.round(
-    useCases.reduce((sum, u) => sum + computeEvidenceCompleteness(u), 0) / useCases.length
-  );
+export default async function EvidencePage() {
+  const supabase = createServerSupabaseClient();
+  const useCases = await listUseCases(supabase);
+
+  const overallCompleteness =
+    useCases.length === 0
+      ? 0
+      : Math.round(
+          useCases.reduce(
+            (sum, u) =>
+              sum +
+              computeEvidenceCompleteness({
+                evidenceDetail: {
+                  owner_evidence: u.owner_evidence,
+                  authority_evidence: u.authority_evidence,
+                  eval_evidence: u.eval_evidence,
+                  audit_evidence: u.audit_evidence,
+                  policy_boundary_evidence: u.policy_boundary_evidence,
+                  approval_evidence: u.approval_evidence,
+                },
+              }),
+            0,
+          ) / useCases.length,
+        );
 
   const missingCounts = {
-    owner: useCases.filter((u) => !u.evidenceDetail.owner_evidence).length,
-    authority: useCases.filter((u) => !u.evidenceDetail.authority_evidence).length,
-    audit: useCases.filter((u) => !u.evidenceDetail.audit_evidence).length,
-    eval: useCases.filter((u) => !u.evidenceDetail.eval_evidence).length,
-    policyBoundary: useCases.filter((u) => !u.evidenceDetail.policy_boundary_evidence).length,
-    approval: useCases.filter((u) => !u.evidenceDetail.approval_evidence).length,
+    owner: useCases.filter((u) => !u.owner_evidence).length,
+    authority: useCases.filter((u) => !u.authority_evidence).length,
+    audit: useCases.filter((u) => !u.audit_evidence).length,
+    eval: useCases.filter((u) => !u.eval_evidence).length,
+    policyBoundary: useCases.filter((u) => !u.policy_boundary_evidence).length,
+    approval: useCases.filter((u) => !u.approval_evidence).length,
   };
 
   return (
@@ -37,9 +59,9 @@ export default function EvidencePage() {
         titleAr="غرفة الأدلة"
         titleEn="Evidence Room"
         subtitleAr="اكتمال الأدلة الحاكمة عبر جميع حالات الاستخدام"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
-
-      <DevDataNote />
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
         <div className="rounded-xl border border-navy-100 bg-navy-950 p-4 text-white shadow-card">
@@ -90,35 +112,38 @@ export default function EvidencePage() {
             {useCases.map((u) => (
               <tr key={u.id} className="hover:bg-navy-50/60">
                 <td className="px-4 py-3">
-                  <Link href={`/decision-packet/${u.id}`} className="font-medium text-navy-900 hover:text-gold-600">
-                    {u.nameAr}
+                  <Link href={`/ai-inventory/${u.id}`} className="font-medium text-navy-900 hover:text-gold-600">
+                    {u.name_ar}
                   </Link>
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <EvidenceCheck ok={u.evidenceDetail.owner_evidence} />
+                  <EvidenceCheck ok={u.owner_evidence} />
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <EvidenceCheck ok={u.evidenceDetail.authority_evidence} />
+                  <EvidenceCheck ok={u.authority_evidence} />
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <EvidenceCheck ok={u.evidenceDetail.eval_evidence} />
+                  <EvidenceCheck ok={u.eval_evidence} />
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <EvidenceCheck ok={u.evidenceDetail.audit_evidence} />
+                  <EvidenceCheck ok={u.audit_evidence} />
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <EvidenceCheck ok={u.evidenceDetail.policy_boundary_evidence} />
+                  <EvidenceCheck ok={u.policy_boundary_evidence} />
                 </td>
                 <td className="px-3 py-3 text-center">
-                  <EvidenceCheck ok={u.evidenceDetail.approval_evidence} />
+                  <EvidenceCheck ok={u.approval_evidence} />
                 </td>
                 <td className="px-4 py-3">
-                  <EvidenceBadge status={u.evidenceStatus} />
+                  <EvidenceBadge status={u.evidence_status} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+        {useCases.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-navy-400">لا توجد حالات استخدام مسجلة بعد لمؤسستك.</div>
+        ) : null}
       </section>
     </div>
   );
