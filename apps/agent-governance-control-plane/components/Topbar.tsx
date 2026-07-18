@@ -2,9 +2,17 @@ interface TopbarProps {
   titleAr: string;
   titleEn: string;
   subtitleAr?: string;
+  badgeAr?: string;
+  badgeEn?: string;
 }
 
-export function Topbar({ titleAr, titleEn, subtitleAr }: TopbarProps) {
+export function Topbar({
+  titleAr,
+  titleEn,
+  subtitleAr,
+  badgeAr = "بيانات تجريبية",
+  badgeEn = "Demo Data",
+}: TopbarProps) {
   return (
     <header className="flex items-center justify-between border-b border-navy-100 bg-white px-8 py-5">
       <div>
@@ -16,7 +24,7 @@ export function Topbar({ titleAr, titleEn, subtitleAr }: TopbarProps) {
       </div>
       <div className="flex items-center gap-3">
         <div className="rounded-full bg-navy-50 px-3 py-1.5 text-xs font-medium text-navy-600">
-          بيانات تجريبية · Demo Data
+          {badgeAr} · {badgeEn}
         </div>
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-navy-900 text-sm font-semibold text-gold-400">
           نم

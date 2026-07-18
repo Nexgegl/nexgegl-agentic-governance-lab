@@ -304,7 +304,15 @@ export interface KpiSet {
   writeCapableAgents: number;
 }
 
-export function computeKpis(useCases: UseCase[]): KpiSet {
+export interface KpiInput {
+  toolAccess: ToolAccessLevel;
+  riskLevel: RiskLevel;
+  governanceStatus: GateStatus;
+  authorityStatus: AuthorityStatus;
+  evidenceStatus: EvidenceStatus;
+}
+
+export function computeKpis(useCases: KpiInput[]): KpiSet {
   return {
     totalUseCases: useCases.length,
     toolEnabledAssets: useCases.filter((u) => u.toolAccess !== "none").length,
@@ -365,7 +373,7 @@ export function computeMissingControls(useCase: UseCase): string[] {
   return missing;
 }
 
-export function computeNextAction(useCase: UseCase): string {
+export function computeNextAction(useCase: { governanceStatus: GateStatus }): string {
   switch (useCase.governanceStatus) {
     case "BLOCKED":
       return "أعد الحالة إلى المالك لإغلاق العوائق قبل أي مراجعة لاحقة";

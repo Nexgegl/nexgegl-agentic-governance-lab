@@ -57,6 +57,14 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-navy-800 px-5 py-4">
+        <form action="/auth/sign-out" method="post">
+          <button
+            type="submit"
+            className="mb-3 w-full rounded-lg border border-navy-700 px-3 py-2 text-xs font-medium text-navy-200 transition-colors hover:bg-navy-800 hover:text-white"
+          >
+            تسجيل الخروج
+          </button>
+        </form>
         <p className="text-[11px] leading-relaxed text-navy-400">
           حالة تجريبية — بيانات وهمية لأغراض العرض فقط
         </p>
