@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
-import { DevDataNote } from "@/components/DevDataNote";
 import { EvidenceBadge, RiskBadge } from "@/components/badges";
-import { models } from "@/lib/mock-data";
 import { getDataResidencyLabel, getModelProviderLabel } from "@/lib/labels";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listModels, listUseCaseCountsByModel } from "@/repositories/models-repository";
 
-export default function ModelsPage() {
-  const unreviewed = models.filter((m) => m.evaluationStatus === "missing").length;
-  const highRisk = models.filter((m) => m.riskTier === "high").length;
-  const unknownResidency = models.filter((m) => m.dataResidency === "unknown").length;
+export const dynamic = "force-dynamic";
+
+export default async function ModelsPage() {
+  const supabase = createServerSupabaseClient();
+  const [models, usageCounts] = await Promise.all([listModels(supabase), listUseCaseCountsByModel(supabase)]);
+
+  const unreviewed = models.filter((m) => m.evaluation_status === "missing").length;
+  const highRisk = models.filter((m) => m.risk_tier === "high").length;
+  const unknownResidency = models.filter((m) => m.data_residency === "unknown").length;
 
   return (
     <div className="space-y-6">
@@ -16,9 +21,9 @@ export default function ModelsPage() {
         titleAr="سجل النماذج"
         titleEn="Model Registry"
         subtitleAr="دورة حياة النماذج المستخدمة عبر أصول الذكاء الاصطناعي، بدون أي موافقة إنتاج"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
-
-      <DevDataNote />
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
@@ -62,20 +67,23 @@ export default function ModelsPage() {
                   </Link>
                 </td>
                 <td className="px-4 py-3 text-navy-700">{getModelProviderLabel(m.provider)}</td>
-                <td className="px-4 py-3 text-navy-700">{m.version}</td>
-                <td className="px-4 py-3 text-navy-700">{getDataResidencyLabel(m.dataResidency).ar}</td>
+                <td className="px-4 py-3 text-navy-700">{m.version ?? "—"}</td>
+                <td className="px-4 py-3 text-navy-700">{getDataResidencyLabel(m.data_residency).ar}</td>
                 <td className="px-4 py-3">
-                  <EvidenceBadge status={m.evaluationStatus} />
+                  <EvidenceBadge status={m.evaluation_status} />
                 </td>
                 <td className="px-4 py-3">
-                  <RiskBadge risk={m.riskTier} />
+                  <RiskBadge risk={m.risk_tier} />
                 </td>
-                <td className="px-4 py-3 text-navy-700">{m.usedByAssetIds.length}</td>
+                <td className="px-4 py-3 text-navy-700">{usageCounts[m.id] ?? 0}</td>
                 <td className="px-4 py-3 text-red-700 font-medium">غير معتمد</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {models.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-navy-400">لا توجد نماذج مسجلة بعد لمؤسستك.</div>
+        ) : null}
       </section>
     </div>
   );

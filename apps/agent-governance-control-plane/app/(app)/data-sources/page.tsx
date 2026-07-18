@@ -1,14 +1,22 @@
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
-import { DevDataNote } from "@/components/DevDataNote";
 import { EvidenceBadge } from "@/components/badges";
-import { dataSources } from "@/lib/mock-data";
 import { getSensitivityLabel } from "@/lib/governance-model";
 import { getDataSourceTypeLabel } from "@/lib/labels";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { listDataSources, listUseCaseIdsForDataSources } from "@/repositories/data-sources-repository";
 
-export default function DataSourcesPage() {
-  const missingClassification = dataSources.filter((d) => d.classificationStatus === "missing").length;
-  const partialClassification = dataSources.filter((d) => d.classificationStatus === "partial").length;
+export const dynamic = "force-dynamic";
+
+export default async function DataSourcesPage() {
+  const supabase = createServerSupabaseClient();
+  const [dataSources, usageCounts] = await Promise.all([
+    listDataSources(supabase),
+    listUseCaseIdsForDataSources(supabase),
+  ]);
+
+  const missingClassification = dataSources.filter((d) => d.classification_status === "missing").length;
+  const partialClassification = dataSources.filter((d) => d.classification_status === "partial").length;
   const highSensitivity = dataSources.filter((d) => d.sensitivity === "high").length;
 
   return (
@@ -17,9 +25,9 @@ export default function DataSourcesPage() {
         titleAr="مصادر البيانات"
         titleEn="Data Sources"
         subtitleAr="الأساس البياني الذي تعتمد عليه أصول الذكاء الاصطناعي عبر المؤسسة"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
-
-      <DevDataNote />
 
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
@@ -58,22 +66,25 @@ export default function DataSourcesPage() {
               <tr key={d.id} className="hover:bg-navy-50/60">
                 <td className="px-4 py-3">
                   <Link href={`/data-sources/${d.id}`} className="font-medium text-navy-900 hover:text-gold-600">
-                    {d.nameAr}
+                    {d.name_ar}
                   </Link>
                   <p className="text-[11px] text-navy-400">{d.name}</p>
                 </td>
                 <td className="px-4 py-3 text-navy-700">{getDataSourceTypeLabel(d.type).ar}</td>
                 <td className="px-4 py-3 text-navy-700">{getSensitivityLabel(d.sensitivity).ar}</td>
-                <td className="px-4 py-3 text-navy-700">{d.owner}</td>
-                <td className="px-4 py-3 text-navy-700">{d.usedByAssetIds.length}</td>
+                <td className="px-4 py-3 text-navy-700">{d.owner ?? "—"}</td>
+                <td className="px-4 py-3 text-navy-700">{usageCounts[d.id] ?? 0}</td>
                 <td className="px-4 py-3">
-                  <EvidenceBadge status={d.classificationStatus} />
+                  <EvidenceBadge status={d.classification_status} />
                 </td>
-                <td className="px-4 py-3 text-navy-500">{d.lastClassified}</td>
+                <td className="px-4 py-3 text-navy-500">{d.last_classified ?? "—"}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {dataSources.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-navy-400">لا توجد مصادر بيانات مسجلة بعد لمؤسستك.</div>
+        ) : null}
       </section>
     </div>
   );

@@ -1,47 +1,50 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
-import { DevDataNote } from "@/components/DevDataNote";
 import { EvidenceBadge, RiskBadge } from "@/components/badges";
-import { getUseCaseById, models } from "@/lib/mock-data";
 import { getDataResidencyLabel, getModelProviderLabel } from "@/lib/labels";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getModelById } from "@/repositories/models-repository";
+import { listUseCasesByModelId } from "@/repositories/use-cases-repository";
 
-export function generateStaticParams() {
-  return models.map((m) => ({ id: m.id }));
-}
+export const dynamic = "force-dynamic";
 
-export default function ModelDetailPage({ params }: { params: { id: string } }) {
-  const model = models.find((m) => m.id === params.id);
+export default async function ModelDetailPage({ params }: { params: { id: string } }) {
+  const supabase = createServerSupabaseClient();
+  const model = await getModelById(supabase, params.id);
   if (!model) notFound();
 
-  const usedByAssets = model.usedByAssetIds.map((id) => getUseCaseById(id)).filter(Boolean);
+  const usedByAssets = await listUseCasesByModelId(supabase, model.id);
 
   return (
     <div className="space-y-6">
-      <Topbar titleAr={model.name} titleEn={`${getModelProviderLabel(model.provider)} · ${model.version}`} />
-
-      <DevDataNote />
+      <Topbar
+        titleAr={model.name}
+        titleEn={`${getModelProviderLabel(model.provider)} · ${model.version ?? ""}`}
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
+      />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
           <p className="text-xs text-navy-400">حالة التقييم</p>
           <div className="mt-2">
-            <EvidenceBadge status={model.evaluationStatus} />
+            <EvidenceBadge status={model.evaluation_status} />
           </div>
         </div>
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
           <p className="text-xs text-navy-400">درجة المخاطرة</p>
           <div className="mt-2">
-            <RiskBadge risk={model.riskTier} />
+            <RiskBadge risk={model.risk_tier} />
           </div>
         </div>
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
           <p className="text-xs text-navy-400">إقامة البيانات</p>
-          <p className="mt-2 text-sm font-semibold text-navy-900">{getDataResidencyLabel(model.dataResidency).ar}</p>
+          <p className="mt-2 text-sm font-semibold text-navy-900">{getDataResidencyLabel(model.data_residency).ar}</p>
         </div>
         <div className="rounded-xl border border-navy-100 bg-white p-4 shadow-card">
           <p className="text-xs text-navy-400">آخر تقييم</p>
-          <p className="mt-2 text-sm font-semibold text-navy-900">{model.lastEvaluated}</p>
+          <p className="mt-2 text-sm font-semibold text-navy-900">{model.last_evaluated ?? "—"}</p>
         </div>
       </section>
 
@@ -59,11 +62,11 @@ export default function ModelDetailPage({ params }: { params: { id: string } }) 
         ) : (
           <ul className="space-y-2">
             {usedByAssets.map((asset) => (
-              <li key={asset!.id}>
-                <Link href={`/decision-packet/${asset!.id}`} className="text-sm font-medium text-navy-900 hover:text-gold-600">
-                  {asset!.nameAr}
+              <li key={asset.id}>
+                <Link href={`/ai-inventory/${asset.id}`} className="text-sm font-medium text-navy-900 hover:text-gold-600">
+                  {asset.name_ar}
                 </Link>
-                <span className="ms-2 text-xs text-navy-400">{asset!.department}</span>
+                <span className="ms-2 text-xs text-navy-400">{asset.department}</span>
               </li>
             ))}
           </ul>

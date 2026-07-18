@@ -1,19 +1,8 @@
 import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
 import { KpiCard } from "@/components/KpiCard";
-import { DevDataNote } from "@/components/DevDataNote";
 import { GateStatusBadge, RiskBadge } from "@/components/badges";
-import {
-  agents,
-  complianceMappings,
-  dataSources,
-  humanReviews,
-  incidents,
-  models,
-  privacyControls,
-  securityControls,
-  useCases,
-} from "@/lib/mock-data";
+import { humanReviews, privacyControls, securityControls } from "@/lib/mock-data";
 import {
   computeKpis,
   computeRiskDistribution,
@@ -28,12 +17,29 @@ import { demoSkills } from "@/runtime/demo-skills";
 import { demoTools } from "@/runtime/demo-tools";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { listUseCases } from "@/repositories/use-cases-repository";
+import { listAgents } from "@/repositories/agents-repository";
+import { listDataSources } from "@/repositories/data-sources-repository";
+import { listModels } from "@/repositories/models-repository";
+import { listComplianceMappings } from "@/repositories/compliance-mappings-repository";
+import { listRecentAuditEvents } from "@/repositories/audit-events-repository";
 
 export const dynamic = "force-dynamic";
 
+const MOCK_LAYERS = new Set(["data_security_privacy", "human_oversight"]);
+
 export default async function DashboardPage() {
   const supabase = createServerSupabaseClient();
-  const realUseCases = await listUseCases(supabase);
+  const [realUseCases, liveAgents, liveDataSources, liveModels, liveComplianceMappings, recentAuditEvents] =
+    await Promise.all([
+      listUseCases(supabase),
+      listAgents(supabase),
+      listDataSources(supabase),
+      listModels(supabase),
+      listComplianceMappings(supabase),
+      listRecentAuditEvents(supabase, 6),
+    ]);
+
+  const useCasesById = new Map(realUseCases.map((u) => [u.id, u]));
 
   const totalRuns = runs.length;
   const activeRuns = runs.filter((r) => !["BLOCKED", "FAILED", "READY_FOR_AUTHORITY_REVIEW", "COMPLETED_WITHOUT_DECISION"].includes(r.status)).length;
@@ -46,6 +52,7 @@ export default async function DashboardPage() {
   const evidenceAwaitingReview = runs.flatMap((r) => r.evidence).filter((e) => e.reviewerStatus === "UNREVIEWED").length;
   const loopDetections = runs.filter((r) => r.stopReason === "LOOP_DETECTED").length;
   const recentRuns = [...runs].sort((a, b) => (a.submittedAt < b.submittedAt ? 1 : -1)).slice(0, 5);
+
   const kpis = computeKpis(
     realUseCases.map((u) => ({
       toolAccess: u.tool_access,
@@ -55,26 +62,26 @@ export default async function DashboardPage() {
       evidenceStatus: u.evidence_status,
     })),
   );
-  const agentPosture = computeAgentGovernancePosture(agents);
-  const statusDistribution = computeStatusDistribution(useCases);
-  const riskDistribution = computeRiskDistribution(useCases);
-  const urgentItems = computeUrgentItems(useCases, 5);
+  const agentPosture = computeAgentGovernancePosture(liveAgents.map((a) => ({ status: a.status })));
+  const statusDistribution = computeStatusDistribution(realUseCases.map((u) => ({ governanceStatus: u.governance_status })));
+  const riskDistribution = computeRiskDistribution(realUseCases.map((u) => ({ riskLevel: u.risk_level })));
+  const urgentItems = computeUrgentItems(
+    realUseCases.map((u) => ({ ...u, governanceStatus: u.governance_status, riskLevel: u.risk_level })),
+    5,
+  );
   const layerCoverage = computeLayerReadiness({
-    useCases,
-    dataSources,
-    models,
+    useCases: realUseCases.map((u) => ({
+      evidenceStatus: u.evidence_status,
+      evidenceDetail: { policy_boundary_evidence: u.policy_boundary_evidence },
+    })),
+    dataSources: liveDataSources.map((d) => ({ classificationStatus: d.classification_status })),
+    models: liveModels.map((m) => ({ evaluationStatus: m.evaluation_status, riskTier: m.risk_tier })),
     securityControls,
     privacyControls,
-    agents,
+    agents: liveAgents.map((a) => ({ status: a.status })),
     humanReviews,
-    incidents,
-    complianceMappings,
+    complianceMappings: liveComplianceMappings.map((c) => ({ status: c.status })),
   });
-
-  const recentActivity = useCases
-    .flatMap((u) => u.timeline.map((t) => ({ ...t, useCase: u })))
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 6);
 
   return (
     <div className="space-y-8">
@@ -82,9 +89,9 @@ export default async function DashboardPage() {
         titleAr="لوحة القيادة"
         titleEn="Command Center Dashboard"
         subtitleAr="نظرة تنفيذية على وضع حوكمة الذكاء الاصطناعي عبر المؤسسة"
+        badgeAr="بيانات حقيقية"
+        badgeEn="Live — Supabase"
       />
-
-      <DevDataNote />
 
       <section className="rounded-xl border border-navy-100 bg-white p-5 shadow-card">
         <h2 className="mb-4 text-sm font-semibold text-navy-900">تغطية الطبقات الثماني للحوكمة</h2>
@@ -93,6 +100,7 @@ export default async function DashboardPage() {
             const coverage = layerCoverage.find((c) => c.layer === l.key);
             const percent = coverage?.readinessPercent ?? 0;
             const tone = percent >= 70 ? "text-emerald-700" : percent >= 40 ? "text-amber-700" : "text-red-700";
+            const isMock = MOCK_LAYERS.has(l.key);
             return (
               <Link
                 key={l.key}
@@ -100,7 +108,10 @@ export default async function DashboardPage() {
                 className="rounded-lg border border-navy-100 p-3 transition-shadow hover:shadow-md"
               >
                 <p className="text-xs text-navy-500">{l.labelAr}</p>
-                <p className="text-[10px] text-navy-400">{l.labelEn}</p>
+                <p className="text-[10px] text-navy-400">
+                  {l.labelEn}
+                  {isMock ? " · بيانات تجريبية" : null}
+                </p>
                 <p className={`mt-2 text-xl font-semibold tabular-nums ${tone}`}>{percent}%</p>
               </Link>
             );
@@ -155,7 +166,7 @@ export default async function DashboardPage() {
         </div>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <KpiCard label="إجمالي حالات الاستخدام" labelEn="Total Use Cases" value={kpis.totalUseCases} />
-          <KpiCard label="الوكلاء النشطون" labelEn="Active Agents (Demo)" value={agentPosture.activeAgents} />
+          <KpiCard label="الوكلاء النشطون" labelEn="Active Agents" value={agentPosture.activeAgents} />
           <KpiCard label="حالات عالية الخطورة" labelEn="High-Risk Use Cases" value={kpis.highRiskUseCases} tone="warning" />
           <KpiCard label="حالات محظورة" labelEn="Blocked Cases" value={kpis.blockedCases} tone="danger" />
           <KpiCard label="بدون سلطة معتمدة" labelEn="Missing Authority" value={kpis.missingAuthorityCases} tone="danger" />
@@ -164,8 +175,6 @@ export default async function DashboardPage() {
           <KpiCard label="وكلاء بصلاحية كتابة" labelEn="Write-Capable Agents" value={kpis.writeCapableAgents} />
         </div>
       </section>
-
-      <DevDataNote />
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="rounded-xl border border-navy-100 bg-white p-5 shadow-card lg:col-span-1">
@@ -210,12 +219,12 @@ export default async function DashboardPage() {
             ) : (
               urgentItems.map((u) => (
                 <li key={u.id} className="border-s-2 border-red-400 ps-3">
-                  <Link href={`/decision-packet/${u.id}`} className="text-sm font-medium text-navy-900 hover:text-gold-600">
-                    {u.nameAr}
+                  <Link href={`/ai-inventory/${u.id}`} className="text-sm font-medium text-navy-900 hover:text-gold-600">
+                    {u.name_ar}
                   </Link>
                   <div className="mt-1 flex items-center gap-2">
-                    <GateStatusBadge status={u.governanceStatus} />
-                    <RiskBadge risk={u.riskLevel} />
+                    <GateStatusBadge status={u.governance_status} />
+                    <RiskBadge risk={u.risk_level} />
                   </div>
                 </li>
               ))
@@ -227,20 +236,28 @@ export default async function DashboardPage() {
       <section className="rounded-xl border border-navy-100 bg-white p-5 shadow-card">
         <h2 className="mb-4 text-sm font-semibold text-navy-900">نشاط الحوكمة الأخير</h2>
         <ul className="divide-y divide-navy-100">
-          {recentActivity.map((a, idx) => (
-            <li key={idx} className="flex items-center justify-between gap-4 py-3">
-              <div>
-                <p className="text-sm text-navy-900">{a.event}</p>
-                <Link href={`/decision-packet/${a.useCase.id}`} className="text-xs text-navy-400 hover:text-gold-600">
-                  {a.useCase.nameAr}
-                </Link>
-              </div>
-              <div className="text-end">
-                <p className="text-xs font-medium text-navy-500">{a.actor}</p>
-                <p className="text-[11px] text-navy-400">{a.date}</p>
-              </div>
-            </li>
-          ))}
+          {recentAuditEvents.map((a) => {
+            const asset = a.use_case_id ? useCasesById.get(a.use_case_id) : undefined;
+            return (
+              <li key={a.id} className="flex items-center justify-between gap-4 py-3">
+                <div>
+                  <p className="text-sm text-navy-900">{a.action_ar}</p>
+                  {asset ? (
+                    <Link href={`/ai-inventory/${asset.id}`} className="text-xs text-navy-400 hover:text-gold-600">
+                      {asset.name_ar}
+                    </Link>
+                  ) : null}
+                </div>
+                <div className="text-end">
+                  <p className="text-xs font-medium text-navy-500">{a.actor}</p>
+                  <p className="text-[11px] text-navy-400">{a.timestamp.slice(0, 10)}</p>
+                </div>
+              </li>
+            );
+          })}
+          {recentAuditEvents.length === 0 ? (
+            <li className="py-6 text-center text-sm text-navy-400">لا توجد أحداث حوكمة مسجلة بعد.</li>
+          ) : null}
         </ul>
       </section>
     </div>
