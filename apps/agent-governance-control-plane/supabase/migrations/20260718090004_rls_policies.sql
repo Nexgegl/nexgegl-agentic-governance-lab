@@ -93,9 +93,16 @@ security definer
 set search_path = public
 as $$
 begin
-  -- organization_id is never accepted from client input: it is always
-  -- derived from the authenticated user's own profile.
-  new.organization_id := public.current_user_organization_id();
+  -- organization_id is never accepted from client input for a real
+  -- end-user request: it is always derived from the authenticated user's
+  -- own profile. auth.uid() is only non-null for an actual signed-in
+  -- request (browser -> server -> Supabase with the user's session); a
+  -- privileged context with no JWT (migrations, `supabase db reset`
+  -- seeding, admin tooling) has auth.uid() = null, so it may supply
+  -- organization_id explicitly instead of being forced to null here.
+  if auth.uid() is not null then
+    new.organization_id := public.current_user_organization_id();
+  end if;
   new.updated_at := now();
   if auth.role() <> 'service_role' then
     new.production_approval_status := false;

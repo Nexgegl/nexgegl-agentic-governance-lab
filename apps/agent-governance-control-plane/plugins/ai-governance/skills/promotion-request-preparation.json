@@ -1,0 +1,18 @@
+{
+  "skill_id": "ai-governance.promotion-request-preparation",
+  "name": { "en": "Promotion Request Preparation", "ar": "إعداد طلب الترقية" },
+  "version": "0.1.0",
+  "execution_status": "not_implemented",
+  "execution_status_note": "Declared and permission-scoped in this MVP; no runtime handler exists yet. When implemented, this skill assembles a Promotion Request draft — it must never assemble or submit a formal decision.",
+  "purpose": "Assembles a Promotion Request draft from a use case's evidence packages and risk assessment for submission toward KFSA Ingress. Produces a request, never a decision.",
+  "allowed_inputs": ["use_case_id", "evidence_ids", "risk_assessment_id"],
+  "prohibited_inputs": ["governance_status", "production_approval_status", "official_decision", "official_verdict", "kfsa_decision_code", "kill_fix_scale_alert_selection"],
+  "required_profile_fields": ["ai_governance_owner", "human_review_required"],
+  "permitted_connectors": ["supabase-internal"],
+  "required_evidence": ["promotion_request_draft"],
+  "expected_outputs": ["promotion_request_draft"],
+  "authority_requirements": { "requires_authority_context": true, "minimum_role": "admin" },
+  "escalation_conditions": ["evidence_status incomplete", "authority_status not confirmed"],
+  "audit_events": ["plugin.skill.run.started", "plugin.skill.run.rejected", "plugin.promotion_request.created"],
+  "production_approval_status": false
+}

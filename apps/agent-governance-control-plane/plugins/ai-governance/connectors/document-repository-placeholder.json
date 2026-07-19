@@ -1,0 +1,11 @@
+{
+  "connector_id": "document-repository-placeholder",
+  "connector_type": "document_repository",
+  "status": "not_configured",
+  "status_note": "Placeholder only — no real document repository is integrated in this MVP. Declared so the evidence-collection skill's permitted_connectors reference resolves to something real in the registry rather than a dangling string.",
+  "allowed_operations": ["read"],
+  "denied_operations": ["write", "delete"],
+  "data_classifications": ["low", "medium", "high"],
+  "credential_scope": "not_applicable_placeholder",
+  "audit_requirements": ["log_every_query_operation"]
+}

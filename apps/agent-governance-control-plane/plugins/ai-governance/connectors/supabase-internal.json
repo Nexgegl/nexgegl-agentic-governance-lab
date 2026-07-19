@@ -1,0 +1,10 @@
+{
+  "connector_id": "supabase-internal",
+  "connector_type": "internal_database",
+  "status": "enabled",
+  "allowed_operations": ["read"],
+  "denied_operations": ["write", "delete", "schema_change"],
+  "data_classifications": ["low", "medium", "high"],
+  "credential_scope": "server_only_anon_key_rls_scoped",
+  "audit_requirements": ["log_every_query_operation"]
+}

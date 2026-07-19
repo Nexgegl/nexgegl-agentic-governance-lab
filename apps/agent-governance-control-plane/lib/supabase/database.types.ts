@@ -61,6 +61,15 @@ export type ToolTypeRow =
   | "WRITE_ACTION";
 export type ApprovalModeRow = "NONE" | "PRE_APPROVAL" | "PER_CALL_APPROVAL" | "HUMAN_CONFIRMATION" | "FORBIDDEN";
 export type ReadWriteClassRow = "READ_ONLY" | "WRITE";
+export type SkillExecutionStatusRow = "implemented" | "not_implemented";
+
+// --- Plugin foundation ------------------------------------------------------
+
+export type PluginStatusRow = "experimental" | "approved" | "deprecated" | "blocked";
+export type PluginInstallationStateRow = "proposed" | "approved" | "installed" | "disabled" | "deprecated" | "blocked";
+export type GovernanceModelRow = "centralized" | "federated" | "hybrid";
+export type ConnectorStatusRow = "enabled" | "disabled" | "not_configured";
+export type PluginRunStatusRow = "submitted" | "completed" | "rejected";
 
 export interface SkillRiskProfileRow {
   writeCapability: boolean;
@@ -396,6 +405,11 @@ export interface Database {
           instructions: string[];
           risk_profile: SkillRiskProfileRow;
           created_at: string;
+          plugin_id: string | null;
+          execution_status: SkillExecutionStatusRow;
+          required_profile_fields: string[];
+          permitted_connectors: string[];
+          escalation_conditions: string[];
         };
         Insert: Partial<Database["public"]["Tables"]["skills"]["Row"]> &
           Pick<
@@ -431,6 +445,257 @@ export interface Database {
         Insert: Partial<Database["public"]["Tables"]["tools"]["Row"]> &
           Pick<Database["public"]["Tables"]["tools"]["Row"], "id" | "name" | "name_ar" | "tool_type" | "action_type" | "read_write_class" | "approval_mode">;
         Update: Partial<Database["public"]["Tables"]["tools"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_definitions: {
+        Row: {
+          plugin_id: string;
+          name: { en: string; ar: string };
+          domain: string;
+          description: { en: string; ar: string } | null;
+          status: PluginStatusRow;
+          production_approval_status: boolean;
+          owner: string | null;
+          required_platform_version: string | null;
+          constitutional_reference: string[];
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_definitions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_definitions"]["Row"], "plugin_id" | "name" | "domain">;
+        Update: Partial<Database["public"]["Tables"]["plugin_definitions"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_versions: {
+        Row: {
+          id: string;
+          plugin_id: string;
+          version: string;
+          manifest: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_versions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_versions"]["Row"], "plugin_id" | "version" | "manifest">;
+        Update: Partial<Database["public"]["Tables"]["plugin_versions"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_installations: {
+        Row: {
+          id: string;
+          organization_id: string;
+          plugin_id: string;
+          plugin_version_id: string;
+          state: PluginInstallationStateRow;
+          installed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_installations"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_installations"]["Row"], "plugin_id" | "plugin_version_id">;
+        Update: Partial<Database["public"]["Tables"]["plugin_installations"]["Row"]>;
+        Relationships: [];
+      };
+      organization_profiles: {
+        Row: {
+          id: string;
+          organization_id: string;
+          sector: string | null;
+          jurisdictions: string[];
+          business_units: string[];
+          governance_model: GovernanceModelRow | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["organization_profiles"]["Row"]>;
+        Update: Partial<Database["public"]["Tables"]["organization_profiles"]["Row"]>;
+        Relationships: [];
+      };
+      domain_profiles: {
+        Row: {
+          id: string;
+          organization_id: string;
+          domain: string;
+          profile: Record<string, unknown>;
+          completeness_score: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["domain_profiles"]["Row"]> &
+          Pick<Database["public"]["Tables"]["domain_profiles"]["Row"], "domain">;
+        Update: Partial<Database["public"]["Tables"]["domain_profiles"]["Row"]>;
+        Relationships: [];
+      };
+      connector_definitions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          connector_id: string;
+          connector_type: string;
+          status: ConnectorStatusRow;
+          allowed_operations: string[];
+          denied_operations: string[];
+          data_classifications: string[];
+          credential_scope: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["connector_definitions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["connector_definitions"]["Row"], "connector_id" | "connector_type">;
+        Update: Partial<Database["public"]["Tables"]["connector_definitions"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_connector_permissions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          plugin_id: string;
+          connector_id: string;
+          allowed: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_connector_permissions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_connector_permissions"]["Row"], "plugin_id" | "connector_id">;
+        Update: Partial<Database["public"]["Tables"]["plugin_connector_permissions"]["Row"]>;
+        Relationships: [];
+      };
+      skill_versions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          skill_id: string;
+          version: string;
+          definition: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["skill_versions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["skill_versions"]["Row"], "skill_id" | "version" | "definition">;
+        Update: Partial<Database["public"]["Tables"]["skill_versions"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_skill_permissions: {
+        Row: {
+          id: string;
+          organization_id: string;
+          plugin_installation_id: string;
+          skill_id: string;
+          enabled: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_skill_permissions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_skill_permissions"]["Row"], "plugin_installation_id" | "skill_id">;
+        Update: Partial<Database["public"]["Tables"]["plugin_skill_permissions"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_run_contexts: {
+        Row: {
+          id: string;
+          organization_id: string;
+          plugin_id: string;
+          plugin_version: string;
+          skill_id: string;
+          skill_version: string;
+          actor_user_id: string;
+          context: Record<string, unknown>;
+          constitutional_reference: string[];
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_run_contexts"]["Row"]> &
+          Pick<
+            Database["public"]["Tables"]["plugin_run_contexts"]["Row"],
+            "plugin_id" | "plugin_version" | "skill_id" | "skill_version" | "actor_user_id" | "context"
+          >;
+        Update: Partial<Database["public"]["Tables"]["plugin_run_contexts"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_runs: {
+        Row: {
+          id: string;
+          organization_id: string;
+          plugin_id: string;
+          skill_id: string;
+          context_snapshot_id: string;
+          actor_user_id: string;
+          use_case_id: string | null;
+          status: PluginRunStatusRow;
+          rejection_reason: string | null;
+          correlation_id: string;
+          output: Record<string, unknown> | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_runs"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_runs"]["Row"], "plugin_id" | "skill_id" | "context_snapshot_id" | "actor_user_id" | "correlation_id">;
+        Update: Partial<Database["public"]["Tables"]["plugin_runs"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_evidence_outputs: {
+        Row: {
+          id: string;
+          organization_id: string;
+          plugin_run_id: string;
+          use_case_id: string | null;
+          evidence_type: string;
+          payload: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_evidence_outputs"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_evidence_outputs"]["Row"], "plugin_run_id" | "evidence_type">;
+        Update: Partial<Database["public"]["Tables"]["plugin_evidence_outputs"]["Row"]>;
+        Relationships: [];
+      };
+      plugin_audit_events: {
+        Row: {
+          id: string;
+          organization_id: string;
+          actor: string;
+          event_type: string;
+          plugin_id: string | null;
+          skill_id: string | null;
+          plugin_run_id: string | null;
+          details: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["plugin_audit_events"]["Row"]> &
+          Pick<Database["public"]["Tables"]["plugin_audit_events"]["Row"], "actor" | "event_type">;
+        Update: Partial<Database["public"]["Tables"]["plugin_audit_events"]["Row"]>;
+        Relationships: [];
+      };
+      promotion_requests: {
+        Row: {
+          id: string;
+          organization_id: string;
+          source_plugin_id: string;
+          source_skill_id: string;
+          source_run_id: string;
+          request_id: string;
+          candidate_id: string;
+          signal_ids: string[];
+          evidence_ids: string[];
+          authority_context: Record<string, unknown>;
+          objective: string;
+          correlation_id: string;
+          context_snapshot_id: string;
+          plugin_version: string;
+          skill_version: string;
+          review_outcome: ReviewOutcomeRow | null;
+          evidence_status: EvidenceStatusRow;
+          authority_status: AuthorityStatusRow;
+          escalation_required: boolean;
+          blocked_actions: string[];
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["promotion_requests"]["Row"]> &
+          Pick<
+            Database["public"]["Tables"]["promotion_requests"]["Row"],
+            | "source_plugin_id"
+            | "source_skill_id"
+            | "source_run_id"
+            | "request_id"
+            | "candidate_id"
+            | "objective"
+            | "correlation_id"
+            | "context_snapshot_id"
+            | "plugin_version"
+            | "skill_version"
+          >;
+        Update: Partial<Database["public"]["Tables"]["promotion_requests"]["Row"]>;
         Relationships: [];
       };
     };

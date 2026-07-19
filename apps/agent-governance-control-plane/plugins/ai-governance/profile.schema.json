@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "plugins/ai-governance/profile.schema.json",
+  "title": "AI Governance Domain Profile",
+  "description": "Structured institutional profile required for the ai-governance plugin to operate. This schema is the validation contract for the domain_profiles row where domain = 'ai_governance'. It is not the CLAUDE.md file — CLAUDE.md is a generated projection of this data.",
+  "type": "object",
+  "required": [
+    "ai_governance_owner",
+    "risk_appetite",
+    "escalation_threshold_risk_level",
+    "human_review_required"
+  ],
+  "properties": {
+    "sector": { "type": "string", "description": "Organization's sector, e.g. Financial Services, Healthcare." },
+    "jurisdictions": { "type": "array", "items": { "type": "string" }, "description": "Applicable legal/regulatory jurisdictions." },
+    "business_units": { "type": "array", "items": { "type": "string" } },
+    "governance_model": { "type": "string", "enum": ["centralized", "federated", "hybrid"] },
+    "ai_governance_owner": { "type": "string", "description": "Named accountable owner for AI governance in this organization." },
+    "authority_matrix_references": { "type": "array", "items": { "type": "string" }, "description": "References to the org's authority matrix (external document ids/links), not the matrix content itself." },
+    "risk_appetite": { "type": "string", "enum": ["low", "medium", "high"] },
+    "prohibited_ai_uses": { "type": "array", "items": { "type": "string" } },
+    "restricted_data_classifications": { "type": "array", "items": { "type": "string", "enum": ["low", "medium", "high"] } },
+    "evidence_requirements": { "type": "array", "items": { "type": "string" } },
+    "escalation_threshold_risk_level": { "type": "string", "enum": ["low", "medium", "high"] },
+    "approved_connector_ids": { "type": "array", "items": { "type": "string" } },
+    "approved_models": { "type": "array", "items": { "type": "string" } },
+    "approved_deployment_environments": { "type": "array", "items": { "type": "string" } },
+    "human_review_required": { "type": "boolean" },
+    "applicable_internal_policies": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

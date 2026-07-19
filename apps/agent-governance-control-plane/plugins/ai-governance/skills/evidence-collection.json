@@ -1,0 +1,18 @@
+{
+  "skill_id": "ai-governance.evidence-collection",
+  "name": { "en": "Evidence Collection", "ar": "جمع الأدلة" },
+  "version": "0.1.0",
+  "execution_status": "not_implemented",
+  "execution_status_note": "Declared and permission-scoped in this MVP; no runtime handler exists yet.",
+  "purpose": "Collects evidence items from approved read-only connectors within the bounds of a use case's evidence requirements and persists them as an evidence package.",
+  "allowed_inputs": ["use_case_id", "requested_evidence_types"],
+  "prohibited_inputs": ["governance_status", "production_approval_status", "official_decision", "kfsa_verdict"],
+  "required_profile_fields": ["evidence_requirements"],
+  "permitted_connectors": ["supabase-internal", "document-repository-placeholder"],
+  "required_evidence": ["evidence_package"],
+  "expected_outputs": ["evidence_package"],
+  "authority_requirements": { "requires_authority_context": false, "minimum_role": "member" },
+  "escalation_conditions": ["required evidence type unavailable from any permitted connector"],
+  "audit_events": ["plugin.skill.run.started", "plugin.skill.run.rejected", "plugin.evidence.created"],
+  "production_approval_status": false
+}

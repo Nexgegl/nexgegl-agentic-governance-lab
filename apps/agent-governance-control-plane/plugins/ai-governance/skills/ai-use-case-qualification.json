@@ -1,0 +1,18 @@
+{
+  "skill_id": "ai-governance.ai-use-case-qualification",
+  "name": { "en": "AI Use Case Qualification", "ar": "تأهيل حالة استخدام الذكاء الاصطناعي" },
+  "version": "0.1.0",
+  "execution_status": "not_implemented",
+  "execution_status_note": "Declared and permission-scoped in this MVP; no runtime handler exists yet. Calling this skill's run endpoint returns a structured not_implemented rejection, not a fabricated result.",
+  "purpose": "Qualifies a raw AI inventory signal against governance criteria (risk, sensitivity, authority) to produce a structured qualification summary and, when warranted, a decision candidate for promotion.",
+  "allowed_inputs": ["use_case_id"],
+  "prohibited_inputs": ["governance_status", "production_approval_status", "official_decision", "kfsa_verdict"],
+  "required_profile_fields": ["ai_governance_owner", "risk_appetite", "escalation_threshold_risk_level"],
+  "permitted_connectors": ["supabase-internal"],
+  "required_evidence": ["use_case_qualification_summary"],
+  "expected_outputs": ["decision_candidate", "review_recommendation"],
+  "authority_requirements": { "requires_authority_context": true, "minimum_role": "member" },
+  "escalation_conditions": ["risk_level >= escalation_threshold_risk_level"],
+  "audit_events": ["plugin.skill.run.started", "plugin.skill.run.rejected"],
+  "production_approval_status": false
+}

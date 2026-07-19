@@ -1,0 +1,18 @@
+{
+  "skill_id": "ai-governance.governance-risk-assessment",
+  "name": { "en": "Governance Risk Assessment", "ar": "تقييم مخاطر الحوكمة" },
+  "version": "0.1.0",
+  "execution_status": "not_implemented",
+  "execution_status_note": "Declared and permission-scoped in this MVP; no runtime handler exists yet.",
+  "purpose": "Analyzes a use case's collected evidence against the organization's ai-governance domain profile (risk appetite, prohibited uses, restricted data classifications) to surface a structured risk assessment and required-control gap list.",
+  "allowed_inputs": ["use_case_id"],
+  "prohibited_inputs": ["governance_status", "production_approval_status", "official_decision", "kfsa_verdict"],
+  "required_profile_fields": ["risk_appetite", "prohibited_ai_uses", "restricted_data_classifications", "escalation_threshold_risk_level"],
+  "permitted_connectors": ["supabase-internal"],
+  "required_evidence": ["governance_risk_assessment"],
+  "expected_outputs": ["risk_assessment", "decision_candidate"],
+  "authority_requirements": { "requires_authority_context": true, "minimum_role": "member" },
+  "escalation_conditions": ["identified use falls within prohibited_ai_uses", "risk_level >= escalation_threshold_risk_level"],
+  "audit_events": ["plugin.skill.run.started", "plugin.skill.run.rejected"],
+  "production_approval_status": false
+}

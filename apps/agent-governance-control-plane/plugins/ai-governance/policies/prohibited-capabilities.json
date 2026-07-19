@@ -1,0 +1,29 @@
+{
+  "policy_id": "prohibited-capabilities",
+  "applies_to": "ai-governance plugin, all skills, all versions",
+  "constitutional_reference": [
+    "claude-operating-system/00-master-standards/KFSA_VOCABULARY_MAP_v1_1.md",
+    "claude-operating-system/02-product-profiles/sdgm-kfsa/CLAUDE.sdgm-kfsa.md"
+  ],
+  "prohibited_fields": [
+    "official_decision",
+    "official_verdict",
+    "kfsa_verdict",
+    "kfsa_decision_id",
+    "kfsa_decision_code"
+  ],
+  "prohibited_values": {
+    "as_official_decision": ["KILL", "FIX", "SCALE", "ALERT"]
+  },
+  "locked_invariant": {
+    "field": "production_approval_status",
+    "value": false,
+    "note": "No plugin run, skill, or connector may set this to true."
+  },
+  "review_outcome_vs_kfsa_separation": {
+    "review_outcome_vocabulary": ["PASS", "FIX", "FAIL", "ESCALATE"],
+    "kfsa_decision_vocabulary": ["KILL", "FIX", "SCALE", "ALERT"],
+    "rule": "ReviewOutcome.FIX and KFSA.FIX are distinct values with distinct meanings. No automatic mapping between the two vocabularies is permitted anywhere in this plugin."
+  },
+  "enforcement": "Structurally enforced at the execution boundary (see app/api/plugins/[pluginId]/skills/[skillId]/runs/route.ts) and re-checked in scripts/validate-plugins.ts. Declaring this policy file does not by itself enforce anything — enforcement is in code."
+}

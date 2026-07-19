@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/skills", labelAr: "سجل المهارات", labelEn: "Skill Registry" },
   { href: "/skills/intake", labelAr: "فحص مهارة", labelEn: "Skill Intake Review" },
   { href: "/tools", labelAr: "سجل الأدوات", labelEn: "Tool Registry" },
+  { href: "/plugins", labelAr: "سجل الإضافات المؤسسية", labelEn: "Plugin Registry" },
 ];
 
 export function Sidebar() {
