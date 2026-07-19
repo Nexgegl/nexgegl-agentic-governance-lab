@@ -66,6 +66,12 @@ export async function runSkill(client: SupabaseClient<Database>, request: RunSki
 
   const existingRun = await getRunByCorrelationId(client, request.correlationId);
   if (existingRun) {
+    if (existingRun.plugin_id !== request.pluginId || existingRun.skill_id !== request.skillId) {
+      throw new PluginBoundaryError(
+        "correlation_id_reused_for_different_skill",
+        `correlation_id "${request.correlationId}" was already used for plugin "${existingRun.plugin_id}" / skill "${existingRun.skill_id}" and cannot be reused for plugin "${request.pluginId}" / skill "${request.skillId}".`,
+      );
+    }
     return {
       runId: existingRun.id,
       status: existingRun.status === "submitted" ? "rejected" : (existingRun.status as "completed" | "rejected"),

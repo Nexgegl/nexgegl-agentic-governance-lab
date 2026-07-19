@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 import { getCurrentProfile } from "@/repositories/profiles-repository";
-import { getRunById, listEvidenceForRun, createAuditEvent } from "@/repositories/plugin-runs-repository";
+import { getRunById, getRunContextSnapshot, listEvidenceForRun, createAuditEvent } from "@/repositories/plugin-runs-repository";
 import { createPromotionRequest, type PromotionRequestRecord } from "@/repositories/promotion-requests-repository";
 import { PluginBoundaryError } from "./errors";
 
@@ -42,6 +42,11 @@ export async function preparePromotionRequestFromRun(
 
   const evidence = await listEvidenceForRun(client, input.runId);
 
+  const snapshot = await getRunContextSnapshot(client, run.context_snapshot_id);
+  if (!snapshot) {
+    throw new PluginBoundaryError("run_context_snapshot_missing", `Run "${input.runId}" has no retrievable context snapshot "${run.context_snapshot_id}".`);
+  }
+
   const authorityConfirmed = profile.role === "admin";
 
   const request = await createPromotionRequest(client, {
@@ -56,8 +61,8 @@ export async function preparePromotionRequestFromRun(
     objective: input.objective,
     correlation_id: run.correlation_id,
     context_snapshot_id: run.context_snapshot_id,
-    plugin_version: "0.1.0",
-    skill_version: "0.1.0",
+    plugin_version: snapshot.plugin_version,
+    skill_version: snapshot.skill_version,
     review_outcome: null,
     evidence_status: evidence.length > 0 ? "partial" : "missing",
     authority_status: authorityConfirmed ? "confirmed" : "missing",
