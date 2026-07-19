@@ -15,6 +15,12 @@
  *   11 client-authored formal decision fields rejected
  *   12 client-authored KFSA decision code fields rejected
  *   15 no automatic ReviewOutcome-to-KFSA mapping (static source scan)
+ *
+ * Also covers multi-org item 6 from the PR #99 remediation request (the
+ * five not_implemented skills remain non-executable regardless of which
+ * organization's context is composed) -- the other 8 multi-organization
+ * items are DB-level and live in test-plugin-governance-db.ts, since they
+ * depend on real RLS/global-catalog behavior this fake client can't prove.
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -32,30 +38,37 @@ const PLUGIN_ID = "ai-governance";
 const SKILL_ID = "ai-governance.ai-inventory-intake";
 
 function baseFixtures(overrides: {
+  organizationId?: string;
+  userId?: string;
   installationState?: string;
   skillPluginId?: string;
+  skillId?: string;
+  executionStatus?: "implemented" | "not_implemented";
   skillPermissions?: FakeRow[];
   permittedConnectors?: string[];
   connectorPermissions?: FakeRow[];
 } = {}): FakeSupabaseClient {
-  const client = new FakeSupabaseClient();
-  client.setUser({ id: USER_ID });
+  const organizationId = overrides.organizationId ?? ORG_ID;
+  const userId = overrides.userId ?? USER_ID;
+  const skillId = overrides.skillId ?? SKILL_ID;
 
-  client.seed("profiles", [{ id: USER_ID, organization_id: ORG_ID, role: "member", full_name: "Test User", created_at: new Date().toISOString() }]);
+  const client = new FakeSupabaseClient();
+  client.setUser({ id: userId });
+
+  client.seed("profiles", [{ id: userId, organization_id: organizationId, role: "member", full_name: "Test User", created_at: new Date().toISOString() }]);
   client.seed("plugin_definitions", [
     { plugin_id: PLUGIN_ID, status: "experimental", production_approval_status: false, domain: "ai_governance", name: { en: "AI Governance" }, owner: "x", constitutional_reference: [], created_at: new Date().toISOString() },
   ]);
   client.seed("plugin_versions", [{ id: "v1", plugin_id: PLUGIN_ID, version: "0.1.0", manifest: {}, created_at: new Date().toISOString() }]);
   client.seed("plugin_installations", [
-    { id: "inst-1", organization_id: ORG_ID, plugin_id: PLUGIN_ID, plugin_version_id: "v1", state: overrides.installationState ?? "installed", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "inst-1", organization_id: organizationId, plugin_id: PLUGIN_ID, plugin_version_id: "v1", state: overrides.installationState ?? "installed", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   ]);
-  client.seed("skills", [
+  client.seed("skill_definitions", [
     {
-      id: SKILL_ID,
+      id: skillId,
       plugin_id: overrides.skillPluginId ?? PLUGIN_ID,
-      organization_id: ORG_ID,
       version: "0.1.0",
-      execution_status: "implemented",
+      execution_status: overrides.executionStatus ?? "implemented",
       required_profile_fields: [] as string[],
       permitted_connectors: overrides.permittedConnectors ?? ["supabase-internal"],
       escalation_conditions: [] as string[],
@@ -64,10 +77,10 @@ function baseFixtures(overrides: {
   client.seed("plugin_skill_permissions", overrides.skillPermissions ?? []);
   client.seed("domain_profiles", []);
   client.seed("organization_profiles", []);
-  client.seed("connector_definitions", [{ id: "conn-1", connector_id: "supabase-internal", status: "enabled", organization_id: ORG_ID }]);
+  client.seed("connector_definitions", [{ id: "conn-1", connector_id: "supabase-internal", status: "enabled", organization_id: organizationId }]);
   client.seed(
     "plugin_connector_permissions",
-    overrides.connectorPermissions ?? [{ plugin_id: PLUGIN_ID, connector_id: "conn-1", allowed: true, organization_id: ORG_ID }],
+    overrides.connectorPermissions ?? [{ plugin_id: PLUGIN_ID, connector_id: "conn-1", allowed: true, organization_id: organizationId }],
   );
   client.seed("use_cases", []);
   client.seed("plugin_runs", []);
@@ -145,6 +158,25 @@ async function run() {
       );
       assert(error instanceof PluginBoundaryError, "error should be a PluginBoundaryError");
       assertEqual((error as PluginBoundaryError).reason, "prohibited_field", "rejection reason");
+    });
+  }
+
+  // --- multi-org-9: not_implemented skills stay non-executable regardless
+  // of which organization's context is composed --------------------------
+  for (const org of [
+    { organizationId: ORG_ID, userId: USER_ID, label: "org A" },
+    { organizationId: "org-2", userId: "user-2", label: "org B" },
+  ]) {
+    await test(`multi-org-9. a not_implemented skill is rejected for ${org.label}, not just for one hardcoded organization`, async () => {
+      const client = baseFixtures({ organizationId: org.organizationId, userId: org.userId, executionStatus: "not_implemented" });
+      const result = await runSkill(asClient(client), {
+        pluginId: PLUGIN_ID,
+        skillId: SKILL_ID,
+        correlationId: `corr-not-implemented-${org.organizationId}`,
+        input: { name: "x", name_ar: "س", risk_level: "low", data_sensitivity: "low", tool_access: "read_only" },
+      });
+      assertEqual(result.status, "rejected", "run status");
+      assertEqual(result.rejectionReason, "skill_not_implemented", "rejection reason");
     });
   }
 

@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { Topbar } from "@/components/Topbar";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getPluginDefinition } from "@/repositories/plugins-repository";
+import { getSkillDefinition } from "@/repositories/skill-definitions-repository";
 import { RunSkillForm } from "./RunSkillForm";
 
 export const dynamic = "force-dynamic";
@@ -8,9 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function SkillDetailPage({ params }: { params: { pluginId: string; skillId: string } }) {
   const supabase = createServerSupabaseClient();
   const skillId = decodeURIComponent(params.skillId);
-  const { data: skill, error } = await supabase.from("skills").select("*").eq("id", skillId).maybeSingle();
-  if (error) throw error;
-  if (!skill || skill.plugin_id !== params.pluginId) notFound();
+  const [plugin, skill] = await Promise.all([getPluginDefinition(supabase, params.pluginId), getSkillDefinition(supabase, skillId)]);
+  if (!plugin || !skill || skill.plugin_id !== params.pluginId) notFound();
 
   return (
     <div className="space-y-6">
@@ -30,7 +31,13 @@ export default async function SkillDetailPage({ params }: { params: { pluginId: 
         >
           {skill.execution_status === "implemented" ? "قابلة للتنفيذ" : "مُعلَنة فقط — غير قابلة للتنفيذ بعد"}
         </span>
-        <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">موافقة إنتاج: غير معتمد</span>
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+            plugin.production_approval_status ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"
+          }`}
+        >
+          موافقة إنتاج: {plugin.production_approval_status ? "معتمد للإنتاج" : "غير معتمد"}
+        </span>
       </div>
 
       <section className="rounded-xl border border-navy-100 bg-white p-5 shadow-card">

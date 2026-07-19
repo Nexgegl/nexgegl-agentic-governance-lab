@@ -394,101 +394,87 @@ values (
 )
 on conflict (organization_id, plugin_id, connector_id) do nothing;
 
--- Skills (extends the existing skills table with the ai-governance rows) ------
+-- Global skill catalog (public.skill_definitions) --------------------------
+--
+-- Plugin-owned skill declarations. Global, not tenant data: every
+-- organization that installs the ai-governance plugin sees the same six
+-- rows here through their own plugin_installations row -- per-organization
+-- enable/disable state (if ever needed) belongs in plugin_skill_permissions,
+-- not here. This replaces the earlier approach of inserting these as
+-- organization-scoped rows into the legacy `skills` table, which made the
+-- plugin unusable for any organization other than this seed's demo org
+-- (see 20260720100004_create_global_skill_catalog.sql).
 
-insert into public.skills (
-  id, organization_id, name, name_ar, version, description, description_ar, source_type, source_reference,
-  category, trigger_conditions, required_tools, allowed_data_classes, prohibited_data_classes, required_authority,
-  action_type, reversibility, external_system_access, write_capability, audit_required, human_approval_required,
-  risk_level, review_status, approved_for_use, checksum, last_reviewed, reviewer, instructions, risk_profile,
-  plugin_id, execution_status, required_profile_fields, permitted_connectors, escalation_conditions
+insert into public.skill_definitions (
+  id, plugin_id, name, name_ar, version, description, description_ar, category,
+  execution_status, required_profile_fields, permitted_connectors, escalation_conditions,
+  risk_level, human_approval_required
 )
 values
   (
-    'ai-governance.ai-inventory-intake', '00000000-0000-0000-0000-000000000001',
+    'ai-governance.ai-inventory-intake', 'ai-governance',
     'AI Inventory Intake', 'استقبال سجل الذكاء الاصطناعي', '0.1.0',
     'Registers a new AI use case into the AI Inventory as a preliminary candidate awaiting governance qualification.',
     'يسجّل حالة استخدام جديدة في سجل الذكاء الاصطناعي كمرشح تمهيدي بانتظار التأهيل الحوكمي.',
-    'INTERNAL', 'internal://nexgegl/plugins/ai-governance/skills/ai-inventory-intake@0.1.0', 'intake',
-    array['طلب تسجيل أصل ذكاء اصطناعي جديد'], array[]::text[], array['low','medium','high'], array[]::text[], false,
-    'WRITE', 'IRREVERSIBLE', false, true, true, false,
-    'low', 'APPROVED_FOR_DEMO', true, 'sha256-plugin-ai-inv-intake-v0.1.0', '2026-07-19', 'AI Governance Office',
-    array['اجمع الحقول المسموحة فقط.', 'لا تحدد حالة الحوكمة أو نتيجة التقييم أو موافقة الإنتاج — القيم الافتراضية محايدة دائمًا.'],
-    '{"writeCapability":true,"externalSystemAccess":false,"dataSensitivityHandled":"medium","requiresHumanApproval":false}'::jsonb,
-    'ai-governance', 'implemented', array['ai_governance_owner','risk_appetite'], array['supabase-internal'],
-    array['risk_level = high and evidence incomplete','data_sensitivity = high without owner confirmation']
+    'intake', 'implemented', array['ai_governance_owner','risk_appetite'], array['supabase-internal'],
+    array['risk_level = high and evidence incomplete','data_sensitivity = high without owner confirmation'],
+    'low', false
   ),
   (
-    'ai-governance.ai-use-case-qualification', '00000000-0000-0000-0000-000000000001',
+    'ai-governance.ai-use-case-qualification', 'ai-governance',
     'AI Use Case Qualification', 'تأهيل حالة استخدام الذكاء الاصطناعي', '0.1.0',
     'Qualifies a raw AI inventory signal against governance criteria to produce a qualification summary.',
     'يؤهّل إشارة سجل ذكاء اصطناعي خام مقابل معايير الحوكمة لإنتاج ملخص تأهيل.',
-    'INTERNAL', 'internal://nexgegl/plugins/ai-governance/skills/ai-use-case-qualification@0.1.0', 'qualification',
-    array['اكتمال استقبال حالة استخدام'], array[]::text[], array['low','medium','high'], array[]::text[], false,
-    'ANALYSIS', 'REVERSIBLE', false, false, true, false,
-    'medium', 'UNDER_REVIEW', false, 'sha256-plugin-ai-uc-qual-v0.1.0', '2026-07-19', 'AI Governance Office',
-    array['لا يوجد منفّذ تنفيذ في هذا الإصدار.'],
-    '{"writeCapability":false,"externalSystemAccess":false,"dataSensitivityHandled":"medium","requiresHumanApproval":false}'::jsonb,
-    'ai-governance', 'not_implemented', array['ai_governance_owner','risk_appetite','escalation_threshold_risk_level'], array['supabase-internal'],
-    array['risk_level >= escalation_threshold_risk_level']
+    'qualification', 'not_implemented', array['ai_governance_owner','risk_appetite','escalation_threshold_risk_level'], array['supabase-internal'],
+    array['risk_level >= escalation_threshold_risk_level'],
+    'medium', false
   ),
   (
-    'ai-governance.ai-vendor-review', '00000000-0000-0000-0000-000000000001',
+    'ai-governance.ai-vendor-review', 'ai-governance',
     'AI Vendor Review', 'مراجعة مورّد الذكاء الاصطناعي', '0.1.0',
     'Reviews a vendor record against the organization''s approved-connector and approved-model lists.',
     'يراجع سجل مورّد مقابل قوائم الموصلات والنماذج المعتمدة للمؤسسة.',
-    'INTERNAL', 'internal://nexgegl/plugins/ai-governance/skills/ai-vendor-review@0.1.0', 'vendor_review',
-    array['إضافة أو تحديث مورّد ذكاء اصطناعي'], array[]::text[], array['low','medium','high'], array[]::text[], false,
-    'ANALYSIS', 'REVERSIBLE', false, false, true, false,
-    'medium', 'UNDER_REVIEW', false, 'sha256-plugin-ai-vendor-review-v0.1.0', '2026-07-19', 'AI Governance Office',
-    array['لا يوجد منفّذ تنفيذ في هذا الإصدار.'],
-    '{"writeCapability":false,"externalSystemAccess":false,"dataSensitivityHandled":"medium","requiresHumanApproval":false}'::jsonb,
-    'ai-governance', 'not_implemented', array['approved_connector_ids','approved_models','risk_appetite'], array['supabase-internal'],
-    array['vendor.risk_tier = high','vendor.contract_status = expired']
+    'vendor_review', 'not_implemented', array['approved_connector_ids','approved_models','risk_appetite'], array['supabase-internal'],
+    array['vendor.risk_tier = high','vendor.contract_status = expired'],
+    'medium', false
   ),
   (
-    'ai-governance.evidence-collection', '00000000-0000-0000-0000-000000000001',
+    'ai-governance.evidence-collection', 'ai-governance',
     'Evidence Collection', 'جمع الأدلة', '0.1.0',
     'Collects evidence items from approved read-only connectors within a use case''s evidence requirements.',
     'يجمع عناصر أدلة من الموصلات المعتمدة للقراءة فقط ضمن متطلبات الأدلة لحالة الاستخدام.',
-    'INTERNAL', 'internal://nexgegl/plugins/ai-governance/skills/evidence-collection@0.1.0', 'evidence',
-    array['وجود حالة استخدام تتطلب أدلة موثقة'], array[]::text[], array['low','medium','high'], array[]::text[], false,
-    'READ', 'REVERSIBLE', false, false, true, false,
-    'low', 'UNDER_REVIEW', false, 'sha256-plugin-evidence-collection-v0.1.0', '2026-07-19', 'AI Governance Office',
-    array['لا يوجد منفّذ تنفيذ في هذا الإصدار.'],
-    '{"writeCapability":false,"externalSystemAccess":false,"dataSensitivityHandled":"medium","requiresHumanApproval":false}'::jsonb,
-    'ai-governance', 'not_implemented', array['evidence_requirements'], array['supabase-internal','document-repository-placeholder'],
-    array['required evidence type unavailable from any permitted connector']
+    'evidence', 'not_implemented', array['evidence_requirements'], array['supabase-internal','document-repository-placeholder'],
+    array['required evidence type unavailable from any permitted connector'],
+    'low', false
   ),
   (
-    'ai-governance.governance-risk-assessment', '00000000-0000-0000-0000-000000000001',
+    'ai-governance.governance-risk-assessment', 'ai-governance',
     'Governance Risk Assessment', 'تقييم مخاطر الحوكمة', '0.1.0',
     'Analyzes a use case''s evidence against the domain profile to surface a risk assessment and control gaps.',
     'يحلل أدلة حالة الاستخدام مقابل الملف النطاقي لإبراز تقييم مخاطر وفجوات الضوابط.',
-    'INTERNAL', 'internal://nexgegl/plugins/ai-governance/skills/governance-risk-assessment@0.1.0', 'risk_assessment',
-    array['اكتمال جمع الأدلة'], array[]::text[], array['low','medium','high'], array[]::text[], true,
-    'ANALYSIS', 'REVERSIBLE', false, false, true, true,
-    'medium', 'UNDER_REVIEW', false, 'sha256-plugin-gov-risk-assess-v0.1.0', '2026-07-19', 'AI Governance Office',
-    array['لا يوجد منفّذ تنفيذ في هذا الإصدار.'],
-    '{"writeCapability":false,"externalSystemAccess":false,"dataSensitivityHandled":"high","requiresHumanApproval":true}'::jsonb,
-    'ai-governance', 'not_implemented', array['risk_appetite','prohibited_ai_uses','restricted_data_classifications','escalation_threshold_risk_level'], array['supabase-internal'],
-    array['identified use falls within prohibited_ai_uses','risk_level >= escalation_threshold_risk_level']
+    'risk_assessment', 'not_implemented', array['risk_appetite','prohibited_ai_uses','restricted_data_classifications','escalation_threshold_risk_level'], array['supabase-internal'],
+    array['identified use falls within prohibited_ai_uses','risk_level >= escalation_threshold_risk_level'],
+    'medium', true
   ),
   (
-    'ai-governance.promotion-request-preparation', '00000000-0000-0000-0000-000000000001',
+    'ai-governance.promotion-request-preparation', 'ai-governance',
     'Promotion Request Preparation', 'إعداد طلب الترقية', '0.1.0',
     'Assembles a Promotion Request draft from evidence packages and a risk assessment for submission toward KFSA Ingress.',
     'يجمّع مسودة طلب ترقية من حزم الأدلة وتقييم المخاطر للتقديم نحو مدخل KFSA.',
-    'INTERNAL', 'internal://nexgegl/plugins/ai-governance/skills/promotion-request-preparation@0.1.0', 'promotion',
-    array['اكتمال تقييم مخاطر الحوكمة'], array[]::text[], array['low','medium','high'], array[]::text[], true,
-    'GENERATION', 'REVERSIBLE', false, false, true, true,
-    'medium', 'UNDER_REVIEW', false, 'sha256-plugin-promo-req-prep-v0.1.0', '2026-07-19', 'AI Governance Office',
-    array['لا يوجد منفّذ تنفيذ في هذا الإصدار كمهارة مستقلة — انظر lib/plugins/promotion-request-composer.ts للمسار العام المطبَّق.'],
-    '{"writeCapability":false,"externalSystemAccess":false,"dataSensitivityHandled":"medium","requiresHumanApproval":true}'::jsonb,
-    'ai-governance', 'not_implemented', array['ai_governance_owner','human_review_required'], array['supabase-internal'],
-    array['evidence_status incomplete','authority_status not confirmed']
+    'promotion', 'not_implemented', array['ai_governance_owner','human_review_required'], array['supabase-internal'],
+    array['evidence_status incomplete','authority_status not confirmed'],
+    'medium', true
   )
 on conflict (id) do nothing;
+
+insert into public.skill_definition_versions (skill_id, version, definition)
+select id, version, jsonb_build_object(
+  'skill_id', id, 'plugin_id', plugin_id, 'version', version, 'execution_status', execution_status,
+  'required_profile_fields', required_profile_fields, 'permitted_connectors', permitted_connectors
+)
+from public.skill_definitions
+where plugin_id = 'ai-governance'
+on conflict (skill_id, version) do nothing;
 
 -- Test profile placeholder flow (manual, one-time, not scriptable here):
 --

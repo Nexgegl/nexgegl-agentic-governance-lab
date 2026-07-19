@@ -38,7 +38,13 @@ export default async function PluginDetailPage({ params }: { params: { pluginId:
         <span className="rounded-full bg-navy-50 px-2.5 py-1 text-xs font-medium text-navy-700">
           حالة التثبيت: {installation ? installation.state : "غير مثبتة"}
         </span>
-        <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">موافقة إنتاج: غير معتمد</span>
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+            plugin.production_approval_status ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"
+          }`}
+        >
+          موافقة إنتاج: {plugin.production_approval_status ? "معتمد للإنتاج" : "غير معتمد"}
+        </span>
         <div className="ms-auto">
           <InstallToggle pluginId={plugin.plugin_id} installed={installation?.state === "installed"} />
         </div>

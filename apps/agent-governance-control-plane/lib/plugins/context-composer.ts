@@ -9,6 +9,7 @@ import { createRunContextSnapshot } from "@/repositories/plugin-runs-repository"
 import { createAuditEvent } from "@/repositories/plugin-runs-repository";
 import { getUseCaseById } from "@/repositories/use-cases-repository";
 import { isSkillEnabledForInstallation } from "@/repositories/plugin-skill-permissions-repository";
+import { getSkillDefinition } from "@/repositories/skill-definitions-repository";
 import { computeProfileCompleteness, findMissingRequiredFields, type AiGovernanceDomainProfile } from "./profile-schema";
 import {
   rejectMissingOrganizationContext,
@@ -81,8 +82,7 @@ export async function composeContext(
 
   const latestVersion = await getLatestPluginVersion(client, input.pluginId);
 
-  const { data: skillRow, error: skillError } = await client.from("skills").select("*").eq("id", input.skillId).maybeSingle();
-  if (skillError) throw skillError;
+  const skillRow = await getSkillDefinition(client, input.skillId);
   if (!skillRow) rejectSkillNotFound(input.skillId);
   if (skillRow.plugin_id !== input.pluginId) rejectSkillNotOwnedByPlugin(input.skillId, input.pluginId);
 

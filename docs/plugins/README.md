@@ -12,11 +12,15 @@ governance domain.
 
 ## Source of truth
 
-Structured database profiles (`organization_profiles`, `domain_profiles`,
-`plugin_installations`, `skills`) are the source of truth. A CLAUDE.md-
-compatible file can be generated from them for human/LLM consumption — it
-is a projection, never something written back to the database, and never
-authoritative if it disagrees with the structured records.
+Structured database records are the source of truth: tenant-scoped
+(`organization_profiles`, `domain_profiles`, `plugin_installations`,
+`plugin_skill_permissions`) and global platform catalog
+(`plugin_definitions`, `plugin_versions`, `skill_definitions`,
+`skill_definition_versions` — capability metadata, not tenant data; see
+`docs/plugins/ai-governance.md`). A CLAUDE.md-compatible file can be
+generated from them for human/LLM consumption — it is a projection, never
+something written back to the database, and never authoritative if it
+disagrees with the structured records.
 
 ## What a plugin can never do
 

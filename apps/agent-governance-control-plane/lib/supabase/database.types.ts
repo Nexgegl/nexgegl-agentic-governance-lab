@@ -556,6 +556,51 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["plugin_connector_permissions"]["Row"]>;
         Relationships: [];
       };
+      /**
+       * Global, plugin-owned skill catalog -- not tenant data (no
+       * organization_id). Distinct from `skills` (legacy, organization-
+       * scoped, used by the pre-existing Governed Research Runtime) and
+       * from `skill_versions` below (also organization-scoped, unused by
+       * the plugin architecture). See
+       * supabase/migrations/20260720100004_create_global_skill_catalog.sql.
+       */
+      skill_definitions: {
+        Row: {
+          id: string;
+          plugin_id: string;
+          name: string;
+          name_ar: string;
+          version: string;
+          description: string | null;
+          description_ar: string | null;
+          category: string | null;
+          execution_status: SkillExecutionStatusRow;
+          required_profile_fields: string[];
+          permitted_connectors: string[];
+          escalation_conditions: string[];
+          risk_level: RiskLevelRow | null;
+          human_approval_required: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["skill_definitions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["skill_definitions"]["Row"], "id" | "plugin_id" | "name" | "name_ar" | "version">;
+        Update: Partial<Database["public"]["Tables"]["skill_definitions"]["Row"]>;
+        Relationships: [];
+      };
+      skill_definition_versions: {
+        Row: {
+          id: string;
+          skill_id: string;
+          version: string;
+          definition: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["skill_definition_versions"]["Row"]> &
+          Pick<Database["public"]["Tables"]["skill_definition_versions"]["Row"], "skill_id" | "version" | "definition">;
+        Update: Partial<Database["public"]["Tables"]["skill_definition_versions"]["Row"]>;
+        Relationships: [];
+      };
+      /** Legacy, organization-scoped, unused by the plugin architecture -- see skill_definition_versions above. */
       skill_versions: {
         Row: {
           id: string;

@@ -34,6 +34,34 @@ reference," it means these three artifacts, not a locked v1.0 architecture
 document. This is a citation-accuracy correction, not a governance
 objection — nothing in the task conflicts with anything actually locked.
 
+## Multi-tenant skill catalog correction (read second)
+
+An independent pre-merge review of this ADR's first implementation found
+that §6/§8 below originally described plugin skills as rows in the
+existing, organization-scoped `skills` table (tagged with `plugin_id`).
+Because `skills.id` is a plain global text primary key, not composite with
+`organization_id`, and nothing provisioned a duplicate row per installing
+organization, that design meant only the one organization already present
+in `skills` could ever run the plugin's skills — any other organization
+that installed `ai-governance` would install successfully but see zero
+skills and be unable to run any of them.
+
+This was corrected before merge, additively (see
+`supabase/migrations/20260720100004_create_global_skill_catalog.sql`
+onward): plugin-owned skill declarations now live in a new, **global**
+`skill_definitions` table (no `organization_id` column — this is capability
+metadata, identical for every installing organization, not tenant data),
+with an immutable `skill_definition_versions` history table alongside it.
+Whether a specific organization's installation has a given skill enabled
+remains tenant-scoped, in `plugin_skill_permissions`, exactly as before.
+§6, §7, and §8 below describe the corrected model as it now stands. The
+legacy `skills` table (organization-scoped, pre-existing, used by the
+unrelated Governed Research Runtime skills) was left untouched, and the
+pre-existing (also organization-scoped, unused-by-plugins) `skill_versions`
+table was likewise left untouched rather than repurposed — see
+`docs/plugins/ai-governance.md` for the full distinction between the three
+tables.
+
 ## 1. Purpose
 
 Establish the first controlled foundation for a NEXGEGL Vertical Plugin
@@ -131,7 +159,9 @@ above it.
 ## 6. Entity relationships
 
 ```
-Plugin ─┬─ has many ─ Skill (existing `skills` table, tagged with plugin_id)
+Plugin ─┬─ has many ─ Skill (global `skill_definitions` catalog, tagged
+        │              with plugin_id — see "Multi-tenant skill catalog
+        │              correction" above; not the legacy `skills` table)
         ├─ declares  ─ Agent  (deferred in this MVP — see §15)
         ├─ has many ─ Connector permission (plugin_connector_permissions)
         ├─ has many ─ Hook       (declared in manifest; no hook runtime yet)
@@ -154,11 +184,24 @@ whatever KFSA does with it is out of this repository's scope.
 
 ## 7. Tenant-isolation requirements
 
-- Every plugin-related table carries `organization_id`, not-null, FK to
-  `organizations(id)`.
-- RLS enabled on every new table; SELECT policies scoped through the
-  existing `current_user_organization_id()` helper (Phase 1's pattern),
-  reused rather than reinvented.
+- Two families of plugin-related tables:
+  - **Tenant-owned** (`plugin_installations`, `organization_profiles`,
+    `domain_profiles`, `plugin_skill_permissions`, `plugin_connector_permissions`,
+    `plugin_run_contexts`, `plugin_runs`, `plugin_evidence_outputs`,
+    `plugin_audit_events`, `promotion_requests`): every row carries
+    `organization_id`, not-null, FK to `organizations(id)`, RLS-enabled,
+    SELECT/INSERT/UPDATE policies scoped through the existing
+    `current_user_organization_id()` helper (Phase 1's pattern, reused
+    rather than reinvented).
+  - **Global platform catalog** (`plugin_definitions`, `plugin_versions`,
+    `skill_definitions`, `skill_definition_versions`): no `organization_id`
+    column at all, by design — these describe what a plugin and its skills
+    *are* (capability metadata), identical for every organization, not
+    tenant data. RLS is still enabled on all four; the only policy is
+    SELECT for any signed-in user, so no tenant-confidential data can ever
+    live in these tables (there is no column to put it in), and no tenant
+    can modify them (no write policy exists for any role but
+    `service_role`).
 - No insert/update/delete policy is granted to ordinary authenticated users
   on plugin/skill/connector definition tables — those are admin/service-role
   managed in this MVP, matching the existing posture of `organizations`,
@@ -176,10 +219,14 @@ whatever KFSA does with it is out of this repository's scope.
 - `plugin_versions`: one immutable row per (`plugin_id`, `version`).
   Version rows are never updated after insert — a schema constraint plus
   application discipline enforce this (append-only in practice; see §11).
-- `skill_versions`: same pattern for individual skill versions, reusing the
-  existing `skills` table for the current/served definition and adding a
-  version history table only where the existing table doesn't already
-  cover it.
+- `skill_definitions` / `skill_definition_versions`: the same
+  definition/immutable-version-history pattern as
+  `plugin_definitions`/`plugin_versions`, applied to individual skills.
+  Both are global catalog tables (see §7) — installing the plugin for a
+  new organization activates tenant-scoped permissions
+  (`plugin_skill_permissions`) against these existing rows, it never
+  clones or duplicates them. The pre-existing `skill_versions` table
+  (organization-scoped, predates this ADR) is unrelated and untouched.
 - Semantic versioning (`major.minor.patch`) is expected but not yet
   validated by a CI check in this MVP — deferred, see §15.
 
@@ -285,10 +332,10 @@ the context of a run already in progress.
   "AI Inventory Intake" is wired end-to-end (context composer → execution
   API → evidence → audit). The other five (Qualification, Vendor Review,
   Evidence Collection, Governance Risk Assessment, Promotion Request
-  Preparation) exist as real `skills` rows with real permission/evidence
-  declarations and `status = "not_implemented"` at the execution layer —
-  not placeholder files, but honestly not runnable yet. See
-  `docs/plugins/ai-governance.md`.
+  Preparation) exist as real `skill_definitions` rows with real
+  permission/evidence declarations and `execution_status =
+  "not_implemented"` at the execution layer — not placeholder files, but
+  honestly not runnable yet. See `docs/plugins/ai-governance.md`.
 - **Marketplace UI**: no discovery/search/rating UI; Phase 11's "Capability
   Registry" is a registry data model plus an inspection UI only.
 - **Real trust scans**: `hidden_instruction_scan_status`,

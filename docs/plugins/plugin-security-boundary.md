@@ -38,16 +38,24 @@ a generic success.
 
 ## Tenant isolation
 
-Every plugin-related table has `organization_id`, RLS enabled, and a
-`before insert` trigger that overwrites `organization_id` from the
-caller's own profile whenever the caller is a real signed-in user
+Every *tenant-owned* plugin table (`plugin_installations`,
+`plugin_skill_permissions`, `plugin_run_contexts`, `plugin_runs`,
+`plugin_evidence_outputs`, `plugin_audit_events`, `promotion_requests`,
+`organization_profiles`, `domain_profiles`) has `organization_id`, RLS
+enabled, and a `before insert` trigger that overwrites `organization_id`
+from the caller's own profile whenever the caller is a real signed-in user
 (`auth.uid() is not null`) — a client can never set another organization's
-id on an insert. This was verified live against a real local Postgres
-instance during development (see the final report), not only by static
-review: a second organization's user saw zero rows across `use_cases`,
-`plugin_installations`, and `skills`, and an explicit attempt to insert a
-row tagged with another organization's id was silently corrected to the
-caller's own organization by the trigger.
+id on an insert. The global platform catalog tables
+(`plugin_definitions`, `plugin_versions`, `skill_definitions`,
+`skill_definition_versions`) have no `organization_id` column at all by
+design — see `docs/plugins/ai-governance.md` for why plugin-owned skills
+are global, not per-tenant. This was verified live against a real local
+Postgres instance during development (see `npm run test:plugin-governance`
+Part A), not only by static review: a second organization's user saw zero
+rows across `use_cases`, `plugin_installations`, and `plugin_runs`, saw
+the same six global `skill_definitions` rows org A sees, and an explicit
+attempt to insert a row tagged with another organization's id was
+silently corrected to the caller's own organization by the trigger.
 
 ## A real bug this pass found and fixed
 

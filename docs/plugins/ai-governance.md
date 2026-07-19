@@ -18,6 +18,43 @@ This is a deliberate scope decision, not an oversight — see ADR §15. Each
 required-profile-fields, real evidence requirements, all inspectable via
 `/plugins/ai-governance/skills`.
 
+## Skill definitions are global, not tenant-owned
+
+All six skills above are rows in `public.skill_definitions` — a global
+platform catalog table with no `organization_id` column. This is
+capability metadata ("what does this skill do, is it executable, what
+does it require"), identical for every organization that installs
+ai-governance; it is not tenant data. Installing the plugin for a new
+organization does not clone or duplicate these six rows — it creates a
+`plugin_installations` row for that organization, and the same six global
+`skill_definitions` become visible and runnable through it. Whether a
+specific organization has a specific skill enabled is the only genuinely
+tenant-scoped piece, and it lives in `plugin_skill_permissions` (absence
+of a row means enabled by default; an explicit `enabled = false` row
+disables it for that organization's installation only).
+
+This table is distinct from two other, unrelated tables that share
+similar names:
+- `public.skills` — pre-existing, organization-scoped, used by the
+  unrelated "Governed Research Runtime" skills (institutional-research-
+  planning, evidence-collection, source-quality-review, governance-risk-
+  analysis, decision-packet-drafting). Untouched by the plugin
+  architecture; ai-governance no longer inserts rows here.
+- `public.skill_versions` — also pre-existing and organization-scoped,
+  predates this plugin architecture, and is unused by it. The plugin's
+  own immutable version history lives in `skill_definition_versions`
+  instead.
+
+An earlier version of this plugin's migrations stored the six skills as
+organization-scoped rows in the legacy `skills` table, which meant only
+the one organization already present in seed data could ever run them —
+any other organization that installed the plugin saw zero skills. This
+was found and fixed before merge (see the ADR's "Multi-tenant skill
+catalog correction" note and
+`supabase/migrations/20260720100004_create_global_skill_catalog.sql`
+onward) and is covered by the `multi-org-*` cases in `npm run
+test:plugin-governance`.
+
 ## Why Promotion Request Preparation isn't "the" implemented path
 
 The pilot's one real skill (AI Inventory Intake) produces a decision

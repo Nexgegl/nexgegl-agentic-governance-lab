@@ -80,7 +80,9 @@ export default async function PluginRegistryPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-navy-700">{installation ? installation.state : "غير مثبتة"}</td>
-                  <td className="px-4 py-3 font-medium text-red-700">غير معتمد</td>
+                  <td className={`px-4 py-3 font-medium ${p.production_approval_status ? "text-emerald-700" : "text-red-700"}`}>
+                    {p.production_approval_status ? "معتمد للإنتاج" : "غير معتمد"}
+                  </td>
                 </tr>
               );
             })}

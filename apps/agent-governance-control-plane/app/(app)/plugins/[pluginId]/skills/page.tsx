@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Topbar } from "@/components/Topbar";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getPluginDefinition } from "@/repositories/plugins-repository";
+import { listSkillDefinitionsForPlugin } from "@/repositories/skill-definitions-repository";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +12,7 @@ export default async function PluginSkillsPage({ params }: { params: { pluginId:
   const plugin = await getPluginDefinition(supabase, params.pluginId);
   if (!plugin) notFound();
 
-  const { data: skills, error } = await supabase.from("skills").select("*").eq("plugin_id", params.pluginId).order("name");
-  if (error) throw error;
+  const skills = await listSkillDefinitionsForPlugin(supabase, params.pluginId);
 
   return (
     <div className="space-y-6">
@@ -35,7 +35,7 @@ export default async function PluginSkillsPage({ params }: { params: { pluginId:
             </tr>
           </thead>
           <tbody className="divide-y divide-navy-100">
-            {(skills ?? []).map((s) => (
+            {skills.map((s) => (
               <tr key={s.id} className="hover:bg-navy-50/60">
                 <td className="px-4 py-3">
                   <Link href={`/plugins/${params.pluginId}/skills/${encodeURIComponent(s.id)}`} className="font-medium text-navy-900 hover:text-gold-600">
@@ -54,10 +54,14 @@ export default async function PluginSkillsPage({ params }: { params: { pluginId:
                     {s.execution_status === "implemented" ? "قابلة للتنفيذ" : "مُعلَنة فقط — غير قابلة للتنفيذ بعد"}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-medium text-red-700">غير معتمد</td>
+                <td
+                  className={`px-4 py-3 font-medium ${plugin.production_approval_status ? "text-emerald-700" : "text-red-700"}`}
+                >
+                  {plugin.production_approval_status ? "معتمد للإنتاج" : "غير معتمد"}
+                </td>
               </tr>
             ))}
-            {(skills ?? []).length === 0 ? (
+            {skills.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-sm text-navy-400">
                   لا توجد مهارات مسجلة بعد لهذه الإضافة.
