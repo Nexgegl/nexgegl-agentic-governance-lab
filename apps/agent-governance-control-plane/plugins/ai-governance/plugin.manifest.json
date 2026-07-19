@@ -1,0 +1,95 @@
+{
+  "plugin_id": "ai-governance",
+  "name": {
+    "en": "AI Governance",
+    "ar": "حوكمة الذكاء الاصطناعي"
+  },
+  "domain": "ai_governance",
+  "version": "0.1.0",
+  "description": {
+    "en": "Institutional AI governance capability: AI inventory intake, use-case qualification, vendor review, evidence collection, governance risk assessment, and promotion-request preparation. Prepares decision candidates and Promotion Requests only — never a formal decision.",
+    "ar": "قدرة حوكمة الذكاء الاصطناعي المؤسسية: استقبال سجل الذكاء الاصطناعي، تأهيل حالات الاستخدام، مراجعة الموردين، جمع الأدلة، تقييم مخاطر الحوكمة، وإعداد طلبات الترقية. تُعِدّ مرشحات قرار وطلبات ترقية فقط — ولا تصدر قرارًا رسميًا أبدًا."
+  },
+  "status": "experimental",
+  "production_approval_status": false,
+  "owner": "AI Governance Office",
+  "required_platform_version": ">=0.1.0",
+  "profile_schema": "plugins/ai-governance/profile.schema.json",
+  "skills": [
+    {
+      "skill_id": "ai-governance.ai-inventory-intake",
+      "file": "skills/ai-inventory-intake.json",
+      "execution_status": "implemented"
+    },
+    {
+      "skill_id": "ai-governance.ai-use-case-qualification",
+      "file": "skills/ai-use-case-qualification.json",
+      "execution_status": "not_implemented"
+    },
+    {
+      "skill_id": "ai-governance.ai-vendor-review",
+      "file": "skills/ai-vendor-review.json",
+      "execution_status": "not_implemented"
+    },
+    {
+      "skill_id": "ai-governance.evidence-collection",
+      "file": "skills/evidence-collection.json",
+      "execution_status": "not_implemented"
+    },
+    {
+      "skill_id": "ai-governance.governance-risk-assessment",
+      "file": "skills/governance-risk-assessment.json",
+      "execution_status": "not_implemented"
+    },
+    {
+      "skill_id": "ai-governance.promotion-request-preparation",
+      "file": "skills/promotion-request-preparation.json",
+      "execution_status": "not_implemented"
+    }
+  ],
+  "agents": [],
+  "connectors": [
+    { "connector_id": "supabase-internal", "file": "connectors/supabase-internal.json" },
+    { "connector_id": "document-repository-placeholder", "file": "connectors/document-repository-placeholder.json" },
+    { "connector_id": "http-api-placeholder", "file": "connectors/http-api-placeholder.json" }
+  ],
+  "policies": [
+    { "policy_id": "prohibited-capabilities", "file": "policies/prohibited-capabilities.json" }
+  ],
+  "permissions": {
+    "requires_organization_context": true,
+    "requires_domain_profile": "ai_governance",
+    "requires_authority_context": true,
+    "allows_write_connectors": false,
+    "allows_external_system_connectors": false
+  },
+  "evidence_outputs": [
+    "ai_inventory_intake_record",
+    "use_case_qualification_summary",
+    "vendor_review_summary",
+    "evidence_package",
+    "governance_risk_assessment",
+    "promotion_request_draft"
+  ],
+  "prohibited_capabilities": [
+    "create_formal_decision",
+    "generate_kfsa_decision_identifier",
+    "select_kill_fix_scale_alert_as_official_decision",
+    "issue_execution_authorization",
+    "bypass_kfsa",
+    "redefine_kfsa_semantics",
+    "set_production_approval_status_true"
+  ],
+  "constitutional_reference": [
+    "claude-operating-system/00-master-standards/KFSA_VOCABULARY_MAP_v1_1.md",
+    "claude-operating-system/02-product-profiles/sdgm-kfsa/CLAUDE.sdgm-kfsa.md",
+    "apps/agent-governance-control-plane/runtime/types.ts",
+    "apps/agent-governance-control-plane/lib/governance-model.ts"
+  ],
+  "constitutional_reference_note": "No document titled 'KFSA Governance Architecture v1.0 — APPROVED / LOCKED' exists in this repository. The references above are the real, closest artifacts and are cited instead of a fabricated title. See docs/architecture/ADR-vertical-plugin-foundation-v1.md.",
+  "integrity": {
+    "checksum_algorithm": "sha256",
+    "checksum": "not_computed_in_this_mvp",
+    "checksum_note": "No integrity-hash pipeline exists yet in this repository; this field is a declared placeholder, not a claimed real hash. See docs/plugins/plugin-security-boundary.md."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "skill_id": "ai-governance.ai-vendor-review",
+  "name": { "en": "AI Vendor Review", "ar": "مراجعة مورّد الذكاء الاصطناعي" },
+  "version": "0.1.0",
+  "execution_status": "not_implemented",
+  "execution_status_note": "Declared and permission-scoped in this MVP; no runtime handler exists yet.",
+  "purpose": "Reviews a vendor record (data access level, contract status, risk tier) against the organization's approved-connector and approved-model lists to produce a vendor review summary.",
+  "allowed_inputs": ["vendor_id"],
+  "prohibited_inputs": ["governance_status", "production_approval_status", "official_decision", "kfsa_verdict"],
+  "required_profile_fields": ["approved_connector_ids", "approved_models", "risk_appetite"],
+  "permitted_connectors": ["supabase-internal"],
+  "required_evidence": ["vendor_review_summary"],
+  "expected_outputs": ["decision_candidate", "risk_assessment"],
+  "authority_requirements": { "requires_authority_context": true, "minimum_role": "member" },
+  "escalation_conditions": ["vendor.risk_tier = high", "vendor.contract_status = expired"],
+  "audit_events": ["plugin.skill.run.started", "plugin.skill.run.rejected"],
+  "production_approval_status": false
+}

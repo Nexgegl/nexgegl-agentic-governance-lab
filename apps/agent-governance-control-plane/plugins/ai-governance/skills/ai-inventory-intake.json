@@ -1,0 +1,23 @@
+{
+  "skill_id": "ai-governance.ai-inventory-intake",
+  "name": { "en": "AI Inventory Intake", "ar": "استقبال سجل الذكاء الاصطناعي" },
+  "version": "0.1.0",
+  "execution_status": "implemented",
+  "purpose": "Registers a new AI use case into the organization's AI Inventory (use_cases table) from structured intake fields, as a preliminary candidate row awaiting governance qualification — never as an approved or production-ready entry.",
+  "allowed_inputs": ["name", "name_ar", "department", "owner_name", "ai_type", "business_purpose", "business_purpose_ar", "risk_level", "data_sensitivity", "tool_access"],
+  "prohibited_inputs": ["governance_status", "production_approval_status", "official_decision", "kfsa_verdict", "eval_score", "eval_outcome"],
+  "required_profile_fields": ["ai_governance_owner", "risk_appetite"],
+  "permitted_connectors": ["supabase-internal"],
+  "required_evidence": ["ai_inventory_intake_record"],
+  "expected_outputs": ["decision_candidate", "evidence_package"],
+  "authority_requirements": {
+    "requires_authority_context": true,
+    "minimum_role": "member"
+  },
+  "escalation_conditions": [
+    "risk_level = high and evidence incomplete",
+    "data_sensitivity = high without owner confirmation"
+  ],
+  "audit_events": ["plugin.skill.run.started", "plugin.skill.run.completed", "plugin.evidence.created"],
+  "production_approval_status": false
+}

@@ -1,0 +1,11 @@
+{
+  "connector_id": "http-api-placeholder",
+  "connector_type": "approved_http_api",
+  "status": "not_configured",
+  "status_note": "Placeholder only — no real external HTTP API is integrated in this MVP.",
+  "allowed_operations": ["read"],
+  "denied_operations": ["write", "delete"],
+  "data_classifications": ["low", "medium"],
+  "credential_scope": "not_applicable_placeholder",
+  "audit_requirements": ["log_every_query_operation"]
+}

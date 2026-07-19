@@ -28,3 +28,44 @@ export async function listUseCasesByVendorId(client: SupabaseClient<Database>, v
   return data ?? [];
 }
 
+/**
+ * Creates a new use case in a neutral, ungoverned starting state:
+ * governance_status = GOVERNANCE_REVIEW_REQUIRED, evidence/authority/audit
+ * trail statuses = missing, lifecycle_stage = proposed. organization_id is
+ * derived server-side by the use_cases_set_organization_id trigger, and
+ * production_approval_status defaults to false — neither is settable here.
+ * Used by the ai-governance plugin's AI Inventory Intake skill; callers
+ * must not pass governance/eval/production fields.
+ */
+export async function createUseCase(
+  client: SupabaseClient<Database>,
+  input: {
+    name: string;
+    name_ar: string;
+    department?: string | null;
+    owner_name?: string | null;
+    ai_type?: string | null;
+    business_purpose?: string | null;
+    business_purpose_ar?: string | null;
+    risk_level: UseCaseRecord["risk_level"];
+    data_sensitivity: UseCaseRecord["data_sensitivity"];
+    tool_access: UseCaseRecord["tool_access"];
+  },
+): Promise<UseCaseRecord> {
+  const { data, error } = await client
+    .from("use_cases")
+    .insert({
+      ...input,
+      governance_status: "GOVERNANCE_REVIEW_REQUIRED",
+      eval_outcome: "FIX",
+      evidence_status: "missing",
+      authority_status: "missing",
+      audit_trail_status: "missing",
+      lifecycle_stage: "proposed",
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
