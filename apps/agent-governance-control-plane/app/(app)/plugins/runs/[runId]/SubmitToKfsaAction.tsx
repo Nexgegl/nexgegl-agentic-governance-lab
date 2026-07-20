@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { resolveKfsaErrorMessage, KFSA_RETRYABLE_SUFFIX, KFSA_NON_RETRYABLE_SUFFIX } from "@/lib/kfsa/ui-error-messages";
 
 /**
  * Never displays a raw server error, a KFSA decision, or a decision code
- * -- only these sanitized, pre-written Arabic messages. See the required
- * notice rendered separately in page.tsx: "نتيجة التقييم الحوكمي ليست
- * قرارًا رسميًا...".
+ * -- every error string shown here comes from resolveKfsaErrorMessage's
+ * closed, predefined Arabic vocabulary (lib/kfsa/ui-error-messages.ts),
+ * selected only by a server-supplied error/error_code *identifier*, never
+ * by reading the response body's `message` text. See the required notice
+ * rendered separately in page.tsx: "نتيجة التقييم الحوكمي ليست قرارًا
+ * رسميًا...".
  */
-const GENERIC_ERROR_MESSAGE = "تعذّر إرسال طلب الترقية إلى KFSA. حاول مرة أخرى.";
 const NETWORK_ERROR_MESSAGE = "تعذّر الاتصال بالخادم. تحقق من الاتصال وحاول مرة أخرى.";
 
 export function SubmitToKfsaAction({ promotionRequestId, retry }: { promotionRequestId: string; retry: boolean }) {
@@ -41,17 +44,22 @@ export function SubmitToKfsaAction({ promotionRequestId, retry }: { promotionReq
         // A non-JSON response body (e.g. an unexpected server error page)
         // must never surface as a silent unhandled rejection -- show a
         // sanitized message instead of the raw response.
-        setError(GENERIC_ERROR_MESSAGE);
+        setError(resolveKfsaErrorMessage(undefined));
         return;
       }
 
       if (!response.ok) {
-        setError(typeof body.message === "string" ? body.message : GENERIC_ERROR_MESSAGE);
+        // The response body's raw text message (English, internal
+        // validation reasoning) is never read here -- only the
+        // server-supplied `error` *code* selects a predefined Arabic
+        // message.
+        setError(resolveKfsaErrorMessage(body.error));
         return;
       }
 
       if (body.status === "FAILED") {
-        setError(`فشل الإرسال (${body.error_code}).${body.retryable ? " يمكن إعادة المحاولة." : " لا يمكن إعادة المحاولة تلقائيًا."}`);
+        const suffix = body.retryable ? KFSA_RETRYABLE_SUFFIX : KFSA_NON_RETRYABLE_SUFFIX;
+        setError(`${resolveKfsaErrorMessage(body.error_code)}${suffix}`);
       } else if (body.status === "IN_PROGRESS") {
         setError("طلب إرسال سابق لا يزال قيد التنفيذ. يرجى الانتظار قبل المحاولة مرة أخرى.");
       }
