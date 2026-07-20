@@ -3,7 +3,15 @@ import { Topbar } from "@/components/Topbar";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getRunById, listEvidenceForRun } from "@/repositories/plugin-runs-repository";
 import { getPromotionRequestByRunId } from "@/repositories/promotion-requests-repository";
+import {
+  listSubmissionAttemptsForPromotionRequest,
+  getEvaluationResponseByPromotionRequestId,
+  getExternalAuditLinkByPromotionRequestId,
+} from "@/repositories/kfsa-integration-repository";
+import { isRetryableKfsaErrorCode } from "@/lib/kfsa/promotion-submission";
+import type { KfsaClientErrorCode } from "@/lib/kfsa/client";
 import { PromotionRequestAction } from "./PromotionRequestAction";
+import { SubmitToKfsaAction } from "./SubmitToKfsaAction";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +19,12 @@ const STATUS_LABELS: Record<string, string> = {
   submitted: "قيد التنفيذ",
   completed: "مكتمل",
   rejected: "مرفوض",
+};
+
+const ATTEMPT_STATUS_LABELS: Record<string, string> = {
+  in_progress: "قيد الإرسال",
+  succeeded: "تم التقييم",
+  failed: "فشل الإرسال",
 };
 
 export default async function RunResultPage({ params }: { params: { runId: string } }) {
@@ -22,6 +36,17 @@ export default async function RunResultPage({ params }: { params: { runId: strin
     listEvidenceForRun(supabase, run.id),
     getPromotionRequestByRunId(supabase, run.id),
   ]);
+
+  const [submissionAttempts, evaluationResponse, auditLink] = promotionRequest
+    ? await Promise.all([
+        listSubmissionAttemptsForPromotionRequest(supabase, promotionRequest.id),
+        getEvaluationResponseByPromotionRequestId(supabase, promotionRequest.id),
+        getExternalAuditLinkByPromotionRequestId(supabase, promotionRequest.id),
+      ])
+    : [[], null, null];
+
+  const latestAttempt = submissionAttempts[0] ?? null;
+  const canSubmitToKfsa = !evaluationResponse && (!latestAttempt || (latestAttempt.status === "failed" && latestAttempt.error_code !== null && isRetryableKfsaErrorCode(latestAttempt.error_code as KfsaClientErrorCode)));
 
   return (
     <div className="space-y-6">
@@ -99,6 +124,72 @@ export default async function RunResultPage({ params }: { params: { runId: strin
           <p className="text-sm text-navy-400">لا يمكن إعداد طلب ترقية من تشغيل غير مكتمل.</p>
         )}
       </section>
+
+      {promotionRequest ? (
+        <section className="rounded-xl border border-navy-100 bg-white p-5 shadow-card">
+          <h2 className="mb-3 text-sm font-semibold text-navy-900">التقييم الحوكمي عبر KFSA</h2>
+
+          <div className="mb-4 rounded-lg border border-gold-400 bg-gold-50 p-3">
+            <p className="text-sm font-medium text-navy-900">
+              نتيجة التقييم الحوكمي ليست قرارًا رسميًا. القرارات الرسمية تُنشأ فقط داخل KFSA Core بعد استكمال مسار الصلاحية والاعتماد.
+            </p>
+          </div>
+
+          <dl className="mb-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+            <div>
+              <dt className="text-xs text-navy-400">حالة الإرسال</dt>
+              <dd className="font-medium text-navy-900">{latestAttempt ? ATTEMPT_STATUS_LABELS[latestAttempt.status] : "لم يُرسل بعد"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-navy-400">عدد المحاولات</dt>
+              <dd className="font-medium text-navy-900">{submissionAttempts.length}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-navy-400">آخر إرسال</dt>
+              <dd className="font-medium text-navy-900">{latestAttempt ? new Date(latestAttempt.submitted_at).toLocaleString("ar") : "—"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-navy-400">معرّف طلب الترقية الخارجي</dt>
+              <dd className="font-medium text-navy-900">{evaluationResponse?.external_promotion_request_id ?? "—"}</dd>
+            </div>
+          </dl>
+
+          {evaluationResponse ? (
+            <dl className="mb-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+              <div>
+                <dt className="text-xs text-navy-400">نتيجة المراجعة (ReviewOutcome)</dt>
+                <dd className="font-medium text-navy-900">{evaluationResponse.review_outcome}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-navy-400">حالة الأدلة</dt>
+                <dd className="font-medium text-navy-900">{evaluationResponse.evidence_status}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-navy-400">حالة الصلاحية</dt>
+                <dd className="font-medium text-navy-900">{evaluationResponse.authority_status}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-navy-400">تصعيد مطلوب</dt>
+                <dd className="font-medium text-navy-900">{evaluationResponse.escalation_required ? "نعم" : "لا"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs text-navy-400">إجراءات محظورة</dt>
+                <dd className="font-medium text-navy-900">{evaluationResponse.blocked_actions.length > 0 ? evaluationResponse.blocked_actions.join("، ") : "لا يوجد"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-xs text-navy-400">معرّف حدث التدقيق الخارجي</dt>
+                <dd className="font-medium text-navy-900">{auditLink?.external_audit_event_id ?? "—"}</dd>
+              </div>
+            </dl>
+          ) : latestAttempt?.status === "failed" ? (
+            <p className="mb-4 text-xs text-red-600">
+              فشلت آخر محاولة إرسال ({latestAttempt.error_code}). {latestAttempt.safe_error_message}
+            </p>
+          ) : null}
+
+          {canSubmitToKfsa ? <SubmitToKfsaAction promotionRequestId={promotionRequest.id} retry={submissionAttempts.length > 0} /> : null}
+        </section>
+      ) : null}
 
       <section className="rounded-lg border-2 border-navy-900 bg-navy-950 p-5 text-white">
         <p className="text-sm font-medium text-gold-400">القرارات الرسمية تصدر فقط عبر نواة KFSA بعد تقييم حاكم واعتماد صلاحية.</p>
