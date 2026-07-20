@@ -23,13 +23,18 @@
  *     live KFSA Runtime Core and has been removed; see lib/kfsa/client.ts)
  *   - 429 or any 5xx -> KfsaClientError("unavailable"), retryable
  *   - connection refused -> KfsaClientError("unavailable")
+ *   - a schema-valid response whose total byte size exceeds
+ *     KFSA_RUNTIME_MAX_RESPONSE_BYTES is rejected specifically because of
+ *     the byte limit (proven by first confirming the same payload passes
+ *     validateKfsaResponse() on its own, so the failure below cannot be
+ *     attributed to any per-field length check)
  *   - the request carries the configured API key as a bearer token and the
  *     correlation_id as an idempotency header, and never logs the API key
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { submitPromotionRequestToKfsa, KfsaClientError } from "@/lib/kfsa/client";
-import type { KfsaPromotionRequestV1 } from "@/lib/kfsa/contracts/promotion-request-v1";
+import { validateKfsaResponse, type KfsaPromotionRequestV1 } from "@/lib/kfsa/contracts/promotion-request-v1";
 import { startMockKfsaServer, validKfsaResponseBody, type MockKfsaServer } from "./kfsa-tests/mock-server";
 import { test, assert, assertEqual, assertThrows, printSummaryAndExit } from "./governance-tests/harness";
 
@@ -53,6 +58,28 @@ function baseRequest(overrides: Partial<KfsaPromotionRequestV1> = {}): KfsaPromo
     skill_version: "0.1.0",
     ...overrides,
   };
+}
+
+/**
+ * A response that is fully schema-valid -- every field individually
+ * respects its own bound (MAX_ERROR_FIELD_LENGTH=500, MAX_ERRORS_LENGTH=50,
+ * MAX_BLOCKED_ACTION_ITEM_LENGTH=200, MAX_BLOCKED_ACTIONS_LENGTH=100,
+ * MAX_IDENTIFIER_LENGTH=200, see lib/kfsa/contracts/promotion-request-v1.ts)
+ * -- but whose total JSON size is large (tens of kilobytes) purely because
+ * it uses the maximum allowed number of maximum-length array items. Used
+ * to prove the response-body byte limit is rejecting on total size, not on
+ * an unrelated per-field length check -- the prior version of this test
+ * used a single 500-character audit_event_id, which is *also* rejected by
+ * MAX_IDENTIFIER_LENGTH regardless of the byte limit, so it stayed green
+ * even when the byte-limit implementation was completely removed.
+ */
+function buildValidButOversizedResponseBody(): Record<string, unknown> {
+  const errors = Array.from({ length: 50 }, (_, i) => ({
+    code: `error-code-${i}-`.padEnd(500, "c"),
+    message: `error-message-${i}-`.padEnd(500, "m"),
+  }));
+  const blockedActions = Array.from({ length: 100 }, (_, i) => `blocked-action-${i}-`.padEnd(200, "b"));
+  return validKfsaResponseBody({ errors, blocked_actions: blockedActions });
 }
 
 async function run() {
@@ -226,6 +253,16 @@ async function run() {
       assertEqual((error as KfsaClientError).code, "rejected", "error code");
     });
 
+    await test("client: HTTP 404 raises a rejected error", async () => {
+      server.setHandler((_req, _body, res) => {
+        res.writeHead(404, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "not found" }));
+      });
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-404" })), "should raise rejected");
+      assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
+      assertEqual((error as KfsaClientError).code, "rejected", "error code");
+    });
+
     await test("client: HTTP 500 raises an unavailable (retryable) error", async () => {
       server.setHandler((_req, _body, res) => {
         res.writeHead(500, { "content-type": "application/json" });
@@ -246,15 +283,29 @@ async function run() {
       assertEqual((error as KfsaClientError).code, "unavailable", "error code");
     });
 
-    await test("client: a response exceeding KFSA_RUNTIME_MAX_RESPONSE_BYTES is rejected as invalid_response", async () => {
+    await test("client: a schema-valid-but-oversized response is rejected specifically because of KFSA_RUNTIME_MAX_RESPONSE_BYTES, not any field-level bound", async () => {
+      const oversizedButValidBody = buildValidButOversizedResponseBody();
+
+      // Sanity check #1: this payload is genuinely schema-valid on its
+      // own -- if this line throws, the test below would prove nothing
+      // about the byte limit specifically.
+      const validated = validateKfsaResponse(oversizedButValidBody);
+      assertEqual(validated.errors.length, 50, "sanity: the oversized-but-valid payload must itself pass schema validation");
+
+      // Sanity check #2: the payload's real JSON size actually exceeds
+      // the limit configured below.
+      const bodyByteLength = Buffer.byteLength(JSON.stringify(oversizedButValidBody), "utf8");
+      const configuredMax = 40_000;
+      assert(bodyByteLength > configuredMax, `sanity: the test payload (${bodyByteLength} bytes) must exceed the configured limit (${configuredMax} bytes) used below`);
+
       const originalMax = process.env.KFSA_RUNTIME_MAX_RESPONSE_BYTES;
-      process.env.KFSA_RUNTIME_MAX_RESPONSE_BYTES = "50";
+      process.env.KFSA_RUNTIME_MAX_RESPONSE_BYTES = String(configuredMax); // well above any single field's own bound (max 500 chars), well below this payload's real size
       try {
         server.setHandler((_req, _body, res) => {
           res.writeHead(200, { "content-type": "application/json" });
-          res.end(JSON.stringify(validKfsaResponseBody({ audit_event_id: "x".repeat(500) })));
+          res.end(JSON.stringify(oversizedButValidBody));
         });
-        const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-oversized" })), "should reject an oversized response");
+        const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-oversized-but-valid" })), "should reject a schema-valid but oversized response");
         assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
         assertEqual((error as KfsaClientError).code, "invalid_response", "error code");
       } finally {

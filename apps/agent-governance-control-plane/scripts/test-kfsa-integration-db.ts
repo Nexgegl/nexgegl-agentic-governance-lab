@@ -26,8 +26,9 @@
  *   - the server-only administrative path (a service-role connection,
  *     standing in for repositories/kfsa-integration-admin-repository.ts)
  *     can create legitimate records
- *   - cross-tenant Promotion Request / Submission Attempt references are
- *     rejected by the composite tenant-aware foreign keys
+ *   - all 5 tenant-consistent composite foreign keys reject a cross-tenant
+ *     reference: attempt->PR, evaluation->PR, evaluation->attempt,
+ *     audit-link->PR, audit-link->attempt
  *   - cross-tenant read denial for all three tables
  *   - organization_id is forced server-side on a privileged insert with no
  *     JWT (matches the admin repository's own explicit-organization_id
@@ -347,6 +348,83 @@ async function run() {
         code = (error as PgError).code;
       }
       assertEqual(code, "23503", "a kfsa_evaluation_responses row whose organization_id does not match its submission_attempt_id's real owner must violate the composite foreign key");
+    });
+  });
+
+  await test("tenant-fk-3. a cross-tenant Promotion Request reference on kfsa_evaluation_responses is rejected by the composite foreign key", async () => {
+    await withClient(connectionString, async (client) => {
+      await asUser(client, f.userAId);
+      const orgAPrId = await insertPromotionRequestFixture(client, f.userAId, "corr-tenant-fk-3-org-a");
+
+      await asUser(client, f.userBId);
+      const orgBPrId = await insertPromotionRequestFixture(client, f.userBId, "corr-tenant-fk-3-org-b");
+      await asServiceRole(client);
+      const orgBAttemptId = await adminInsertSubmissionAttempt(client, { organizationId: f.orgBId, promotionRequestId: orgBPrId, correlationId: "corr-tenant-fk-3-org-b" });
+
+      let code: string | undefined;
+      try {
+        // Org B's organization_id and Org B's own (valid) submission_attempt_id, but Org A's real promotion_request_id.
+        await client.query(
+          `insert into public.kfsa_evaluation_responses
+             (organization_id, promotion_request_id, submission_attempt_id, correlation_id, external_promotion_request_id, review_outcome, evidence_status, authority_status, response_hash)
+           values ($1, $2, $3, 'corr-tenant-fk-3-cross', 'ext-1', 'PASS', 'complete', 'confirmed', 'hash-1')`,
+          [f.orgBId, orgAPrId, orgBAttemptId],
+        );
+      } catch (error) {
+        code = (error as PgError).code;
+      }
+      assertEqual(code, "23503", "a kfsa_evaluation_responses row whose organization_id does not match its promotion_request_id's real owner must violate the composite foreign key");
+    });
+  });
+
+  await test("tenant-fk-4. a cross-tenant Promotion Request reference on kfsa_external_audit_links is rejected by the composite foreign key", async () => {
+    await withClient(connectionString, async (client) => {
+      await asUser(client, f.userAId);
+      const orgAPrId = await insertPromotionRequestFixture(client, f.userAId, "corr-tenant-fk-4-org-a");
+
+      await asUser(client, f.userBId);
+      const orgBPrId = await insertPromotionRequestFixture(client, f.userBId, "corr-tenant-fk-4-org-b");
+      await asServiceRole(client);
+      const orgBAttemptId = await adminInsertSubmissionAttempt(client, { organizationId: f.orgBId, promotionRequestId: orgBPrId, correlationId: "corr-tenant-fk-4-org-b" });
+
+      let code: string | undefined;
+      try {
+        // Org B's organization_id and Org B's own (valid) submission_attempt_id, but Org A's real promotion_request_id.
+        await client.query(`insert into public.kfsa_external_audit_links (organization_id, promotion_request_id, external_audit_event_id, submission_attempt_id) values ($1, $2, 'forged-cross-tenant-audit-id', $3)`, [
+          f.orgBId,
+          orgAPrId,
+          orgBAttemptId,
+        ]);
+      } catch (error) {
+        code = (error as PgError).code;
+      }
+      assertEqual(code, "23503", "a kfsa_external_audit_links row whose organization_id does not match its promotion_request_id's real owner must violate the composite foreign key");
+    });
+  });
+
+  await test("tenant-fk-5. a cross-tenant Submission Attempt reference on kfsa_external_audit_links is rejected by the composite foreign key", async () => {
+    await withClient(connectionString, async (client) => {
+      await asUser(client, f.userAId);
+      const orgAPrId = await insertPromotionRequestFixture(client, f.userAId, "corr-tenant-fk-5-org-a");
+      await asServiceRole(client);
+      const orgAAttemptId = await adminInsertSubmissionAttempt(client, { organizationId: f.orgAId, promotionRequestId: orgAPrId, correlationId: "corr-tenant-fk-5-org-a" });
+
+      await asUser(client, f.userBId);
+      const orgBPrId = await insertPromotionRequestFixture(client, f.userBId, "corr-tenant-fk-5-org-b");
+
+      await asServiceRole(client);
+      let code: string | undefined;
+      try {
+        // Org B's organization_id and Org B's own (valid) promotion_request_id, but Org A's real submission_attempt_id.
+        await client.query(`insert into public.kfsa_external_audit_links (organization_id, promotion_request_id, external_audit_event_id, submission_attempt_id) values ($1, $2, 'forged-cross-tenant-audit-id-2', $3)`, [
+          f.orgBId,
+          orgBPrId,
+          orgAAttemptId,
+        ]);
+      } catch (error) {
+        code = (error as PgError).code;
+      }
+      assertEqual(code, "23503", "a kfsa_external_audit_links row whose organization_id does not match its submission_attempt_id's real owner must violate the composite foreign key");
     });
   });
 

@@ -203,7 +203,7 @@ export async function submitPromotionRequestForEvaluation(
       // Recover the current state rather than throwing: never an
       // unhandled error, never a duplicate attempt/response, and never an
       // unrelated Promotion Request's result.
-      return await recoverFromLostAttemptRace(tenantClient, promotionRequest.id, promotionRequest.organization_id, correlationId, attemptNumber);
+      return await recoverFromLostAttemptRace(tenantClient, promotionRequest.id, correlationId, attemptNumber);
     }
     throw error;
   }
@@ -338,7 +338,6 @@ export async function submitPromotionRequestForEvaluation(
 async function recoverFromLostAttemptRace(
   tenantClient: SupabaseClient<Database>,
   promotionRequestId: string,
-  organizationId: string,
   correlationId: string,
   attemptNumber: number,
 ): Promise<KfsaSubmissionOutcome> {
