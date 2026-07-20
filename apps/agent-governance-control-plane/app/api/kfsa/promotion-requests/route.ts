@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { submitPromotionRequestForEvaluation } from "@/lib/kfsa/promotion-submission";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { submitPromotionRequestForEvaluation, isRetryableKfsaErrorCode } from "@/lib/kfsa/promotion-submission";
 import { KfsaSubmissionBoundaryError } from "@/lib/kfsa/errors";
+import { KfsaClientError } from "@/lib/kfsa/client";
 import { PluginBoundaryError } from "@/lib/plugins/errors";
 
 /**
@@ -15,6 +17,15 @@ import { PluginBoundaryError } from "@/lib/plugins/errors";
  * source_skill_id, source_run_id, evidence_ids, authority_context,
  * review_outcome, or any KFSA decision field; any of those present in the
  * request body are rejected outright before this route does anything else.
+ *
+ * Two Supabase clients are used deliberately: `tenantClient` is the
+ * caller's own session-scoped client (RLS-enforced, used for every
+ * ownership read), and `adminClient` is a service-role client used only
+ * for the KFSA-integration writes themselves, after ownership has already
+ * been verified -- see lib/supabase/admin.ts and
+ * repositories/kfsa-integration-admin-repository.ts for why this split
+ * exists (an authenticated tenant could otherwise INSERT a fabricated
+ * "KFSA evaluation result" directly).
  */
 const PROHIBITED_BODY_FIELDS = [
   "organization_id",
@@ -33,11 +44,11 @@ const PROHIBITED_BODY_FIELDS = [
 ];
 
 export async function POST(request: Request) {
-  const supabase = createServerSupabaseClient();
+  const tenantClient = createServerSupabaseClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await tenantClient.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "unauthenticated", message: "Sign in required." }, { status: 401 });
   }
@@ -60,7 +71,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const outcome = await submitPromotionRequestForEvaluation(supabase, { promotionRequestId: body.promotion_request_id });
+    const adminClient = createSupabaseAdminClient();
+    const outcome = await submitPromotionRequestForEvaluation(tenantClient, adminClient, { promotionRequestId: body.promotion_request_id });
+
+    if (outcome.kind === "in_progress") {
+      return NextResponse.json({ status: "IN_PROGRESS", retryable: true });
+    }
 
     if (outcome.kind === "failed") {
       return NextResponse.json({
@@ -83,6 +99,14 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof KfsaSubmissionBoundaryError || error instanceof PluginBoundaryError) {
       return NextResponse.json({ error: error.reason, message: error.message }, { status: 403 });
+    }
+    // A KfsaClientError escaping all the way here means the external call
+    // itself failed in a way submitPromotionRequestForEvaluation could not
+    // convert into a { kind: "failed" } outcome (e.g. it was thrown before
+    // an attempt row existed to attach the failure to). Sanitize it into
+    // the same structured shape rather than letting it become a raw 500.
+    if (error instanceof KfsaClientError) {
+      return NextResponse.json({ status: "FAILED", error_code: error.code, retryable: isRetryableKfsaErrorCode(error.code) });
     }
     throw error;
   }
