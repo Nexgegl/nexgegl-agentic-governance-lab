@@ -266,6 +266,20 @@ concepts are independent columns enforced independently.
   a KFSA code, `production_approval_status = true`) are rejected at the
   boundary if a caller (even an internal one) attempts to set them from a
   plugin run — see the negative tests in `scripts/validate-plugins.ts`.
+- **Amendment (KFSA Promotion Request Integration v1 remediation):** the
+  KFSA integration boundary is the first place in this codebase where a
+  service-role Supabase client is used at all
+  (`lib/supabase/admin.ts`) -- added after an independent pre-PR review
+  found that giving the ordinary tenant-scoped client INSERT access on
+  the KFSA integration tables let an authenticated tenant fabricate their
+  own evaluation result directly. It is scoped as narrowly as the rest of
+  this section's posture demands: server-only, never used for browser
+  authentication, never used to skip an ownership check, and only ever
+  reachable from `POST /api/kfsa/promotion-requests` -- see
+  `docs/plugins/plugin-security-boundary.md`'s "one narrow, deliberate
+  exception" note and
+  `docs/plugins/kfsa-promotion-request-integration-v1.md`'s "Server-only
+  write architecture" section.
 
 ## 11. Audit requirements
 

@@ -22,6 +22,21 @@ execution authorization. The browser never calls KFSA directly — it only
 ever calls this repository's own `POST /api/kfsa/promotion-requests`
 route, which resolves every canonical field server-side.
 
+Authenticated tenants have **read-only** access to all three KFSA
+integration tables (`kfsa_submission_attempts`, `kfsa_evaluation_responses`,
+`kfsa_external_audit_links`) — they can SELECT their own organization's
+rows, but cannot INSERT, UPDATE, or DELETE any of them directly. Every
+write goes through a separate, server-only service-role repository
+(`repositories/kfsa-integration-admin-repository.ts`, via
+`lib/supabase/admin.ts`), called only after the Governance Gateway route
+has already verified ownership with the tenant's own session-scoped
+client. This split — and the composite tenant-aware foreign keys added
+alongside it — closed a real gap an independent pre-PR review found and
+reproduced: without it, an authenticated tenant could fabricate their own
+"KFSA evaluation result" by inserting directly into these tables. See
+`docs/plugins/kfsa-promotion-request-integration-v1.md`'s "Server-only
+write architecture" section for the full design.
+
 ## What "constitutional reference" actually points to
 
 No document titled "KFSA Governance Architecture v1.0 — APPROVED / LOCKED"

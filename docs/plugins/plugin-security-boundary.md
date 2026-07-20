@@ -9,6 +9,19 @@ same anon-key-plus-session-cookie client used everywhere else in this app.
 No plugin code ever imports or reads `SUPABASE_SERVICE_ROLE_KEY`; this is
 checked by `npm run validate:plugins`.
 
+**One narrow, deliberate exception:** `lib/supabase/admin.ts` and
+`repositories/kfsa-integration-admin-repository.ts` (added for the KFSA
+Promotion Request Integration, see
+`docs/plugins/kfsa-promotion-request-integration-v1.md`) do read
+`SUPABASE_SERVICE_ROLE_KEY`, server-only (`import "server-only"`), used
+only by `POST /api/kfsa/promotion-requests` for the three KFSA
+integration tables' writes — never for browser authentication, and never
+to skip an ownership check the route itself is responsible for doing
+first with the ordinary tenant-scoped client. No other route or plugin
+code reads this key; `npm run test:kfsa-integration` statically confirms
+it is never imported from `app/` or `components/` code and never appears
+in the built client bundle.
+
 ## Auth is enforced twice
 
 1. The existing root `middleware.ts` redirects any unauthenticated request
