@@ -8,8 +8,6 @@ import {
   getEvaluationResponseByPromotionRequestId,
   getExternalAuditLinkByPromotionRequestId,
 } from "@/repositories/kfsa-integration-repository";
-import { isRetryableKfsaErrorCode } from "@/lib/kfsa/promotion-submission";
-import type { KfsaClientErrorCode } from "@/lib/kfsa/client";
 import { PromotionRequestAction } from "./PromotionRequestAction";
 import { SubmitToKfsaAction } from "./SubmitToKfsaAction";
 
@@ -46,7 +44,13 @@ export default async function RunResultPage({ params }: { params: { runId: strin
     : [[], null, null];
 
   const latestAttempt = submissionAttempts[0] ?? null;
-  const canSubmitToKfsa = !evaluationResponse && (!latestAttempt || (latestAttempt.status === "failed" && latestAttempt.error_code !== null && isRetryableKfsaErrorCode(latestAttempt.error_code as KfsaClientErrorCode)));
+  // Always offer the action unless a result is already persisted --
+  // whether a fresh in_progress attempt is still genuinely running, or an
+  // old one has gone stale, is a server-side decision
+  // (lib/kfsa/promotion-submission.ts's stale-attempt recovery), never a
+  // client-side one. A click against a fresh in_progress attempt is a
+  // safe no-op that reports IN_PROGRESS rather than submitting twice.
+  const canSubmitToKfsa = !evaluationResponse;
 
   return (
     <div className="space-y-6">
@@ -185,6 +189,8 @@ export default async function RunResultPage({ params }: { params: { runId: strin
             <p className="mb-4 text-xs text-red-600">
               فشلت آخر محاولة إرسال ({latestAttempt.error_code}). {latestAttempt.safe_error_message}
             </p>
+          ) : latestAttempt?.status === "in_progress" ? (
+            <p className="mb-4 text-xs text-navy-400">قد يكون هناك إرسال سابق قيد التنفيذ. يمكنك إعادة المحاولة إذا استمرت الحالة دون تغيير.</p>
           ) : null}
 
           {canSubmitToKfsa ? <SubmitToKfsaAction promotionRequestId={promotionRequest.id} retry={submissionAttempts.length > 0} /> : null}
