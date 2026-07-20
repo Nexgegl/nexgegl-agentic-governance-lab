@@ -12,6 +12,8 @@ export type GateStatusRow =
   | "READY_FOR_AUTHORITY_REVIEW";
 
 export type ReviewOutcomeRow = "PASS" | "FIX" | "FAIL" | "ESCALATE";
+export type KfsaSubmissionAttemptStatusRow = "in_progress" | "succeeded" | "failed";
+export type KfsaClientErrorCodeRow = "unavailable" | "timeout" | "unauthorized" | "invalid_response" | "rejected" | "tenant_mismatch" | "correlation_conflict";
 export type RiskLevelRow = "low" | "medium" | "high";
 export type DataSensitivityRow = "low" | "medium" | "high";
 export type ToolAccessLevelRow = "none" | "read_only" | "write" | "external_system";
@@ -741,6 +743,72 @@ export interface Database {
             | "skill_version"
           >;
         Update: Partial<Database["public"]["Tables"]["promotion_requests"]["Row"]>;
+        Relationships: [];
+      };
+      kfsa_submission_attempts: {
+        Row: {
+          id: string;
+          organization_id: string;
+          promotion_request_id: string;
+          correlation_id: string;
+          attempt_number: number;
+          status: KfsaSubmissionAttemptStatusRow;
+          submitted_at: string;
+          completed_at: string | null;
+          request_contract_version: string;
+          error_code: KfsaClientErrorCodeRow | null;
+          safe_error_message: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["kfsa_submission_attempts"]["Row"]> &
+          Pick<Database["public"]["Tables"]["kfsa_submission_attempts"]["Row"], "promotion_request_id" | "correlation_id">;
+        Update: Partial<Database["public"]["Tables"]["kfsa_submission_attempts"]["Row"]>;
+        Relationships: [];
+      };
+      kfsa_evaluation_responses: {
+        Row: {
+          id: string;
+          organization_id: string;
+          promotion_request_id: string;
+          submission_attempt_id: string;
+          correlation_id: string;
+          external_promotion_request_id: string;
+          review_outcome: ReviewOutcomeRow;
+          evidence_status: string;
+          authority_status: string;
+          escalation_required: boolean;
+          blocked_actions: string[];
+          formal_decision_created: false;
+          response_contract_version: string;
+          received_at: string;
+          response_hash: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["kfsa_evaluation_responses"]["Row"]> &
+          Pick<
+            Database["public"]["Tables"]["kfsa_evaluation_responses"]["Row"],
+            | "promotion_request_id"
+            | "submission_attempt_id"
+            | "correlation_id"
+            | "external_promotion_request_id"
+            | "review_outcome"
+            | "evidence_status"
+            | "authority_status"
+            | "response_hash"
+          >;
+        Update: Partial<Database["public"]["Tables"]["kfsa_evaluation_responses"]["Row"]>;
+        Relationships: [];
+      };
+      kfsa_external_audit_links: {
+        Row: {
+          id: string;
+          organization_id: string;
+          promotion_request_id: string;
+          external_audit_event_id: string;
+          submission_attempt_id: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["kfsa_external_audit_links"]["Row"]> &
+          Pick<Database["public"]["Tables"]["kfsa_external_audit_links"]["Row"], "promotion_request_id" | "external_audit_event_id" | "submission_attempt_id">;
+        Update: Partial<Database["public"]["Tables"]["kfsa_external_audit_links"]["Row"]>;
         Relationships: [];
       };
     };
