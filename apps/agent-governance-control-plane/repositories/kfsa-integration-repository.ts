@@ -5,43 +5,16 @@ export type KfsaSubmissionAttemptRecord = Database["public"]["Tables"]["kfsa_sub
 export type KfsaEvaluationResponseRecord = Database["public"]["Tables"]["kfsa_evaluation_responses"]["Row"];
 export type KfsaExternalAuditLinkRecord = Database["public"]["Tables"]["kfsa_external_audit_links"]["Row"];
 
-/** Mutable only while status = 'in_progress' (DB trigger locks it once succeeded/failed). */
-export async function createSubmissionAttempt(
-  client: SupabaseClient<Database>,
-  input: Database["public"]["Tables"]["kfsa_submission_attempts"]["Insert"],
-): Promise<KfsaSubmissionAttemptRecord> {
-  const { data, error } = await client.from("kfsa_submission_attempts").insert(input).select().single();
-  if (error) throw error;
-  return data;
-}
-
-export async function markSubmissionAttemptSucceeded(client: SupabaseClient<Database>, id: string): Promise<KfsaSubmissionAttemptRecord> {
-  const { data, error } = await client
-    .from("kfsa_submission_attempts")
-    .update({ status: "succeeded", completed_at: new Date().toISOString() })
-    .eq("id", id)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function markSubmissionAttemptFailed(
-  client: SupabaseClient<Database>,
-  id: string,
-  errorCode: Database["public"]["Tables"]["kfsa_submission_attempts"]["Row"]["error_code"],
-  safeErrorMessage: string,
-): Promise<KfsaSubmissionAttemptRecord> {
-  const { data, error } = await client
-    .from("kfsa_submission_attempts")
-    .update({ status: "failed", completed_at: new Date().toISOString(), error_code: errorCode, safe_error_message: safeErrorMessage })
-    .eq("id", id)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
+/**
+ * Read-only. This repository is for the normal, session-scoped tenant
+ * client (createServerSupabaseClient()) -- RLS grants authenticated users
+ * SELECT-only access to their own organization's rows on all three KFSA
+ * integration tables (see 20260721100003_lock_down_kfsa_tenant_writes.sql).
+ * Every write (create/mark-terminal) goes through the separate,
+ * server-only repositories/kfsa-integration-admin-repository.ts instead --
+ * see docs/plugins/kfsa-promotion-request-integration-v1.md
+ * "Server-only write architecture" for why.
+ */
 export async function listSubmissionAttemptsForPromotionRequest(
   client: SupabaseClient<Database>,
   promotionRequestId: string,
@@ -53,16 +26,6 @@ export async function listSubmissionAttemptsForPromotionRequest(
     .order("submitted_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
-}
-
-/** unique(organization_id, correlation_id) makes a duplicate/concurrent insert idempotent — the caller should catch a unique-violation (Postgres code 23505) and re-fetch via getEvaluationResponseByCorrelationId. */
-export async function createEvaluationResponse(
-  client: SupabaseClient<Database>,
-  input: Database["public"]["Tables"]["kfsa_evaluation_responses"]["Insert"],
-): Promise<KfsaEvaluationResponseRecord> {
-  const { data, error } = await client.from("kfsa_evaluation_responses").insert(input).select().single();
-  if (error) throw error;
-  return data;
 }
 
 export async function getEvaluationResponseByCorrelationId(client: SupabaseClient<Database>, correlationId: string): Promise<KfsaEvaluationResponseRecord | null> {
@@ -85,16 +48,6 @@ export async function getExternalAuditLinkByPromotionRequestId(
   promotionRequestId: string,
 ): Promise<KfsaExternalAuditLinkRecord | null> {
   const { data, error } = await client.from("kfsa_external_audit_links").select("*").eq("promotion_request_id", promotionRequestId).maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-/** Append-only: no update/delete policy exists for any non-service-role caller. */
-export async function createExternalAuditLink(
-  client: SupabaseClient<Database>,
-  input: Database["public"]["Tables"]["kfsa_external_audit_links"]["Insert"],
-): Promise<KfsaExternalAuditLinkRecord> {
-  const { data, error } = await client.from("kfsa_external_audit_links").insert(input).select().single();
   if (error) throw error;
   return data;
 }
