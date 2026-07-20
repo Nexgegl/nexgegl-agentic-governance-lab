@@ -42,3 +42,4 @@ See `docs/plugins/ai-governance.md`.
 - `docs/plugins/plugin-security-boundary.md` — auth, secrets, connector permissions
 - `docs/plugins/context-composition.md` — how a run context snapshot is built
 - `docs/plugins/kfsa-integration-boundary.md` — where this repo stops relative to KFSA
+- `docs/plugins/kfsa-promotion-request-integration-v1.md` — the server-to-server KFSA submission flow, idempotency, failure model, tenant isolation, env vars

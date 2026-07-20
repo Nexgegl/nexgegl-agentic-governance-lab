@@ -266,6 +266,20 @@ concepts are independent columns enforced independently.
   a KFSA code, `production_approval_status = true`) are rejected at the
   boundary if a caller (even an internal one) attempts to set them from a
   plugin run — see the negative tests in `scripts/validate-plugins.ts`.
+- **Amendment (KFSA Promotion Request Integration v1 remediation):** the
+  KFSA integration boundary is the first place in this codebase where a
+  service-role Supabase client is used at all
+  (`lib/supabase/admin.ts`) -- added after an independent pre-PR review
+  found that giving the ordinary tenant-scoped client INSERT access on
+  the KFSA integration tables let an authenticated tenant fabricate their
+  own evaluation result directly. It is scoped as narrowly as the rest of
+  this section's posture demands: server-only, never used for browser
+  authentication, never used to skip an ownership check, and only ever
+  reachable from `POST /api/kfsa/promotion-requests` -- see
+  `docs/plugins/plugin-security-boundary.md`'s "one narrow, deliberate
+  exception" note and
+  `docs/plugins/kfsa-promotion-request-integration-v1.md`'s "Server-only
+  write architecture" section.
 
 ## 11. Audit requirements
 
@@ -350,3 +364,15 @@ the context of a run already in progress.
   Promotion Requests; it does not implement or call an actual external
   KFSA Ingress endpoint, since none exists in this repository or was
   provided as a target.
+  **Partially superseded (KFSA Promotion Request Integration v1)**: this
+  repo now submits an already-persisted Promotion Request to an external
+  KFSA Runtime Core over a server-only HTTP client and persists the
+  `ReviewOutcome` that comes back — see
+  `docs/plugins/kfsa-promotion-request-integration-v1.md`. This phase
+  stops at governed evaluation: it still does not implement formal
+  decision issuance, generate a KFSA decision identifier, or implement
+  execution authorization, so the deferral above still holds for those.
+  No decision recorded elsewhere in this ADR (sections 1-14) changed; this
+  is treated as an extension of the already-approved Promotion Request
+  boundary, not a new architectural decision, so no separate ADR was
+  written for it.

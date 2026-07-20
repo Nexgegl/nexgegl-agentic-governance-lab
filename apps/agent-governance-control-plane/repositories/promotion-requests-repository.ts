@@ -29,3 +29,10 @@ export async function getPromotionRequestByRunId(client: SupabaseClient<Database
   if (error) throw error;
   return data;
 }
+
+/** RLS (promotion_requests_select_own_org) scopes this to the caller's own organization -- a cross-tenant id simply resolves to null. */
+export async function getPromotionRequestById(client: SupabaseClient<Database>, id: string): Promise<PromotionRequestRecord | null> {
+  const { data, error } = await client.from("promotion_requests").select("*").eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data;
+}

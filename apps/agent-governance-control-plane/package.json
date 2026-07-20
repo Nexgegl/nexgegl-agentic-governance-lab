@@ -11,7 +11,8 @@
     "validate:runtime": "tsx scripts/validate-runtime.ts",
     "validate:supabase": "tsx scripts/validate-supabase.ts",
     "validate:plugins": "tsx scripts/validate-plugins.ts",
-    "test:plugin-governance": "tsx scripts/test-plugin-governance.ts"
+    "test:plugin-governance": "tsx scripts/test-plugin-governance.ts",
+    "test:kfsa-integration": "tsx scripts/test-kfsa-integration.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",
