@@ -350,3 +350,15 @@ the context of a run already in progress.
   Promotion Requests; it does not implement or call an actual external
   KFSA Ingress endpoint, since none exists in this repository or was
   provided as a target.
+  **Partially superseded (KFSA Promotion Request Integration v1)**: this
+  repo now submits an already-persisted Promotion Request to an external
+  KFSA Runtime Core over a server-only HTTP client and persists the
+  `ReviewOutcome` that comes back — see
+  `docs/plugins/kfsa-promotion-request-integration-v1.md`. This phase
+  stops at governed evaluation: it still does not implement formal
+  decision issuance, generate a KFSA decision identifier, or implement
+  execution authorization, so the deferral above still holds for those.
+  No decision recorded elsewhere in this ADR (sections 1-14) changed; this
+  is treated as an extension of the already-approved Promotion Request
+  boundary, not a new architectural decision, so no separate ADR was
+  written for it.

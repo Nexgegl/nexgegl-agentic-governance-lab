@@ -4,12 +4,23 @@
 
 ```
 Plugin Skill → Evidence Package → Decision Candidate → Promotion Request
+  → SaaS Governance Gateway → KFSA Ingress → Governed Evaluation
+  → ReviewOutcome → Persist response → Display evaluation result
 ```
 
 This repository implements everything up to and including creating a
-`promotion_requests` row. It does not call an external KFSA Ingress
-endpoint — none exists in this repository or was provided as an
-integration target.
+`promotion_requests` row, **and** (as of KFSA Promotion Request
+Integration v1 — see
+`docs/plugins/kfsa-promotion-request-integration-v1.md` for the full
+design) submitting an already-persisted Promotion Request to an external
+KFSA Runtime Core for governed evaluation, over a server-only
+authenticated HTTP client (`lib/kfsa/client.ts`), and persisting whatever
+`ReviewOutcome` comes back. It stops there: this phase does not implement
+formal decision issuance, does not generate a KFSA decision identifier,
+does not alter KFSA constitutional semantics, and does not implement
+execution authorization. The browser never calls KFSA directly — it only
+ever calls this repository's own `POST /api/kfsa/promotion-requests`
+route, which resolves every canonical field server-side.
 
 ## What "constitutional reference" actually points to
 
@@ -46,11 +57,22 @@ See the ADR's opening note for why.
 absence on every run, and the execution boundary additionally rejects any
 run whose input or output happens to contain one of these field names, as
 defense-in-depth against a future skill handler accidentally introducing
-one.
+one. The KFSA client boundary extends this list for the external wire
+format specifically: `decision_code`, `formal_decision`,
+`execution_authorization`, and `production_approval` are also rejected
+outright if an external KFSA response ever contains them — see
+`PROHIBITED_RESPONSE_FIELDS` in `lib/kfsa/contracts/promotion-request-v1.ts`
+and `npm run test:kfsa-integration`.
 
 ## production_approval_status
 
 Exists on `use_cases`, `plugin_definitions`, and (as `approved_for_production`)
 on `models`. All three are `boolean not null default false`. No code path
 in this plugin — not the intake skill, not the promotion request composer,
-not any API route — ever sets one of these to `true`.
+not the KFSA client, not the Governance Gateway route — ever sets one of
+these to `true`. This integration introduces no new "approved for
+production" field of its own; its own analogous invariant is
+`kfsa_evaluation_responses.formal_decision_created`, which has a `check
+(formal_decision_created = false)` constraint and is additionally rejected
+at the response-validation layer before it would ever reach the database
+if an external response ever set it to anything else.
