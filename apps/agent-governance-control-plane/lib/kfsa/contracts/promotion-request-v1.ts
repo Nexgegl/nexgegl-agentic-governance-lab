@@ -24,12 +24,40 @@ export const SUBMISSION_STATUSES = ["RECEIVED", "EVALUATING", "COMPLETED", "BLOC
 export type KfsaSubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
 /**
+ * The only top-level fields this contract's response side will ever
+ * accept. validateKfsaResponse rejects a response containing *any* other
+ * top-level key outright, rather than silently dropping it during
+ * reconstruction -- an unrecognized, decision-shaped field name (e.g. a
+ * bare `decision_id` distinct from `kfsa_decision_id`) should make noise,
+ * not disappear quietly. See PROHIBITED_RESPONSE_FIELDS below for the
+ * names specific, friendlier error messages are given for.
+ */
+export const ALLOWED_RESPONSE_FIELDS = [
+  "promotion_request_id",
+  "status",
+  "review_outcome",
+  "evidence_status",
+  "authority_status",
+  "escalation_required",
+  "blocked_actions",
+  "audit_event_id",
+  "formal_decision_created",
+  "errors",
+  "created_at",
+] as const;
+
+/**
  * Field names this contract must never accept or expose, on either the
  * request or the response side. A response containing any of these is
  * rejected outright by validateKfsaResponse -- never persisted, never
  * displayed. These are exactly the fields prohibited elsewhere in the
  * plugin execution boundary (lib/plugins/execution-boundary.ts), applied
- * here to the external-system wire format too.
+ * here to the external-system wire format too, plus a few additional
+ * decision-shaped names that are not otherwise part of
+ * ALLOWED_RESPONSE_FIELDS (and would therefore already be rejected by the
+ * allowlist check -- these are listed explicitly only so the resulting
+ * error message names the specific concern rather than a generic
+ * "unrecognized field").
  */
 export const PROHIBITED_RESPONSE_FIELDS = [
   "decision_code",
@@ -41,10 +69,23 @@ export const PROHIBITED_RESPONSE_FIELDS = [
   "kfsa_decision_code",
   "execution_authorization",
   "production_approval",
+  "decision_id",
+  "decision",
+  "verdict",
+  "formal_verdict",
+  "decision_number",
+  "authorization",
+  "approval",
 ] as const;
 
 /** KFSA's own decision/action vocabulary -- never a valid ReviewOutcome value. */
 export const KFSA_ONLY_VOCABULARY = ["KILL", "SCALE", "ALERT"] as const;
+
+const MAX_IDENTIFIER_LENGTH = 200;
+const MAX_ERRORS_LENGTH = 50;
+const MAX_ERROR_FIELD_LENGTH = 500;
+const MAX_BLOCKED_ACTIONS_LENGTH = 100;
+const MAX_BLOCKED_ACTION_ITEM_LENGTH = 200;
 
 export interface KfsaPromotionRequestV1 {
   organization_id: string;
@@ -84,7 +125,7 @@ export interface KfsaPromotionResponseV1 {
 
 export class KfsaContractViolationError extends Error {
   constructor(
-    public readonly code: "prohibited_field" | "invalid_review_outcome" | "malformed_response" | "formal_decision_created",
+    public readonly code: "prohibited_field" | "unknown_field" | "invalid_review_outcome" | "malformed_response" | "formal_decision_created",
     message: string,
   ) {
     super(message);
@@ -96,17 +137,28 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+/** Non-empty, typeof string, and no longer than maxLength. */
+function isBoundedNonEmptyString(value: unknown, maxLength: number): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= maxLength;
+}
+
 /**
  * Validates a raw, untrusted response body against the v1 response
  * contract. Throws KfsaContractViolationError (never returns a partially
  * validated object) if:
  *   - the response is not a plain object with the required shape
+ *   - the response contains any top-level field outside
+ *     ALLOWED_RESPONSE_FIELDS (see PROHIBITED_RESPONSE_FIELDS for the
+ *     subset given a specific, named error)
+ *   - any required string identifier is missing, empty, not a string, or
+ *     exceeds its bounded length
+ *   - created_at is not a parseable timestamp
  *   - review_outcome is anything other than PASS/FIX/FAIL/ESCALATE
  *     (including KILL/SCALE/ALERT -- KFSA's own vocabulary is never a
  *     valid ReviewOutcome value here)
  *   - formal_decision_created is not literally `false`
- *   - any prohibited field name is present anywhere in the top-level
- *     response object
+ *   - errors/blocked_actions are not arrays of bounded-length strings/
+ *     {code, message} objects, or exceed their maximum array length
  *
  * This is the single point every byte the external KFSA system returns
  * must pass through before any part of it is persisted or displayed.
@@ -122,11 +174,22 @@ export function validateKfsaResponse(raw: unknown): KfsaPromotionResponseV1 {
     }
   }
 
-  const requiredStringFields = ["promotion_request_id", "status", "review_outcome", "evidence_status", "authority_status", "audit_event_id", "created_at"] as const;
-  for (const field of requiredStringFields) {
-    if (typeof raw[field] !== "string") {
-      throw new KfsaContractViolationError("malformed_response", `KFSA response field "${field}" must be a string.`);
+  const allowed = new Set<string>(ALLOWED_RESPONSE_FIELDS);
+  for (const key of Object.keys(raw)) {
+    if (!allowed.has(key)) {
+      throw new KfsaContractViolationError("unknown_field", `KFSA response contains an unrecognized field "${key}" -- only the fields in ALLOWED_RESPONSE_FIELDS are accepted.`);
     }
+  }
+
+  const requiredBoundedIdentifiers = ["promotion_request_id", "status", "review_outcome", "evidence_status", "authority_status", "audit_event_id"] as const;
+  for (const field of requiredBoundedIdentifiers) {
+    if (!isBoundedNonEmptyString(raw[field], MAX_IDENTIFIER_LENGTH)) {
+      throw new KfsaContractViolationError("malformed_response", `KFSA response field "${field}" must be a non-empty string of at most ${MAX_IDENTIFIER_LENGTH} characters.`);
+    }
+  }
+
+  if (typeof raw.created_at !== "string" || raw.created_at.length === 0 || Number.isNaN(Date.parse(raw.created_at))) {
+    throw new KfsaContractViolationError("malformed_response", `KFSA response field "created_at" must be a non-empty, parseable timestamp.`);
   }
 
   if (!SUBMISSION_STATUSES.includes(raw.status as KfsaSubmissionStatus)) {
@@ -147,8 +210,11 @@ export function validateKfsaResponse(raw: unknown): KfsaPromotionResponseV1 {
     throw new KfsaContractViolationError("malformed_response", `KFSA response field "escalation_required" must be a boolean.`);
   }
 
-  if (!Array.isArray(raw.blocked_actions) || !raw.blocked_actions.every((v) => typeof v === "string")) {
-    throw new KfsaContractViolationError("malformed_response", `KFSA response field "blocked_actions" must be a string array.`);
+  if (!Array.isArray(raw.blocked_actions) || raw.blocked_actions.length > MAX_BLOCKED_ACTIONS_LENGTH || !raw.blocked_actions.every((v) => typeof v === "string" && v.length <= MAX_BLOCKED_ACTION_ITEM_LENGTH)) {
+    throw new KfsaContractViolationError(
+      "malformed_response",
+      `KFSA response field "blocked_actions" must be an array of at most ${MAX_BLOCKED_ACTIONS_LENGTH} strings, each at most ${MAX_BLOCKED_ACTION_ITEM_LENGTH} characters.`,
+    );
   }
 
   if (raw.formal_decision_created !== false) {
@@ -158,12 +224,12 @@ export function validateKfsaResponse(raw: unknown): KfsaPromotionResponseV1 {
     );
   }
 
-  if (!Array.isArray(raw.errors)) {
-    throw new KfsaContractViolationError("malformed_response", `KFSA response field "errors" must be an array.`);
+  if (!Array.isArray(raw.errors) || raw.errors.length > MAX_ERRORS_LENGTH) {
+    throw new KfsaContractViolationError("malformed_response", `KFSA response field "errors" must be an array of at most ${MAX_ERRORS_LENGTH} items.`);
   }
   for (const err of raw.errors) {
-    if (!isPlainObject(err) || typeof err.code !== "string" || typeof err.message !== "string") {
-      throw new KfsaContractViolationError("malformed_response", `KFSA response field "errors" must contain { code, message } objects.`);
+    if (!isPlainObject(err) || typeof err.code !== "string" || err.code.length > MAX_ERROR_FIELD_LENGTH || typeof err.message !== "string" || err.message.length > MAX_ERROR_FIELD_LENGTH) {
+      throw new KfsaContractViolationError("malformed_response", `KFSA response field "errors" must contain { code, message } objects with strings no longer than ${MAX_ERROR_FIELD_LENGTH} characters.`);
     }
   }
 
