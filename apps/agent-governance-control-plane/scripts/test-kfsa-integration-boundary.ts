@@ -26,7 +26,7 @@
  *   - no automatic ReviewOutcome -> KFSA vocabulary mapping (static scan)
  *   - production_approval_status is never touched by this integration (static scan)
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
@@ -117,70 +117,70 @@ function asClient(client: FakeSupabaseClient): SupabaseClient<Database> {
 async function run() {
   await test("boundary: a Promotion Request owned by a different organization is rejected as not found", async () => {
     const client = baseFixtures({ promotionRequestOrgId: OTHER_ORG_ID });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject a cross-tenant Promotion Request");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject a cross-tenant Promotion Request");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "promotion_request_not_found", "rejection reason");
   });
 
   await test("boundary: an unknown promotion_request_id is rejected as not found", async () => {
     const client = baseFixtures();
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: "no-such-id" }), "should reject an unknown id");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: "no-such-id" }), "should reject an unknown id");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "promotion_request_not_found", "rejection reason");
   });
 
   await test("boundary: a disabled source plugin installation is rejected", async () => {
     const client = baseFixtures({ installationState: "disabled" });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject a disabled installation");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject a disabled installation");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "source_plugin_not_installed", "rejection reason");
   });
 
   await test("boundary: a missing source plugin installation is rejected", async () => {
     const client = baseFixtures({ installationMissing: true });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject a missing installation");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject a missing installation");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "source_plugin_not_installed", "rejection reason");
   });
 
   await test("boundary: a source skill not owned by the source plugin is rejected", async () => {
     const client = baseFixtures({ skillPluginId: "some-other-plugin" });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject a mismatched skill");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject a mismatched skill");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "source_skill_invalid", "rejection reason");
   });
 
   await test("boundary: a source skill disabled for this installation is rejected", async () => {
     const client = baseFixtures({ skillPermissions: [{ plugin_installation_id: "inst-1", skill_id: SKILL_ID, enabled: false }] });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject a disabled skill");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject a disabled skill");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "source_skill_invalid", "rejection reason");
   });
 
   await test("boundary: an incomplete (non-completed) source run is rejected", async () => {
     const client = baseFixtures({ runStatus: "submitted" });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject an incomplete run");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject an incomplete run");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "source_run_not_completed", "rejection reason");
   });
 
   await test("boundary: a missing context snapshot is rejected", async () => {
     const client = baseFixtures({ snapshotOrgId: null });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject a missing snapshot");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject a missing snapshot");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "context_snapshot_missing", "rejection reason");
   });
 
   await test("boundary: a context snapshot owned by a different organization is rejected", async () => {
     const client = baseFixtures({ snapshotOrgId: OTHER_ORG_ID });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject a cross-tenant snapshot");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject a cross-tenant snapshot");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "context_snapshot_missing", "rejection reason");
   });
 
   await test("boundary: evidence_ids that do not resolve to this organization's evidence are rejected", async () => {
     const client = baseFixtures({ evidenceIds: [EVIDENCE_ID, "evidence-not-owned"] });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject unresolved evidence_ids");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject unresolved evidence_ids");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "evidence_mismatch", "rejection reason");
   });
@@ -205,7 +205,7 @@ async function run() {
         },
       ],
     });
-    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID }), "should reject correlation_id reuse for a different PR");
+    const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID }), "should reject correlation_id reuse for a different PR");
     assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
     assertEqual((error as KfsaSubmissionBoundaryError).reason, "correlation_conflict", "rejection reason");
   });
@@ -230,7 +230,7 @@ async function run() {
         },
       ],
     });
-    const outcome = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: PR_ID });
+    const outcome = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: PR_ID });
     assertEqual(outcome.kind, "replay", "outcome kind");
     if (outcome.kind === "replay") {
       assertEqual(outcome.evaluationResponse.external_promotion_request_id, "ext-existing", "the existing response must be returned unchanged");
@@ -273,6 +273,33 @@ async function run() {
     for (const relPath of filesToScan) {
       const content = readFileSync(path.join(root, relPath), "utf8");
       assert(!/production_approval_status\s*[:=]\s*true|approved_for_production\s*[:=]\s*true/.test(content), `${relPath} must never set a production-approval field to true`);
+    }
+  });
+
+  await test("boundary: lib/supabase/admin.ts is server-only and never imported from app/ or components/ code", () => {
+    const root = path.resolve(__dirname, "..");
+    const adminSource = readFileSync(path.join(root, "lib/supabase/admin.ts"), "utf8");
+    assert(adminSource.includes('import "server-only"'), "lib/supabase/admin.ts must import the server-only guard");
+    assert(/SUPABASE_SERVICE_ROLE_KEY/.test(adminSource), "sanity: this file should reference the env var name (it is the one place that legitimately does)");
+
+    function listFiles(dir: string, exts: string[]): string[] {
+      const full = path.join(root, dir);
+      if (!existsSync(full)) return [];
+      const out: string[] = [];
+      for (const entry of readdirSync(full, { withFileTypes: true })) {
+        const relPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) out.push(...listFiles(relPath, exts));
+        else if (exts.some((ext) => entry.name.endsWith(ext))) out.push(relPath);
+      }
+      return out;
+    }
+
+    for (const relPath of [...listFiles("app", [".ts", ".tsx"]), ...listFiles("components", [".ts", ".tsx"])]) {
+      const content = readFileSync(path.join(root, relPath), "utf8");
+      if (relPath === path.join("app", "api", "kfsa", "promotion-requests", "route.ts")) continue; // the one legitimate server-only caller
+      assert(!content.includes("lib/supabase/admin") && !content.includes("createSupabaseAdminClient"), `${relPath} must never import the service-role admin client`);
+      assert(!content.includes("kfsa-integration-admin-repository"), `${relPath} must never import the service-role admin repository`);
+      assert(!content.includes("SUPABASE_SERVICE_ROLE_KEY"), `${relPath} must never reference SUPABASE_SERVICE_ROLE_KEY`);
     }
   });
 

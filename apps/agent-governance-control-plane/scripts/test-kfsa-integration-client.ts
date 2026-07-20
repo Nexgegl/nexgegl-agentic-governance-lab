@@ -17,8 +17,11 @@
  *   - timeout -> KfsaClientError("timeout")
  *   - unauthorized (401) -> KfsaClientError("unauthorized")
  *   - KFSA-reported correlation conflict (409) -> KfsaClientError("correlation_conflict")
- *   - KFSA-reported tenant mismatch (422) -> KfsaClientError("tenant_mismatch")
- *   - generic non-2xx (500) -> KfsaClientError("rejected")
+ *   - a generic, unclassified 4xx such as 400 or 422 -> KfsaClientError("rejected"),
+ *     non-retryable (422 is deliberately *not* assumed to mean
+ *     tenant_mismatch -- that assumption was never verified against a
+ *     live KFSA Runtime Core and has been removed; see lib/kfsa/client.ts)
+ *   - 429 or any 5xx -> KfsaClientError("unavailable"), retryable
  *   - connection refused -> KfsaClientError("unavailable")
  *   - the request carries the configured API key as a bearer token and the
  *     correlation_id as an idempotency header, and never logs the API key
@@ -93,7 +96,23 @@ async function run() {
       assertEqual((error as KfsaClientError).code, "invalid_response", "error code");
     });
 
-    for (const field of ["decision_code", "official_decision", "official_verdict", "kfsa_verdict", "kfsa_decision_id", "kfsa_decision_code", "execution_authorization", "production_approval"]) {
+    for (const field of [
+      "decision_code",
+      "official_decision",
+      "official_verdict",
+      "kfsa_verdict",
+      "kfsa_decision_id",
+      "kfsa_decision_code",
+      "execution_authorization",
+      "production_approval",
+      "decision_id",
+      "decision",
+      "verdict",
+      "formal_verdict",
+      "decision_number",
+      "authorization",
+      "approval",
+    ]) {
       await test(`client: a response containing prohibited field "${field}" is rejected`, async () => {
         server.setHandler((_req, _body, res) => {
           res.writeHead(200, { "content-type": "application/json" });
@@ -104,6 +123,36 @@ async function run() {
         assertEqual((error as KfsaClientError).code, "invalid_response", "error code");
       });
     }
+
+    await test("client: a response containing an entirely unrecognized top-level field is rejected (strict allowlist, not silently dropped)", async () => {
+      server.setHandler((_req, _body, res) => {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(validKfsaResponseBody({ some_future_field_nobody_anticipated: "x" })));
+      });
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-unknown-field" })), "should reject an unrecognized field");
+      assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
+      assertEqual((error as KfsaClientError).code, "invalid_response", "error code");
+    });
+
+    await test("client: an empty-string identifier is rejected", async () => {
+      server.setHandler((_req, _body, res) => {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(validKfsaResponseBody({ promotion_request_id: "" })));
+      });
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-empty-id" })), "should reject an empty identifier");
+      assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
+      assertEqual((error as KfsaClientError).code, "invalid_response", "error code");
+    });
+
+    await test("client: a non-parseable created_at timestamp is rejected", async () => {
+      server.setHandler((_req, _body, res) => {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(validKfsaResponseBody({ created_at: "not-a-timestamp" })));
+      });
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-bad-timestamp" })), "should reject a malformed timestamp");
+      assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
+      assertEqual((error as KfsaClientError).code, "invalid_response", "error code");
+    });
 
     await test("client: a malformed (missing-field) response is rejected as invalid_response", async () => {
       server.setHandler((_req, _body, res) => {
@@ -157,24 +206,61 @@ async function run() {
       assertEqual((error as KfsaClientError).code, "correlation_conflict", "error code");
     });
 
-    await test("client: HTTP 422 raises a tenant_mismatch error", async () => {
+    await test("client: HTTP 422 raises a generic rejected error, not an assumed tenant_mismatch", async () => {
       server.setHandler((_req, _body, res) => {
         res.writeHead(422, { "content-type": "application/json" });
-        res.end(JSON.stringify({ error: "tenant mismatch" }));
+        res.end(JSON.stringify({ error: "unprocessable" }));
       });
-      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-422" })), "should raise tenant_mismatch");
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-422" })), "should raise rejected");
       assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
-      assertEqual((error as KfsaClientError).code, "tenant_mismatch", "error code");
+      assertEqual((error as KfsaClientError).code, "rejected", "error code");
     });
 
-    await test("client: HTTP 500 raises a generic rejected error", async () => {
+    await test("client: HTTP 400 raises a rejected error", async () => {
+      server.setHandler((_req, _body, res) => {
+        res.writeHead(400, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "bad request" }));
+      });
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-400" })), "should raise rejected");
+      assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
+      assertEqual((error as KfsaClientError).code, "rejected", "error code");
+    });
+
+    await test("client: HTTP 500 raises an unavailable (retryable) error", async () => {
       server.setHandler((_req, _body, res) => {
         res.writeHead(500, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "internal error" }));
       });
-      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-500" })), "should raise rejected");
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-500" })), "should raise unavailable");
       assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
-      assertEqual((error as KfsaClientError).code, "rejected", "error code");
+      assertEqual((error as KfsaClientError).code, "unavailable", "error code");
+    });
+
+    await test("client: HTTP 429 raises an unavailable (retryable) error", async () => {
+      server.setHandler((_req, _body, res) => {
+        res.writeHead(429, { "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "rate limited" }));
+      });
+      const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-429" })), "should raise unavailable");
+      assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
+      assertEqual((error as KfsaClientError).code, "unavailable", "error code");
+    });
+
+    await test("client: a response exceeding KFSA_RUNTIME_MAX_RESPONSE_BYTES is rejected as invalid_response", async () => {
+      const originalMax = process.env.KFSA_RUNTIME_MAX_RESPONSE_BYTES;
+      process.env.KFSA_RUNTIME_MAX_RESPONSE_BYTES = "50";
+      try {
+        server.setHandler((_req, _body, res) => {
+          res.writeHead(200, { "content-type": "application/json" });
+          res.end(JSON.stringify(validKfsaResponseBody({ audit_event_id: "x".repeat(500) })));
+        });
+        const error = await assertThrows(() => submitPromotionRequestToKfsa(baseRequest({ correlation_id: "corr-oversized" })), "should reject an oversized response");
+        assert(error instanceof KfsaClientError, "error should be a KfsaClientError");
+        assertEqual((error as KfsaClientError).code, "invalid_response", "error code");
+      } finally {
+        if (originalMax === undefined) delete process.env.KFSA_RUNTIME_MAX_RESPONSE_BYTES;
+        else process.env.KFSA_RUNTIME_MAX_RESPONSE_BYTES = originalMax;
+      }
     });
 
     await test("client: a connection that cannot be reached raises an unavailable error", async () => {

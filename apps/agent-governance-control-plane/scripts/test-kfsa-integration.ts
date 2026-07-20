@@ -1,13 +1,13 @@
 /**
  * npm run test:kfsa-integration
  *
- * Runs all four parts of the KFSA Promotion Request Integration test suite
- * and exits non-zero if any fails, mirroring test:plugin-governance's
+ * Runs all five parts of the KFSA Promotion Request Integration test
+ * suite and exits non-zero if any fails, mirroring test:plugin-governance's
  * structure:
  *
  *   - Part A (test-kfsa-integration-db.ts): real, disposable local
- *     Postgres -- the only place RLS/tenant-isolation/constraint claims
- *     for the three new tables are proven.
+ *     Postgres -- the only place RLS/tenant-isolation/direct-write-bypass/
+ *     referential-integrity claims for the three KFSA tables are proven.
  *   - Part B (test-kfsa-integration-boundary.ts): the real
  *     submitPromotionRequestForEvaluation ownership/verification logic
  *     against a fake in-memory Supabase client -- no network, no database.
@@ -17,10 +17,14 @@
  *   - Part D (test-kfsa-integration-e2e.ts): the full composed flow (fake
  *     Supabase client + the same mock HTTP server) for success/timeout/
  *     retry/replay/correlation-conflict behavior.
+ *   - Part E (test-kfsa-integration-concurrency.ts): the full composed
+ *     flow against *real* Postgres with genuine Promise.all concurrency --
+ *     the only place H-2 (a concurrent attempt-creation race) is proven
+ *     fixed against the real code path, not simulated.
  *
- * Parts B, C, and D import modules guarded by `import "server-only"`, so
- * each runs with NODE_OPTIONS=--conditions=react-server on its own child
- * process, exactly like test:plugin-governance's Part B.
+ * Parts B, C, D, and E import modules guarded by `import "server-only"`,
+ * so each runs with NODE_OPTIONS=--conditions=react-server on its own
+ * child process, exactly like test:plugin-governance's Part B.
  */
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -51,10 +55,15 @@ const clientExit = runScript("test-kfsa-integration-client.ts", REACT_SERVER_ENV
 console.log("\nRunning Part D (end-to-end tests, fake Supabase client + mock HTTP server)...");
 const e2eExit = runScript("test-kfsa-integration-e2e.ts", REACT_SERVER_ENV);
 
-if (dbExit !== 0 || boundaryExit !== 0 || clientExit !== 0 || e2eExit !== 0) {
-  console.error(`\ntest:kfsa-integration FAILED (Part A exit=${dbExit}, Part B exit=${boundaryExit}, Part C exit=${clientExit}, Part D exit=${e2eExit})`);
+console.log("\nRunning Part E (real-concurrency tests, real Postgres + mock HTTP server)...");
+const concurrencyExit = runScript("test-kfsa-integration-concurrency.ts", { ...REACT_SERVER_ENV, PLUGIN_GOVERNANCE_TEST_DB: process.env.KFSA_INTEGRATION_CONCURRENCY_TEST_DB ?? "kfsa_integration_concurrency_test" });
+
+if (dbExit !== 0 || boundaryExit !== 0 || clientExit !== 0 || e2eExit !== 0 || concurrencyExit !== 0) {
+  console.error(
+    `\ntest:kfsa-integration FAILED (Part A exit=${dbExit}, Part B exit=${boundaryExit}, Part C exit=${clientExit}, Part D exit=${e2eExit}, Part E exit=${concurrencyExit})`,
+  );
   process.exit(1);
 }
 
-console.log("\ntest:kfsa-integration: all checks passed (Part A + Part B + Part C + Part D).");
+console.log("\ntest:kfsa-integration: all checks passed (Part A + Part B + Part C + Part D + Part E).");
 process.exit(0);

@@ -108,7 +108,7 @@ async function run() {
           res.end(JSON.stringify(validKfsaResponseBody({ review_outcome: outcome, audit_event_id: `ext-audit-${outcome}` })));
         });
         const { client, promotionRequestId } = freshFixtures();
-        const outcomeResult = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId });
+        const outcomeResult = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId });
         assertEqual(outcomeResult.kind, "succeeded", "outcome kind");
         if (outcomeResult.kind === "succeeded") {
           assertEqual(outcomeResult.evaluationResponse.review_outcome, outcome, "persisted review_outcome");
@@ -128,7 +128,7 @@ async function run() {
           res.end(JSON.stringify(validKfsaResponseBody()));
         }, 2000);
       });
-      const firstOutcome = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId });
+      const firstOutcome = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId });
       assertEqual(firstOutcome.kind, "failed", "first outcome kind");
       if (firstOutcome.kind === "failed") {
         assertEqual(firstOutcome.errorCode, "timeout", "error code");
@@ -139,7 +139,7 @@ async function run() {
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify(validKfsaResponseBody()));
       });
-      const secondOutcome = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId });
+      const secondOutcome = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId });
       assertEqual(secondOutcome.kind, "succeeded", "second (retry) outcome kind");
 
       const allResponses = (await client.from("kfsa_evaluation_responses").select("*")).data as unknown[];
@@ -157,12 +157,12 @@ async function run() {
         res.writeHead(401, { "content-type": "application/json" });
         res.end(JSON.stringify({ error: "invalid credentials" }));
       });
-      const outcome = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId });
+      const outcome = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId });
       assertEqual(outcome.kind, "failed", "outcome kind");
       if (outcome.kind === "failed") {
         assertEqual(outcome.errorCode, "unauthorized", "error code");
         assertEqual(outcome.retryable, false, "unauthorized must not be retryable");
-        assert(!outcome.submissionAttempt.safe_error_message?.includes("test-kfsa-api-key"), "the stored safe_error_message must never contain the API key");
+        assert(!outcome.submissionAttempt?.safe_error_message?.includes("test-kfsa-api-key"), "the stored safe_error_message must never contain the API key");
       }
     });
 
@@ -172,7 +172,7 @@ async function run() {
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify({ status: "COMPLETED" }));
       });
-      const outcome = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId });
+      const outcome = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId });
       assertEqual(outcome.kind, "failed", "outcome kind");
       if (outcome.kind === "failed") {
         assertEqual(outcome.errorCode, "invalid_response", "error code");
@@ -190,11 +190,11 @@ async function run() {
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify(validKfsaResponseBody()));
       });
-      const first = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId });
+      const first = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId });
       assertEqual(first.kind, "succeeded", "first outcome kind");
       assertEqual(callCount, 1, "the first submission must call KFSA exactly once");
 
-      const second = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId });
+      const second = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId });
       assertEqual(second.kind, "replay", "second outcome kind");
       assertEqual(callCount, 1, "a duplicate submission against an already-succeeded Promotion Request must not call KFSA again");
     });
@@ -207,7 +207,7 @@ async function run() {
         res.writeHead(200, { "content-type": "application/json" });
         res.end(JSON.stringify(validKfsaResponseBody()));
       });
-      const first = await submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: prId1 });
+      const first = await submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: prId1 });
       assertEqual(first.kind, "succeeded", "first outcome kind");
 
       // A second Promotion Request in the same fake org, reusing the same correlation_id.
@@ -217,7 +217,7 @@ async function run() {
       const seeded = (await client.from("promotion_requests").select("*")).data as Record<string, unknown>[];
       client.seed("promotion_requests", [...seeded, { ...template, id: prId2, request_id: `req-${prId2}`, correlation_id: correlationId }]);
 
-      const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), { promotionRequestId: prId2 }), "should reject correlation_id reuse for a different Promotion Request");
+      const error = await assertThrows(() => submitPromotionRequestForEvaluation(asClient(client), asClient(client), { promotionRequestId: prId2 }), "should reject correlation_id reuse for a different Promotion Request");
       assert(error instanceof KfsaSubmissionBoundaryError, "error should be a KfsaSubmissionBoundaryError");
       assertEqual((error as KfsaSubmissionBoundaryError).reason, "correlation_conflict", "rejection reason");
       assertEqual(callCount, 1, "the rejected duplicate must never reach KFSA");
